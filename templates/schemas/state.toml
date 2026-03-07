@@ -1,12 +1,14 @@
 # Dominion State — Schema Template
-# Auto-maintained, tracks session position
+# Auto-maintained, tracks session position and pipeline state
 
 [meta]
-schema_version = 1
+schema_version = 2
 
 [position]
 phase = 0                           # 0 = init complete, no phase started
-step = "idle"                       # idle | discuss | explore | plan | execute | test | review | improve
+step = "idle"                       # idle | discuss | explore | plan | execute | test | review
+wave = 0                            # current wave number, 0 = not in execute
+current_task = ""                   # task id being executed, "" = none
 status = "ready"                    # ready | active | blocked | complete
 last_session = ""                   # date of last session
 
@@ -15,8 +17,23 @@ completed_at = ""                   # ISO 8601 timestamp
 cli_proven = false                  # proving ground passed
 validate_passed = false             # /dominion:validate passed
 
-# v0.2+ fields (not populated in v0.1)
-# [lock]
-# [blocker]
-# [outstanding]
-# [[decisions]]
+[lock]
+session_id = ""                     # set by /dominion:orchestrate, cleared on session end
+locked_at = ""                      # ISO 8601 timestamp
+expires_after_hours = 8             # auto-expire stale locks
+
+[blocker]
+task = ""                           # task id that raised the blocker
+level = ""                          # task | wave | phase | critical
+reason = ""                         # human-readable description
+
+[outstanding]
+deferred = []                       # items deferred for later
+
+[[decisions]]
+id = 0
+phase = 0
+task = ""
+agent = ""
+text = ""
+tags = []
