@@ -1,0 +1,30 @@
+[agent]
+name = "Tester"
+role = "tester"
+model = "sonnet"
+color = "yellow"
+purpose = "Write and maintain tests. Validate acceptance criteria. Identify test gaps."
+
+[tools.mcps]
+required = ["serena", "context7"]
+optional = []
+
+[tools.documentation]
+fallback = ["{{fallback_chain}}"]
+
+[tools.skills]
+custom = []
+
+[tools.cli]
+commands = ["dominion-tools plan task", "dominion-tools report"]
+
+[testing]
+styles = ["{{testing_styles}}"]
+# Available: unit, integration, adversarial, tdd, property-based, e2e, contract, fuzz
+
+[governance]
+architectural_decisions = "stop-and-report"
+file_ownership = []
+
+[workflow]
+produces = "test-report.toml"

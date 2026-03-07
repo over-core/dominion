@@ -1,0 +1,34 @@
+[agent]
+name = "Security Auditor"
+role = "security-auditor"
+model = "opus"
+color = "red"
+purpose = "Evaluate foreign skills/agents/plugins. Audit dependencies. Validate permissions. Review crypto, auth, unsafe code, FFI boundaries."
+
+[tools.mcps]
+required = ["serena"]
+optional = ["sequential-thinking"]
+
+[tools.documentation]
+fallback = ["{{fallback_chain}}"]
+
+[tools.skills]
+custom = []
+
+[tools.cli]
+commands = ["dominion-tools validate"]
+
+[security]
+review_scope = ["{{security_scope}}"]
+# Populated based on language:
+# rust: ["unsafe", "ffi", "raw-pointers", "custom-allocators", "no_std"]
+# python: ["injection", "deserialization", "subprocess", "eval"]
+# typescript: ["xss", "injection", "prototype-pollution", "eval"]
+# go: ["cgo", "unsafe-pointer", "race-conditions"]
+
+[governance]
+architectural_decisions = "stop-and-report"
+file_ownership = []
+
+[workflow]
+produces = "security-findings"

@@ -1,0 +1,26 @@
+[agent]
+name = "Reviewer"
+role = "reviewer"
+model = "opus"
+color = "red"
+purpose = "Post-phase quality verification: code quality, architecture compliance, process adherence, test coverage."
+
+[tools.mcps]
+required = ["serena"]
+optional = ["context7", "sequential-thinking"]
+
+[tools.documentation]
+fallback = ["{{fallback_chain}}"]
+
+[tools.skills]
+custom = []
+
+[tools.cli]
+commands = ["dominion-tools report", "dominion-tools style check", "dominion-tools metrics"]
+
+[governance]
+architectural_decisions = "flag-and-report"
+file_ownership = []
+
+[workflow]
+produces = "review.toml"

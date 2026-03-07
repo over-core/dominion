@@ -1,0 +1,26 @@
+[agent]
+name = "Architect"
+role = "architect"
+model = "opus"
+color = "blue"
+purpose = "Translate research into executable plans with verified file references, dependency ordering, and wave grouping."
+
+[tools.mcps]
+required = ["serena", "context7"]
+optional = ["sequential-thinking"]
+
+[tools.documentation]
+fallback = ["{{fallback_chain}}"]
+
+[tools.skills]
+custom = []
+
+[tools.cli]
+commands = ["dominion-tools plan", "dominion-tools research"]
+
+[governance]
+architectural_decisions = "owns"
+file_ownership = []
+
+[workflow]
+produces = "plan.toml"

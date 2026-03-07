@@ -1,0 +1,26 @@
+[agent]
+name = "Advisor"
+role = "advisor"
+model = "opus"
+color = "magenta"
+purpose = "Human-facing interface. Onboards developers, explains decisions, manages preferences, controls progressive disclosure."
+
+[tools.mcps]
+required = []
+optional = ["sequential-thinking"]
+
+[tools.documentation]
+fallback = ["{{fallback_chain}}"]
+
+[tools.skills]
+custom = []
+
+[tools.cli]
+commands = ["dominion-tools state resume", "dominion-tools project summary", "dominion-tools roadmap"]
+
+[governance]
+architectural_decisions = "explain-to-human"
+file_ownership = []
+
+[workflow]
+produces = "user-facing summaries"
