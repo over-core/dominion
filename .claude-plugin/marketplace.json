@@ -1,0 +1,18 @@
+{
+  "name": "dominion",
+  "description": "Your AI development team, generated from your codebase.",
+  "owner": {
+    "name": "over-core"
+  },
+  "plugins": [
+    {
+      "name": "dominion",
+      "description": "Analyzes your project and generates a complete AI development methodology: specialized agents, curated tools, governance rules, code conventions, and a CLI toolkit.",
+      "version": "0.1.0",
+      "source": "./",
+      "author": {
+        "name": "over-core"
+      }
+    }
+  ]
+}
