@@ -1,0 +1,17 @@
+# Design documents (not project files)
+DOMINION.md
+docs/
+
+# Worktrees (generated during execution)
+.worktrees/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
