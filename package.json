@@ -1,0 +1,16 @@
+{
+  "name": "dominion",
+  "version": "0.1.0",
+  "description": "Your AI development team, generated from your codebase.",
+  "author": "over-core",
+  "license": "MIT",
+  "claude_plugin": {
+    "name": "dominion",
+    "version": "0.1.0",
+    "description": "Analyzes your project and generates a complete AI development methodology: specialized agents, curated tools, governance rules, code conventions, and a CLI toolkit.",
+    "skills": [
+      "skills/init",
+      "skills/validate"
+    ]
+  }
+}
