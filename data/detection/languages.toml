@@ -1,0 +1,224 @@
+[meta]
+schema_version = 1
+# Levels: full = deep conventions, standard = solid detection + basic conventions, detected = detection only
+
+# === Full: Deep support ===
+
+[[languages]]
+name = "rust"
+level = "full"
+indicators = ["Cargo.toml"]
+file_extensions = [".rs"]
+package_managers = ["cargo"]
+formatters = ["rustfmt"]
+linters = ["clippy"]
+test_runners = ["cargo-test", "cargo-nextest"]
+lsp = ["rust-analyzer"]
+build_files = ["Cargo.toml", "Cargo.lock"]
+
+[languages.conventions]
+error_handling_options = [
+    { name = "thiserror+anyhow", description = "thiserror for libraries, anyhow for binaries", default = true },
+    { name = "custom", description = "Custom error types" },
+]
+async_runtime_options = [
+    { name = "tokio", default = true },
+    { name = "async-std" },
+    { name = "smol" },
+    { name = "none", description = "No async" },
+]
+edition_options = ["2021", "2024"]
+unwrap_policy_options = ["never", "test-only", "justified"]
+unsafe_policy = "security-auditor-review"
+doc_comment_options = ["all-public", "non-trivial", "none"]
+tracing_options = ["async-io", "all-public", "none"]
+
+[[languages]]
+name = "python"
+level = "full"
+indicators = ["pyproject.toml", "setup.py", "setup.cfg", "requirements.txt"]
+file_extensions = [".py"]
+package_managers = ["uv", "pip", "poetry", "pdm", "pipenv"]
+formatters = ["ruff format", "black", "autopep8"]
+linters = ["ruff check", "flake8", "pylint"]
+test_runners = ["pytest", "unittest"]
+type_checkers = ["pyrefly", "mypy", "pyright"]
+lsp = ["pylance", "pyright", "pylsp"]
+build_files = ["pyproject.toml", "setup.py", "setup.cfg"]
+
+[languages.conventions]
+type_hint_options = ["all-signatures", "public-only", "none"]
+string_format_options = [
+    { name = "f-strings", default = true },
+    { name = "format-method" },
+    { name = "percent" },
+]
+cli_framework_options = ["click+rich", "typer", "argparse"]
+docstring_style_options = ["google", "numpy", "sphinx"]
+
+[[languages]]
+name = "typescript"
+level = "full"
+indicators = ["tsconfig.json"]
+file_extensions = [".ts", ".tsx"]
+package_managers = ["npm", "pnpm", "yarn", "bun"]
+formatters = ["prettier", "biome"]
+linters = ["eslint", "biome"]
+test_runners = ["vitest", "jest", "playwright"]
+lsp = ["typescript-language-server"]
+build_files = ["package.json", "tsconfig.json"]
+
+[languages.conventions]
+strict_mode_options = [
+    { name = "strict", description = "strict: true in tsconfig", default = true },
+    { name = "relaxed" },
+]
+runtime_options = ["node", "deno", "bun"]
+module_system_options = ["esm", "commonjs"]
+
+[[languages]]
+name = "go"
+level = "full"
+indicators = ["go.mod"]
+file_extensions = [".go"]
+package_managers = ["go-modules"]
+formatters = ["gofmt", "goimports"]
+linters = ["golangci-lint", "staticcheck", "go-vet"]
+test_runners = ["go-test"]
+lsp = ["gopls"]
+build_files = ["go.mod", "go.sum"]
+
+[languages.conventions]
+error_handling = "explicit-returns"
+goroutine_policy_options = ["structured", "liberal"]
+interface_style_options = ["accept-interfaces-return-structs", "minimal"]
+
+# === Standard: Solid support ===
+
+[[languages]]
+name = "java"
+level = "standard"
+indicators = ["pom.xml", "build.gradle", "build.gradle.kts"]
+file_extensions = [".java"]
+package_managers = ["maven", "gradle"]
+formatters = ["google-java-format", "spotless"]
+linters = ["checkstyle", "spotbugs", "pmd"]
+test_runners = ["junit5", "testng"]
+lsp = ["jdtls"]
+build_files = ["pom.xml", "build.gradle", "build.gradle.kts"]
+
+[[languages]]
+name = "kotlin"
+level = "standard"
+indicators = ["build.gradle.kts", "*.kt"]
+file_extensions = [".kt", ".kts"]
+package_managers = ["gradle", "maven"]
+formatters = ["ktlint", "ktfmt"]
+linters = ["detekt", "ktlint"]
+test_runners = ["junit5", "kotest"]
+lsp = ["kotlin-language-server"]
+build_files = ["build.gradle.kts"]
+
+[[languages]]
+name = "csharp"
+level = "standard"
+indicators = ["*.csproj", "*.sln"]
+file_extensions = [".cs"]
+package_managers = ["nuget", "dotnet"]
+formatters = ["dotnet-format", "csharpier"]
+linters = ["roslyn-analyzers"]
+test_runners = ["xunit", "nunit", "mstest"]
+lsp = ["omnisharp", "csharp-ls"]
+build_files = ["*.csproj", "*.sln", "Directory.Build.props"]
+
+[[languages]]
+name = "ruby"
+level = "standard"
+indicators = ["Gemfile", "*.gemspec"]
+file_extensions = [".rb"]
+package_managers = ["bundler", "gem"]
+formatters = ["rubocop"]
+linters = ["rubocop", "reek"]
+test_runners = ["rspec", "minitest"]
+lsp = ["solargraph", "ruby-lsp"]
+build_files = ["Gemfile", "Gemfile.lock"]
+
+[[languages]]
+name = "php"
+level = "standard"
+indicators = ["composer.json"]
+file_extensions = [".php"]
+package_managers = ["composer"]
+formatters = ["php-cs-fixer", "pint"]
+linters = ["phpstan", "psalm", "phpcs"]
+test_runners = ["phpunit", "pest"]
+lsp = ["intelephense", "phpactor"]
+build_files = ["composer.json", "composer.lock"]
+
+# === Detected: Detection only (no conventions, user provides) ===
+
+[[languages]]
+name = "c"
+level = "detected"
+indicators = ["CMakeLists.txt", "Makefile", "*.c"]
+file_extensions = [".c", ".h"]
+
+[[languages]]
+name = "cpp"
+level = "detected"
+indicators = ["CMakeLists.txt", "*.cpp", "*.cc"]
+file_extensions = [".cpp", ".cc", ".cxx", ".hpp", ".hh", ".h"]
+
+[[languages]]
+name = "swift"
+level = "detected"
+indicators = ["Package.swift", "*.xcodeproj"]
+file_extensions = [".swift"]
+
+[[languages]]
+name = "scala"
+level = "detected"
+indicators = ["build.sbt", "*.scala"]
+file_extensions = [".scala", ".sc"]
+
+[[languages]]
+name = "elixir"
+level = "detected"
+indicators = ["mix.exs"]
+file_extensions = [".ex", ".exs"]
+
+[[languages]]
+name = "dart"
+level = "detected"
+indicators = ["pubspec.yaml"]
+file_extensions = [".dart"]
+
+[[languages]]
+name = "zig"
+level = "detected"
+indicators = ["build.zig"]
+file_extensions = [".zig"]
+
+[[languages]]
+name = "lua"
+level = "detected"
+indicators = ["*.lua", "init.lua"]
+file_extensions = [".lua"]
+
+[[languages]]
+name = "haskell"
+level = "detected"
+indicators = ["*.cabal", "stack.yaml"]
+file_extensions = [".hs"]
+
+[[languages]]
+name = "ocaml"
+level = "detected"
+indicators = ["dune-project", "*.opam"]
+file_extensions = [".ml", ".mli"]
+
+[[languages]]
+name = "nim"
+level = "detected"
+indicators = ["*.nimble"]
+file_extensions = [".nim"]

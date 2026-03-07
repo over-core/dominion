@@ -1,0 +1,39 @@
+# Dominion Research — Schema Template
+# Researcher output, structured findings per phase
+
+[meta]
+schema_version = 1
+phase = 0
+
+[[findings]]
+id = ""                             # F1, F2, ...
+severity = ""                       # high | medium | low
+category = ""                       # architecture | dependency | performance | security | testing
+title = ""
+description = ""
+evidence = []                       # file:line references
+recommendation = ""
+confidence = ""                     # confirmed | supported | inferred (speculative items go to assumptions, not findings)
+specialist_referral = ""            # role name if needs deeper specialist review, empty otherwise
+method = ""                         # which research method produced this finding
+
+[[opportunities]]
+id = ""                             # O1, O2, ...
+title = ""
+benefit = ""
+effort = ""                         # low | medium | high
+
+[[assumptions]]
+id = ""                             # A1, A2, ...
+text = ""
+risk = ""                           # low | medium | high
+status = "unverified"               # unverified | verified | false
+verified_by = ""                    # how it was verified (test, docs, manual check)
+verified_at = ""                    # ISO 8601 timestamp
+evidence_grade = ""                 # confirmed | supported | inferred | speculative
+
+# Role proposals (detected during explore, suggested during improve)
+[[role_proposals]]
+role = ""                           # role name from roles.toml
+trigger = ""                        # what triggered the detection
+confidence = ""                     # high | medium | low

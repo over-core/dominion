@@ -1,0 +1,147 @@
+[meta]
+schema_version = 1
+
+# === Containerization ===
+
+[[infrastructure]]
+name = "docker"
+category = "containerization"
+detection = { files = ["Dockerfile", "docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml"] }
+activates_role = "devops"
+
+[[infrastructure]]
+name = "podman"
+category = "containerization"
+detection = { files = ["Containerfile"] }
+activates_role = "devops"
+
+# === CI/CD ===
+
+[[infrastructure]]
+name = "github-actions"
+category = "ci"
+detection = { directories = [".github/workflows"] }
+activates_role = "devops"
+vcs_platform = "github"
+
+[[infrastructure]]
+name = "gitlab-ci"
+category = "ci"
+detection = { files = [".gitlab-ci.yml"] }
+activates_role = "devops"
+vcs_platform = "gitlab"
+
+[[infrastructure]]
+name = "circleci"
+category = "ci"
+detection = { files = [".circleci/config.yml"] }
+activates_role = "devops"
+
+[[infrastructure]]
+name = "jenkins"
+category = "ci"
+detection = { files = ["Jenkinsfile"] }
+activates_role = "devops"
+
+# === Cloud / IaC ===
+
+[[infrastructure]]
+name = "terraform"
+category = "cloud"
+detection = { file_extensions = [".tf"], files = ["main.tf", "terraform.tfvars"] }
+activates_role = "cloud-engineer"
+
+[[infrastructure]]
+name = "pulumi"
+category = "cloud"
+detection = { files = ["Pulumi.yaml"] }
+activates_role = "cloud-engineer"
+
+[[infrastructure]]
+name = "cdk"
+category = "cloud"
+detection = { files = ["cdk.json"] }
+activates_role = "cloud-engineer"
+
+[[infrastructure]]
+name = "kubernetes"
+category = "orchestration"
+detection = { files = ["k8s/", "kubernetes/", "*.yaml"], patterns = ["kind: Deployment", "kind: Service"] }
+activates_role = "devops"
+
+[[infrastructure]]
+name = "helm"
+category = "orchestration"
+detection = { files = ["Chart.yaml"] }
+activates_role = "devops"
+
+# === Databases ===
+
+[[infrastructure]]
+name = "postgresql"
+category = "database"
+detection = { patterns = ["postgres", "postgresql", "pg_"] }
+activates_role = "database-engineer"
+
+[[infrastructure]]
+name = "mysql"
+category = "database"
+detection = { patterns = ["mysql", "mariadb"] }
+activates_role = "database-engineer"
+
+[[infrastructure]]
+name = "sqlite"
+category = "database"
+detection = { patterns = ["sqlite", "rusqlite"] }
+activates_role = "database-engineer"
+
+[[infrastructure]]
+name = "mongodb"
+category = "database"
+detection = { patterns = ["mongodb", "mongoose", "mongoc"] }
+activates_role = "database-engineer"
+
+[[infrastructure]]
+name = "redis"
+category = "database"
+detection = { patterns = ["redis"] }
+
+# === Monitoring / Observability ===
+
+[[infrastructure]]
+name = "prometheus"
+category = "observability"
+detection = { files = ["prometheus.yml"], patterns = ["prometheus"] }
+activates_role = "observability-engineer"
+
+[[infrastructure]]
+name = "grafana"
+category = "observability"
+detection = { patterns = ["grafana"] }
+activates_role = "observability-engineer"
+
+[[infrastructure]]
+name = "opentelemetry"
+category = "observability"
+detection = { patterns = ["opentelemetry", "otel"] }
+activates_role = "observability-engineer"
+
+# === API Specs ===
+
+[[infrastructure]]
+name = "openapi"
+category = "api"
+detection = { files = ["openapi.yaml", "openapi.json", "swagger.yaml", "swagger.json"] }
+activates_role = "api-designer"
+
+[[infrastructure]]
+name = "grpc"
+category = "api"
+detection = { file_extensions = [".proto"], files = ["buf.yaml"] }
+activates_role = "api-designer"
+
+[[infrastructure]]
+name = "graphql"
+category = "api"
+detection = { file_extensions = [".graphql", ".gql"], files = ["schema.graphql"] }
+activates_role = "api-designer"

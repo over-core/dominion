@@ -1,0 +1,161 @@
+[meta]
+schema_version = 1
+last_updated = "2026-03-07"
+
+# === MCPs ===
+
+[mcps.context7]
+tier = "required"
+critical = false
+category = "documentation"
+rating = 4.8
+platforms = ["linux", "macos", "windows"]
+agent_affinity = ["Researcher", "Architect", "Developer", "Reviewer"]
+install_command = "claude mcp add context7 -- npx -y @upstash/context7-mcp@latest"
+notes = "Must call resolve-library-id before query-docs."
+missing_consequence = "Agents rely on WebFetch for docs — slower, less reliable, higher token cost"
+safe_read_tools = [
+    "mcp__context7__resolve-library-id",
+    "mcp__context7__query-docs",
+]
+
+[mcps.serena]
+tier = "required"
+critical = true
+category = "code-navigation"
+rating = 4.5
+platforms = ["linux", "macos", "windows"]
+agent_affinity = ["Researcher", "Architect", "Developer", "Reviewer"]
+install_command = "See https://github.com/serena-ai/serena for setup"
+notes = "Needs project activation. Configure with detected LSPs (rust-analyzer, Pyright, etc.)"
+missing_consequence = "Agents fall back to Grep/Glob for code navigation — much less effective for large codebases"
+safe_read_tools = [
+    "mcp__serena__get_symbols_overview",
+    "mcp__serena__find_symbol",
+    "mcp__serena__find_referencing_symbols",
+    "mcp__serena__find_file",
+    "mcp__serena__list_dir",
+    "mcp__serena__search_for_pattern",
+    "mcp__serena__activate_project",
+    "mcp__serena__read_memory",
+    "mcp__serena__list_memories",
+    "mcp__serena__get_current_config",
+    "mcp__serena__check_onboarding_performed",
+]
+
+[mcps.serena.lsp_config]
+rust = "rust-analyzer"
+python = ["pylance", "pyright"]
+typescript = "typescript-language-server"
+go = "gopls"
+java = "jdtls"
+kotlin = "kotlin-language-server"
+csharp = ["omnisharp", "csharp-ls"]
+ruby = ["ruby-lsp", "solargraph"]
+php = ["intelephense", "phpactor"]
+
+[mcps.sequential-thinking]
+tier = "recommended"
+critical = false
+category = "reasoning"
+rating = 4.7
+platforms = ["linux", "macos", "windows"]
+agent_affinity = ["Researcher", "Architect", "Security Auditor"]
+install_command = "claude mcp add sequential-thinking -- npx -y @anthropic/sequential-thinking-mcp"
+notes = "Improves multi-step reasoning for complex analysis tasks"
+missing_consequence = "No impact on basic tasks. Complex research/architecture may be less thorough"
+safe_read_tools = [
+    "mcp__sequential-thinking__sequentialthinking",
+]
+
+[mcps.github]
+tier = "recommended"
+critical = false
+category = "vcs"
+rating = 4.6
+platforms = ["linux", "macos", "windows"]
+agent_affinity = ["Developer", "Reviewer", "Release Manager"]
+install_command = "claude mcp add github -- npx -y @anthropic/github-mcp"
+when = "github-actions detected OR .git/config contains github.com"
+notes = "PR management, issue tracking, code review integration"
+missing_consequence = "Agents use gh CLI fallback for GitHub operations"
+safe_read_tools = [
+    "mcp__plugin_github_github__get_file_contents",
+    "mcp__plugin_github_github__list_issues",
+    "mcp__plugin_github_github__list_pull_requests",
+    "mcp__plugin_github_github__search_code",
+    "mcp__plugin_github_github__get_commit",
+    "mcp__plugin_github_github__list_commits",
+    "mcp__plugin_github_github__list_branches",
+    "mcp__plugin_github_github__get_me",
+]
+
+[mcps.gitlab]
+tier = "recommended"
+critical = false
+category = "vcs"
+rating = 4.3
+platforms = ["linux", "macos", "windows"]
+agent_affinity = ["Developer", "Reviewer", "Release Manager"]
+install_command = "claude mcp add gitlab -- npx -y @anthropic/gitlab-mcp"
+when = "gitlab-ci detected OR .git/config contains gitlab"
+notes = "MR management, issue tracking, pipeline status"
+missing_consequence = "Agents use glab CLI fallback for GitLab operations"
+safe_read_tools = []
+# Note: gitlab MCP tool names vary by installation — cannot hardcode
+
+[mcps.echovault]
+tier = "required"
+critical = false
+category = "memory"
+rating = 4.8
+platforms = ["linux", "macos"]
+agent_affinity = ["all"]
+install_command = "pip install git+https://github.com/mraza007/echovault.git && memory init && memory setup claude-code"
+notes = "Cross-agent persistent memory. All agents save decisions/bugs/patterns during work, search prior context before acting. Returns ~50-token summaries — minimal context window cost vs reading full knowledge files."
+missing_consequence = "Agents lose cross-session memory. Each session starts from zero. Developer agents in waves cannot access gotchas from prior waves or phases."
+safe_read_tools = [
+    "mcp__echovault__memory_search",
+    "mcp__echovault__memory_context",
+]
+
+# === Plugins ===
+
+[plugins.superpowers]
+category = "methodology"
+rating = 4.6
+compatible_with_dominion = true
+notes = "Brainstorming, writing-plans, systematic-debugging, TDD skills complement Dominion agents"
+recommended_skills = ["brainstorming", "writing-plans", "systematic-debugging"]
+
+[plugins.hookify]
+category = "governance"
+rating = 4.8
+compatible_with_dominion = true
+required = true
+install_command = "/plugin marketplace install hookify"
+notes = "Required for hook creation. Provides declarative rule format with pattern matching via /hookify:writing-rules. Without it, Dominion cannot generate governance hooks during init or create hooks via /dominion:improve."
+
+[plugins.skill-creator]
+category = "development"
+rating = 4.8
+compatible_with_dominion = true
+required = true
+install_command = "/plugin marketplace install skill-creator"
+notes = "Required for skill creation. Provides eval-driven authoring with test runs, grading, and description optimization via /skill-creator. Without it, Dominion cannot create quality-validated skills via /dominion:improve --skill."
+
+[plugins.gsd]
+category = "methodology"
+rating = 3.2
+compatible_with_dominion = "partial"
+conflicts = ["GSD subagents lack MCP access — Dominion agents spawned via claude --agent have full MCP"]
+notes = "Can coexist if GSD orchestration is not used. Individual GSD skills may still be useful"
+
+# === LSPs ===
+
+[lsps.rust-analyzer]
+languages = ["rust"]
+tier = "recommended"
+plugin_name = "rust-analyzer-lsp"
+notes = "Enhances serena symbol analysis for Rust codebases"
+install_command = "claude plugin add rust-analyzer-lsp"

@@ -1,0 +1,222 @@
+[meta]
+schema_version = 1
+
+# === Web Frameworks ===
+
+[[frameworks]]
+name = "actix-web"
+language = "rust"
+category = "web"
+detection = { cargo_dep = "actix-web" }
+conventions = { async = true, handler_style = "extractors" }
+
+[[frameworks]]
+name = "axum"
+language = "rust"
+category = "web"
+detection = { cargo_dep = "axum" }
+conventions = { async = true, handler_style = "extractors" }
+
+[[frameworks]]
+name = "rocket"
+language = "rust"
+category = "web"
+detection = { cargo_dep = "rocket" }
+
+[[frameworks]]
+name = "fastapi"
+language = "python"
+category = "web"
+detection = { pyproject_dep = "fastapi" }
+conventions = { async = true, type_hints = "required" }
+
+[[frameworks]]
+name = "django"
+language = "python"
+category = "web"
+detection = { pyproject_dep = "django", files = ["manage.py"] }
+conventions = { orm = true, migrations = true }
+
+[[frameworks]]
+name = "flask"
+language = "python"
+category = "web"
+detection = { pyproject_dep = "flask" }
+
+[[frameworks]]
+name = "nextjs"
+language = "typescript"
+category = "web"
+detection = { npm_dep = "next", files = ["next.config.js", "next.config.ts", "next.config.mjs"] }
+conventions = { ssr = true, file_routing = true }
+
+[[frameworks]]
+name = "react"
+language = "typescript"
+category = "web"
+detection = { npm_dep = "react" }
+
+[[frameworks]]
+name = "vue"
+language = "typescript"
+category = "web"
+detection = { npm_dep = "vue", files = ["vue.config.js", "nuxt.config.ts"] }
+
+[[frameworks]]
+name = "svelte"
+language = "typescript"
+category = "web"
+detection = { npm_dep = "svelte", files = ["svelte.config.js"] }
+
+[[frameworks]]
+name = "express"
+language = "typescript"
+category = "web"
+detection = { npm_dep = "express" }
+
+[[frameworks]]
+name = "nestjs"
+language = "typescript"
+category = "web"
+detection = { npm_dep = "@nestjs/core" }
+conventions = { decorators = true, dependency_injection = true }
+
+[[frameworks]]
+name = "gin"
+language = "go"
+category = "web"
+detection = { go_dep = "github.com/gin-gonic/gin" }
+
+[[frameworks]]
+name = "echo"
+language = "go"
+category = "web"
+detection = { go_dep = "github.com/labstack/echo" }
+
+[[frameworks]]
+name = "spring-boot"
+language = "java"
+category = "web"
+detection = { maven_dep = "org.springframework.boot", gradle_dep = "org.springframework.boot" }
+conventions = { annotations = true, dependency_injection = true }
+
+[[frameworks]]
+name = "rails"
+language = "ruby"
+category = "web"
+detection = { gem_dep = "rails", files = ["config/routes.rb"] }
+conventions = { orm = "activerecord", mvc = true, migrations = true }
+
+[[frameworks]]
+name = "laravel"
+language = "php"
+category = "web"
+detection = { composer_dep = "laravel/framework", files = ["artisan"] }
+conventions = { orm = "eloquent", mvc = true, migrations = true }
+
+# === ORM / Database ===
+
+[[frameworks]]
+name = "sqlx"
+language = "rust"
+category = "database"
+detection = { cargo_dep = "sqlx" }
+conventions = { compile_time_checked = true }
+
+[[frameworks]]
+name = "diesel"
+language = "rust"
+category = "database"
+detection = { cargo_dep = "diesel" }
+
+[[frameworks]]
+name = "sea-orm"
+language = "rust"
+category = "database"
+detection = { cargo_dep = "sea-orm" }
+
+[[frameworks]]
+name = "sqlalchemy"
+language = "python"
+category = "database"
+detection = { pyproject_dep = "sqlalchemy" }
+
+[[frameworks]]
+name = "prisma"
+language = "typescript"
+category = "database"
+detection = { npm_dep = "@prisma/client", files = ["prisma/schema.prisma"] }
+
+[[frameworks]]
+name = "drizzle"
+language = "typescript"
+category = "database"
+detection = { npm_dep = "drizzle-orm" }
+
+[[frameworks]]
+name = "gorm"
+language = "go"
+category = "database"
+detection = { go_dep = "gorm.io/gorm" }
+
+# === Testing ===
+
+[[frameworks]]
+name = "tokio-test"
+language = "rust"
+category = "testing"
+detection = { cargo_dep = "tokio", cargo_dev_dep = "tokio" }
+
+[[frameworks]]
+name = "proptest"
+language = "rust"
+category = "testing"
+detection = { cargo_dev_dep = "proptest" }
+conventions = { property_based = true }
+
+[[frameworks]]
+name = "hypothesis"
+language = "python"
+category = "testing"
+detection = { pyproject_dep = "hypothesis" }
+conventions = { property_based = true }
+
+[[frameworks]]
+name = "playwright"
+language = "typescript"
+category = "testing"
+detection = { npm_dep = "@playwright/test" }
+conventions = { e2e = true }
+
+[[frameworks]]
+name = "cypress"
+language = "typescript"
+category = "testing"
+detection = { npm_dep = "cypress" }
+conventions = { e2e = true }
+
+# === CLI ===
+
+[[frameworks]]
+name = "clap"
+language = "rust"
+category = "cli"
+detection = { cargo_dep = "clap" }
+
+[[frameworks]]
+name = "click"
+language = "python"
+category = "cli"
+detection = { pyproject_dep = "click" }
+
+[[frameworks]]
+name = "typer"
+language = "python"
+category = "cli"
+detection = { pyproject_dep = "typer" }
+
+[[frameworks]]
+name = "commander"
+language = "typescript"
+category = "cli"
+detection = { npm_dep = "commander" }

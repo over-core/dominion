@@ -1,0 +1,15 @@
+# Dominion Knowledge Index — Schema Template
+# Controls what gets promoted to MEMORY.md hot cache
+
+[meta]
+schema_version = 1
+last_synced = ""                    # ISO 8601 timestamp
+memory_budget_lines = 200
+
+[[entries]]
+file = ""                           # knowledge file name (relative to .dominion/knowledge/)
+hot = true                          # include in MEMORY.md
+priority = 1                        # ordering within hot cache (lower = higher priority)
+summary = ""                        # condensed version for MEMORY.md
+tags = []                           # topic tags for filtering
+source_phase = 0                    # phase that created this entry

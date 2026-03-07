@@ -1,0 +1,1405 @@
+[meta]
+spec_version = "0.9"
+minimum_commands = [
+    "validate", "state resume", "state position", "state update", "state decisions", "state blockers", "state checkpoint", "state decision", "state defer", "state deferred",
+    "agents list", "agents show", "agents generate",
+    "knowledge sync", "knowledge search", "project summary",
+    "signal blocker", "signal warning", "signal list", "signal resolve",
+    "plan task", "plan wave", "plan deps", "plan handoff", "plan index", "plan validate",
+    "phase init", "phase status", "phase progress",
+    "wave create", "wave status", "wave merge",
+    "research findings", "research finding", "research opportunities", "research summary",
+    "report create", "report finalize",
+    "backlog add", "backlog list", "backlog suggest",
+    "rollback", "history",
+    "improve list", "improve show", "improve update", "metrics show", "metrics trends",
+    "auto readiness", "auto decisions", "auto start", "auto stop", "auto log",
+    "zone check",
+    "profile show", "profile set", "profile tick", "claim status",
+    "release prepare", "release publish", "release status",
+    "doc generate", "doc show",
+    "roadmap show", "roadmap phases", "style check",
+    "security scan", "security findings", "security finding", "security track",
+    "metrics baseline",
+    "data get", "data set",
+]
+
+# === Validation ===
+
+[[commands]]
+name = "validate"
+description = "Check config integrity, agent consistency, CLI completeness"
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [
+    ".dominion/dominion.toml",
+    ".dominion/state.toml",
+    ".dominion/style.toml",
+    ".dominion/agents/*.toml",
+    ".claude/agents/*.md",
+    ".claude/settings.json",
+    ".dominion/specs/cli-spec.toml",
+    "AGENTS.md",
+]
+behavior = """
+Perform these checks in order, report pass/fail for each:
+1. All TOML files in .dominion/ parse without errors
+2. Every .dominion/agents/*.toml has a matching .claude/agents/*.md
+3. Agent .md files contain the expected Dominion header comment
+4. AGENTS.md exists and lists all agents from .dominion/agents/
+5. settings.json exists and contains Dominion CLI permission (Bash(dominion-cli *))
+6. settings.json contains MCP permissions for all 'required' MCPs in agent configs
+7. CLI implements all commands listed in cli-spec.toml minimum_commands
+8. dominion.toml [documentation.fallback] section exists and has stop-and-ask terminal
+9. CLI spec version >= 0.2, all v0.2 minimum_commands implemented
+10. If active phase, .dominion/phases/{N}/ exists with expected TOML files for completed steps
+11. .dominion/signals/ exists, blocker signals reference valid tasks, no orphaned signals
+
+Output format:
+  dominion validate
+    [PASS] TOML integrity
+    [PASS] Agent TOML-MD consistency (8/8)
+    [PASS] Agent MD headers
+    [PASS] AGENTS.md roster complete
+    [PASS] settings.json permissions
+    [WARN] MCP permissions — missing: sequential-thinking (optional)
+    [PASS] CLI completeness (N/N commands)
+    [PASS] Documentation fallback chain
+    [PASS] CLI spec version (0.2)
+    [PASS] Phase directory structure
+    [PASS] Signal directory clean
+
+    N passed, N warnings, N failed
+
+With --json:
+  {"checks": [
+    {"name": "toml_integrity", "status": "pass", "detail": "All TOML files parse"},
+    {"name": "agent_consistency", "status": "pass", "detail": "8/8 matched"}
+  ], "summary": {"passed": 11, "warnings": 1, "failed": 0}}
+"""
+
+# === State ===
+
+[[commands]]
+name = "state resume"
+description = "Display current position for session start"
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/state.toml", ".dominion/roadmap.toml"]
+behavior = """
+Read state.toml position. Format as:
+  Phase N, Step S. Status: STATUS.
+  Last session: DATE.
+
+If phase = 0:
+  Dominion initialized. No active phase.
+  CLI: dominion-cli (N commands, all passing)
+  Agents: N core, all configured
+"""
+
+[[commands]]
+name = "state position"
+description = "Show current position in compact form"
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/state.toml"]
+behavior = """
+Single-line output:
+  Phase N | Step: S | Wave: W | Status: STATUS
+
+With --json:
+  {"phase": 2, "step": "plan", "wave": 1, "status": "active"}
+"""
+
+[[commands]]
+name = "state update"
+description = "Update pipeline position"
+args = [
+    { name = "--phase", description = "Set phase number", optional = true },
+    { name = "--step", description = "Set step (discuss|explore|plan|execute|test|review)", optional = true },
+    { name = "--wave", description = "Set current wave number", optional = true },
+    { name = "--status", description = "Set status (ready|active|blocked|complete)", optional = true },
+]
+reads = [".dominion/state.toml"]
+writes = [".dominion/state.toml"]
+behavior = """
+Update position fields in state.toml. Only update fields that are provided.
+Validate step is one of: idle, discuss, explore, plan, execute, test, review.
+Validate status is one of: ready, active, blocked, complete.
+"""
+
+[[commands]]
+name = "state decisions"
+description = "Search decisions log"
+args = [
+    { name = "--tags", description = "Filter by tag", optional = true },
+    { name = "--phase", description = "Filter by phase number", optional = true },
+]
+reads = [".dominion/state.toml"]
+behavior = """
+Read [[decisions]] from state.toml. Filter by tags or phase if provided.
+Format as numbered list with phase, task, agent, text, and tags.
+"""
+
+[[commands]]
+name = "state blockers"
+description = "List active blockers"
+args = []
+reads = [".dominion/state.toml", ".dominion/signals/"]
+behavior = """
+Read [blocker] from state.toml and any signal files in .dominion/signals/.
+Format as list with task, level, and reason.
+"""
+
+[[commands]]
+name = "state checkpoint"
+description = "Checkpoint current session state on session end"
+args = []
+reads = [".dominion/state.toml"]
+writes = [".dominion/state.toml"]
+behavior = """
+1. Read state.toml
+2. Compute session delta: git log since position.last_session
+3. Update position.last_session to current ISO 8601 timestamp
+4. If lock.session_id matches current session: clear lock
+5. If position.status = "active" and no in-progress work detected: set status = "ready"
+6. Print: "Session checkpointed. {N} commits this session."
+"""
+
+[[commands]]
+name = "state decision"
+description = "Record a significant decision during task execution"
+args = [
+    { name = "--task", description = "Task ID context", required = true },
+    { name = "--text", description = "Decision description", required = true },
+    { name = "--tags", description = "Comma-separated tags (e.g. architecture,trade-off)", optional = true },
+]
+reads = [".dominion/state.toml"]
+writes = [".dominion/state.toml"]
+behavior = """
+Append a new entry to [[decisions]] in state.toml.
+Auto-assign id (max existing id + 1).
+Set phase from current position.phase.
+Set agent from current session context.
+Parse --tags as comma-separated list into tags array.
+Print: "Decision D{id} recorded for task {task}."
+"""
+
+[[commands]]
+name = "state defer"
+description = "Park an out-of-scope item for later discussion"
+args = [
+    { name = "--text", description = "Description of the deferred item", required = true },
+]
+reads = [".dominion/state.toml"]
+writes = [".dominion/state.toml"]
+behavior = """
+Append --text value to [outstanding].deferred array in state.toml.
+Print: "Deferred: {text}. Will surface in next /dominion:discuss."
+"""
+
+[[commands]]
+name = "state deferred"
+description = "List deferred items from [outstanding]"
+args = []
+reads = [".dominion/state.toml"]
+behavior = """
+Read [outstanding].deferred from state.toml.
+If empty: "No deferred items."
+Otherwise: display as numbered list.
+"""
+
+# === Agents ===
+
+[[commands]]
+name = "agents list"
+description = "List active agents with role, model, and purpose"
+args = [
+    { name = "--available", description = "Show all roles including inactive specialized roles", optional = true },
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/agents/*.toml"]
+behavior = """
+Read all .toml files in .dominion/agents/. Format as table:
+
+  Agent             Model    Purpose
+  Researcher        opus     Deep codebase and ecosystem analysis
+  Architect         opus     Translate research into executable plans
+  Developer         sonnet   Implement plan tasks with atomic commits
+  Tester            sonnet   Write tests, validate acceptance criteria
+  Reviewer          opus     Post-phase quality verification
+  Advisor           opus     Human-facing interface, onboarding
+  Security Auditor  opus     Security review, dependency audit
+  Secretary         sonnet   System maintenance, artifact generation
+
+With --available: also list specialized roles from a hardcoded list,
+marking which are active vs available.
+"""
+
+[[commands]]
+name = "agents show"
+description = "Show full config for one agent"
+args = [
+    { name = "role", description = "Agent role name (e.g., developer, researcher)", required = true },
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/agents/{role}.toml"]
+behavior = """
+Pretty-print the full TOML config for the specified agent.
+If role not found, list available roles.
+"""
+
+[[commands]]
+name = "agents generate"
+description = "Regenerate AGENTS.md and .claude/agents/*.md from current .dominion/agents/*.toml files"
+args = []
+reads = [".dominion/agents/*.toml"]
+writes = ["AGENTS.md", ".claude/agents/*.md"]
+behavior = """
+Read all agent TOML files. Generate AGENTS.md with sections:
+1. Header — project name, timestamp, 'auto-generated by Dominion'
+2. Active roster table — name, model, one-line purpose
+3. File ownership map — directory -> agent (from governance.file_ownership)
+4. Governance summary — hard stops and escalation protocol
+5. Spawning reference — per agent: invocation, MCP tools, what it produces
+
+For each agent, also generate .claude/agents/{role}.md with full agent instructions:
+1. Role header — name, purpose, model
+2. Tools section — MCP tools, CLI commands, documentation fallback
+3. Governance — file ownership, hard stops, architectural decisions policy
+4. Methodology (if [methodology] exists):
+   a. Mode — pipeline or execute
+   b. Phases — ordered phase table with purpose and key activities
+   c. Methods — named industry methods with source and purpose
+   d. Tool routing — prescriptive tool selection table
+   e. Evidence grades (if present) — grading framework
+   f. Specialist protocols (if present) — cross-cutting protocol table
+5. Research lens (if [research_lens] exists) — domain checklist for Researcher
+6. Workflow — produces, commit style, level adaptation
+"""
+
+# === Knowledge ===
+
+[[commands]]
+name = "knowledge sync"
+description = "Sync project MEMORY.md from .dominion/knowledge/index.toml"
+args = []
+reads = [".dominion/knowledge/index.toml", ".dominion/knowledge/*.md", ".dominion/state.toml", ".dominion/dominion.toml"]
+writes = ["MEMORY.md is written to the project's Claude memory path"]
+behavior = """
+Read index.toml. For entries with hot = true, include their summary
+in MEMORY.md ordered by priority. Include:
+1. Current State — from state.toml
+2. Documentation Chain — from dominion.toml [documentation]
+3. Active Knowledge — hot entry summaries
+4. Detailed Knowledge — pointers to non-hot knowledge files
+
+Target: under 200 lines. If over budget, drop lowest-priority entries.
+
+Note: writes to the Claude project memory path
+(~/.claude/projects/<hash>/memory/MEMORY.md), NOT to project root.
+"""
+
+[[commands]]
+name = "knowledge search"
+description = "Search knowledge index by topic or tag"
+args = [
+    { name = "query", description = "Search term — matches against tags, file names, and summaries", required = true },
+]
+reads = [".dominion/knowledge/index.toml"]
+behavior = """
+Search index.toml entries. Match query against:
+1. tags (exact match)
+2. file names (substring match)
+3. summary text (substring match)
+
+Display matching entries with file name, tags, and summary.
+If no matches: "No knowledge entries match '{query}'."
+"""
+
+# === Project ===
+
+[[commands]]
+name = "project summary"
+description = "One-paragraph project overview"
+args = []
+reads = [".dominion/dominion.toml"]
+behavior = """
+Read dominion.toml [project] section. Format as:
+  {name}: {vision}
+  Stack: {detected languages/frameworks}
+  Direction: {mode}
+  Team: {team_size}
+"""
+
+# === Signals ===
+
+[[commands]]
+name = "signal blocker"
+description = "Raise a blocker signal"
+args = [
+    { name = "--level", description = "Blocker level: task | wave | phase | critical", required = true },
+    { name = "--task", description = "Task id that raised the blocker", required = true },
+    { name = "--reason", description = "Human-readable reason", required = true },
+]
+reads = [".dominion/state.toml"]
+writes = [".dominion/signals/blocker-{task}.toml", ".dominion/state.toml"]
+behavior = """
+Create signal file at .dominion/signals/blocker-{task}.toml with:
+  type = "blocker"
+  level = {level}
+  task = {task}
+  reason = {reason}
+  raised_at = {ISO 8601 timestamp}
+
+Update state.toml [blocker] section with task, level, reason.
+If level is wave or higher, set position.status = "blocked".
+"""
+
+[[commands]]
+name = "signal warning"
+description = "Raise a warning signal (FYI, no halt)"
+args = [
+    { name = "--task", description = "Task id raising the warning", required = true },
+    { name = "--message", description = "Warning message", required = true },
+]
+writes = [".dominion/signals/warning-{task}-{seq}.toml"]
+behavior = """
+Create signal file at .dominion/signals/warning-{task}-{seq}.toml with:
+  type = "warning"
+  task = {task}
+  message = {message}
+  raised_at = {ISO 8601 timestamp}
+
+Warnings do not halt execution or update state.toml.
+"""
+
+[[commands]]
+name = "signal list"
+description = "List current signals"
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+    { name = "--affecting", description = "Filter by task id", optional = true },
+]
+reads = [".dominion/signals/*.toml"]
+behavior = """
+Read all .toml files in .dominion/signals/. Format as table:
+  Type      Task    Level    Message/Reason
+  blocker   02-03   wave     Dependency API changed
+  warning   02-01   —        Consider caching
+
+With --affecting: filter to signals for the specified task.
+With --json: output as JSON array.
+"""
+
+[[commands]]
+name = "signal resolve"
+description = "Resolve and remove a signal"
+args = [
+    { name = "signal-file", description = "Signal file name or task id", required = true },
+]
+reads = [".dominion/signals/"]
+writes = [".dominion/signals/", ".dominion/state.toml"]
+behavior = """
+Delete the signal file. If it was a blocker, clear state.toml [blocker]
+and set position.status back to "active".
+"""
+
+# === Plan ===
+
+[[commands]]
+name = "plan task"
+description = "Show task details and handoffs"
+args = [
+    { name = "id", description = "Task id (e.g., 02-01)", required = true },
+    { name = "--files", description = "Show file ownership only", optional = true },
+    { name = "--criteria", description = "Show acceptance criteria only", optional = true },
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/phases/{N}/plan.toml"]
+behavior = """
+Read plan.toml, find task by id. Display:
+  Task {id}: {title}
+  Wave: {wave} | Agent: {agent}
+  Depends on: {depends_on}
+  Files: {file_ownership}
+  Criteria:
+    - {criterion 1}
+    - {criterion 2}
+  Verify: {verify_command}
+  Handoffs: {from → note}
+
+With --files: show only file ownership list.
+With --criteria: show only acceptance criteria.
+
+With --json:
+  {"id": "02-01", "title": "Add user auth", "wave": 1, "agent": "developer",
+   "depends_on": [], "file_ownership": ["src/auth/"], "token_estimate": 40000,
+   "acceptance_criteria": ["criterion 1", "criterion 2"],
+   "verify_command": "pytest tests/auth/", "handoffs": []}
+"""
+
+[[commands]]
+name = "plan wave"
+description = "Show all tasks in a wave"
+args = [
+    { name = "number", description = "Wave number", required = true },
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/phases/{N}/plan.toml"]
+behavior = """
+Read plan.toml, filter tasks by wave number. Format as table:
+  Wave {N} Tasks:
+  ID      Title                   Agent       Deps
+  02-01   Add user auth           Developer   —
+  02-02   Create API endpoint     Developer   —
+"""
+
+[[commands]]
+name = "plan deps"
+description = "Show dependency chain for a task"
+args = [
+    { name = "id", description = "Task id", required = true },
+]
+reads = [".dominion/phases/{N}/plan.toml"]
+behavior = """
+Walk the depends_on chain for the task. Display as tree:
+  02-05
+  ├── 02-03
+  │   └── 02-01
+  └── 02-04
+      └── 02-01
+"""
+
+[[commands]]
+name = "plan handoff"
+description = "Write a targeted handoff note between tasks"
+args = [
+    { name = "from", description = "Source task id", required = true },
+    { name = "--to", description = "Target task id", required = true },
+    { name = "message", description = "Handoff note content", required = true },
+]
+reads = [".dominion/phases/{N}/plan.toml"]
+writes = [".dominion/phases/{N}/plan.toml"]
+behavior = """
+Find the target task's [[tasks.handoffs]] array. Add entry:
+  from = {from}
+  note = {message}
+
+Validate both task ids exist in plan.toml.
+"""
+
+[[commands]]
+name = "plan index"
+description = "Group tasks into waves (Architect tool)"
+args = []
+reads = [".dominion/phases/{N}/plan.toml"]
+writes = [".dominion/phases/{N}/plan.toml"]
+behavior = """
+Read all tasks, build DAG from depends_on. Topological sort to assign waves.
+Wave 1 = no deps, Wave 2 = deps all in wave 1, etc.
+Check for file ownership conflicts within waves.
+Update each task's wave field. Report wave structure.
+"""
+
+[[commands]]
+name = "plan validate"
+description = "Validate plan structure"
+args = [
+    { name = "file", description = "Path to plan.toml", required = true },
+]
+reads = ["{file}"]
+behavior = """
+Validate plan.toml structure:
+1. All task ids are unique and follow {phase}-{seq} format
+2. All depends_on references point to existing task ids
+3. No circular dependencies
+4. All tasks have >=2 acceptance criteria
+5. No file ownership conflicts within same wave
+6. Wave numbering is sequential starting from 1
+7. If dominion.toml [autonomy.circuit_breakers].max_tokens_per_task > 0: warn if any task token_estimate > 80% of budget, fail if any > 100%
+
+Report pass/fail for each check.
+"""
+
+# === Phase & Wave ===
+
+[[commands]]
+name = "phase init"
+description = "Create phase directory structure"
+args = [
+    { name = "number", description = "Phase number", required = true },
+    { name = "--title", description = "Phase title", required = true },
+]
+writes = [".dominion/phases/{N}/", ".dominion/state.toml"]
+behavior = """
+Create directory structure:
+  .dominion/phases/{N}/
+  .dominion/phases/{N}/summaries/
+
+Update state.toml position.phase = {N}, position.step = "idle", position.status = "ready".
+"""
+
+[[commands]]
+name = "phase status"
+description = "Current phase overview"
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/state.toml", ".dominion/phases/{N}/"]
+behavior = """
+Read state.toml for current phase. Scan phase directory for artifacts.
+Format as:
+  Phase {N}: {title}
+  Step: {step} | Status: {status}
+  Artifacts: research.toml [exists], plan.toml [missing], ...
+"""
+
+[[commands]]
+name = "phase progress"
+description = "Detailed progress for a phase"
+args = [
+    { name = "number", description = "Phase number", required = true },
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/phases/{N}/progress.toml", ".dominion/phases/{N}/plan.toml"]
+behavior = """
+Read progress.toml and plan.toml. Format as:
+  Phase {N} Progress:
+  Wave 1: complete (3/3 tasks)
+  Wave 2: in-progress (1/2 tasks complete, 1 blocked)
+  Wave 3: pending
+
+  Blocked: 02-04 — reason
+
+With --json:
+  {"phase": 2, "waves": [
+    {"number": 1, "status": "complete", "tasks_complete": 3, "tasks_total": 3},
+    {"number": 2, "status": "in_progress", "tasks_complete": 1, "tasks_total": 2, "blocked": ["02-04"]}
+  ]}
+"""
+
+[[commands]]
+name = "wave create"
+description = "Create wave tracking entry in progress.toml"
+args = [
+    { name = "number", description = "Wave number", required = true },
+]
+reads = [".dominion/phases/{N}/progress.toml"]
+writes = [".dominion/phases/{N}/progress.toml"]
+behavior = """
+Add [[waves]] entry with number, status = "pending", task entries from plan.toml.
+"""
+
+[[commands]]
+name = "wave status"
+description = "Current wave overview"
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/state.toml", ".dominion/phases/{N}/progress.toml"]
+behavior = """
+Read current wave from state.toml and progress.toml. Format as:
+  Wave {N}: {status}
+  Tasks:
+    02-01  [complete]  Add user auth
+    02-02  [in-progress]  Create API endpoint
+"""
+
+[[commands]]
+name = "wave merge"
+description = "Trigger wave merge protocol"
+args = []
+reads = [".dominion/phases/{N}/progress.toml"]
+writes = [".dominion/phases/{N}/progress.toml"]
+behavior = """
+For each complete task in current wave:
+1. Verify SUMMARY.md exists in summaries/
+2. Run verify_command if specified
+3. Merge worktree branch: git merge --no-ff dominion/{task-id}
+4. Clean up worktree: git worktree remove .worktrees/dominion-{task-id}
+5. Update progress.toml wave status and merge_commit
+
+Halt on merge conflict — present to user.
+"""
+
+# === Research ===
+
+[[commands]]
+name = "research findings"
+description = "Filter research findings by severity"
+args = [
+    { name = "--severity", description = "Filter: high | medium | low", optional = true },
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/phases/{N}/research.toml"]
+behavior = """
+Read research.toml [[findings]]. Filter by severity if provided.
+Format as table:
+  ID    Severity  Category       Title
+  F1    high      architecture   Circular dependency in auth module
+  F2    medium    testing        Missing integration tests for API
+"""
+
+[[commands]]
+name = "research finding"
+description = "Show single finding detail"
+args = [
+    { name = "id", description = "Finding id (e.g., F1)", required = true },
+]
+reads = [".dominion/phases/{N}/research.toml"]
+behavior = """
+Read research.toml, find finding by id. Display full detail:
+  F1: {title}
+  Severity: {severity} | Category: {category}
+  Description: {description}
+  Evidence: {evidence}
+  Recommendation: {recommendation}
+"""
+
+[[commands]]
+name = "research opportunities"
+description = "List opportunities from research"
+args = []
+reads = [".dominion/phases/{N}/research.toml"]
+behavior = """
+Read research.toml [[opportunities]]. Format as table:
+  ID    Title                    Benefit              Effort
+  O1    Add caching layer        50% faster queries   medium
+"""
+
+[[commands]]
+name = "research summary"
+description = "Auto-generated research overview"
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/phases/{N}/research.toml"]
+behavior = """
+Read research.toml. Summarize:
+  Research Summary (Phase {N}):
+  Findings: {high} high, {medium} medium, {low} low
+  Opportunities: {count}
+  Assumptions: {verified} verified, {unverified} unverified, {false} false
+"""
+
+# === Reports ===
+
+[[commands]]
+name = "report create"
+description = "Create test-report or review artifact"
+args = [
+    { name = "type", description = "Report type: test-report | review", required = true },
+    { name = "phase", description = "Phase number", required = true },
+]
+reads = [".dominion/phases/{N}/plan.toml", ".dominion/phases/{N}/progress.toml"]
+writes = [".dominion/phases/{N}/{type}.toml"]
+behavior = """
+Initialize the report TOML file from schema template.
+Set meta.phase = {phase}. Pre-populate structure from plan.toml tasks.
+"""
+
+[[commands]]
+name = "report finalize"
+description = "Finalize a report"
+args = [
+    { name = "file", description = "Path to report TOML file", required = true },
+]
+reads = ["{file}"]
+writes = ["{file}"]
+behavior = """
+Validate report is complete (no empty required fields).
+Add finalized_at timestamp. Mark as final (read-only convention).
+"""
+
+# === Backlog ===
+
+[[commands]]
+name = "backlog add"
+description = "Capture an idea during work"
+args = [
+    { name = "--tags", description = "Comma-separated tags", optional = true },
+    { name = "text", description = "Backlog item text", required = true },
+]
+reads = [".dominion/backlog.toml"]
+writes = [".dominion/backlog.toml"]
+behavior = """
+Read backlog.toml (create from schema if not exists).
+Add [[items]] entry with auto-incremented id, text, tags, current task/phase.
+"""
+
+[[commands]]
+name = "backlog list"
+description = "View all backlog items"
+args = [
+    { name = "--status", description = "Filter by status: open | planned | done", optional = true },
+    { name = "--tags", description = "Filter by tag", optional = true },
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/backlog.toml"]
+behavior = """
+Read backlog.toml [[items]]. Filter if flags provided. Format as table:
+  ID  Phase  Priority  Tags         Text
+  1   2      high      refactor     Extract auth middleware
+  2   2      medium    testing      Add load tests
+"""
+
+[[commands]]
+name = "backlog suggest"
+description = "Smart suggestions for planning"
+args = [
+    { name = "--phase", description = "Target phase number", optional = true },
+]
+reads = [".dominion/backlog.toml", ".dominion/phases/{N}/review.toml"]
+behavior = """
+Read backlog.toml and latest review.toml. Suggest high-priority items
+that align with upcoming phase goals. Format as ranked list with rationale.
+"""
+
+# === Rollback & History ===
+
+[[commands]]
+name = "rollback"
+description = "Roll back to a safe boundary"
+args = [
+    { name = "--to-wave", description = "Roll back to wave boundary", optional = true },
+    { name = "--task", description = "Revert single task", optional = true },
+    { name = "--to-phase", description = "Roll back entire phase", optional = true },
+]
+reads = [".dominion/phases/{N}/progress.toml"]
+writes = [".dominion/phases/{N}/progress.toml", ".dominion/state.toml"]
+behavior = """
+Exactly one of --to-wave, --task, or --to-phase must be provided.
+
+--to-wave N: revert all commits after wave N's merge commit.
+--task ID: revert commits for a single task (git revert).
+--to-phase N: revert to the commit at phase N start.
+
+Always confirm with user before executing. Update progress.toml and state.toml.
+"""
+
+[[commands]]
+name = "history"
+description = "Show commit map for a phase"
+args = [
+    { name = "--phase", description = "Phase number", required = true },
+]
+reads = [".dominion/phases/{N}/progress.toml"]
+behavior = """
+Read progress.toml. Map commits to tasks and waves:
+  Phase {N} History:
+  Wave 1 (merged: abc123)
+    02-01: def456, ghi789
+    02-02: jkl012
+  Wave 2 (in-progress)
+    02-03: mno345
+"""
+
+# === Improvements ===
+
+[[commands]]
+name = "improve list"
+description = "List improvement proposals from improvements.toml"
+args = [
+    { name = "--status", description = "Filter by status (pending/accepted/rejected/rolled-back)", optional = true },
+    { name = "--phase", description = "Filter by phase number", optional = true },
+    { name = "--type", description = "Filter by type (tooling/governance/convention)", optional = true },
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/improvements.toml"]
+writes = []
+behavior = """
+Read improvements.toml. Apply filters if provided. Display proposals as a table:
+  ID | Phase | Type | Title | Status
+Sorted by phase (newest first), then by ID.
+"""
+
+[[commands]]
+name = "improve show"
+description = "Show details of a single improvement proposal"
+args = [
+    { name = "id", description = "Proposal ID (e.g., P1)", required = true }
+]
+reads = [".dominion/improvements.toml"]
+writes = []
+behavior = """
+Read improvements.toml. Find the proposal with matching id.
+Display: id, phase, type, title, evidence (list), reason, status, applied_at, applied_by.
+If not found: "Proposal {id} not found."
+"""
+
+[[commands]]
+name = "improve update"
+description = "Update a proposal's status and apply metadata"
+args = [
+    { name = "id", description = "Proposal ID (e.g., P1)", required = true },
+    { name = "--status", description = "New status (accepted/rejected/rolled-back)", optional = true },
+    { name = "--applied-at", description = "Commit hash where applied", optional = true },
+    { name = "--applied-by", description = "Apply method (direct/pipeline/structural)", optional = true },
+]
+reads = [".dominion/improvements.toml"]
+writes = [".dominion/improvements.toml"]
+behavior = """
+Find proposal by id. Update provided fields.
+Validate status is one of: pending, accepted, rejected, rolled-back.
+Validate applied_by is one of: direct, pipeline, structural.
+Print: "Proposal {id} updated: {changed fields}."
+If not found: "Proposal {id} not found."
+"""
+
+# === Metrics ===
+
+[[commands]]
+name = "metrics show"
+description = "Display metrics for a phase"
+args = [
+    { name = "--phase", description = "Phase number", required = true },
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/phases/{N}/metrics.toml"]
+writes = []
+behavior = """
+Read metrics.toml for the specified phase. Display quality and process sections:
+  Quality:
+    Tests added: {N}, passing: {N}, linter warnings: {N}
+    Coverage delta: {delta}
+    Review findings: {high} high, {medium} medium, {low} low
+    Acceptance: {passed}/{total} criteria passed
+  Process:
+    Tasks: {completed} completed, {failed} failed, {replanned} replanned
+    Waves: {count}, blockers: {count}, rollbacks: {count}
+    Avg tokens/task: {N}
+    Improvement proposals: {N}
+"""
+
+[[commands]]
+name = "metrics trends"
+description = "Show metric trends across phases"
+args = []
+reads = [".dominion/metrics-history.toml"]
+writes = []
+behavior = """
+Read metrics-history.toml. For each metric, compute delta between consecutive phases.
+Display as a table:
+  Phase | Tests | Blocker Rate | Tokens/Task | High Findings | Pass Rate | Proposals
+  1     | 23    | 10%          | 32000       | 3             | 90%       | 2
+  2     | 47    | 5% (-50%)    | 28000 (-13%)| 1 (-66%)      | 95%       | 3
+Highlight improvements in green context (positive deltas for pass rate, negative for blockers/findings).
+"""
+
+# === Security ===
+
+[[commands]]
+name = "security scan"
+description = "Run security analysis and write findings to security-findings.toml"
+args = [
+    { name = "--phase", description = "Phase number", required = true },
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/agents/security-auditor.toml", ".dominion/phases/{N}/research.toml"]
+writes = [".dominion/phases/{N}/security-findings.toml"]
+behavior = """
+Run Security Auditor's execute-mode analysis for the specified phase:
+1. Read security-auditor.toml for review_scope (language-specific patterns)
+2. Read research.toml findings with security-related specialist_referrals
+3. Apply methodology phases: threat modeling, static analysis, dependency audit, crypto review, compliance check
+4. Write findings to security-findings.toml with CWE classification
+
+Output:
+  Security Scan (Phase {N}):
+    Findings: {critical} critical, {high} high, {medium} medium, {low} low
+    New: {count} | Fixed: {count} | Regressed: {count}
+"""
+
+[[commands]]
+name = "security findings"
+description = "List security findings with filters"
+args = [
+    { name = "--phase", description = "Phase number (default: current)", optional = true },
+    { name = "--severity", description = "Filter by severity (critical/high/medium/low/info)", optional = true },
+    { name = "--status", description = "Filter by status (new/fixed/regressed/acknowledged)", optional = true },
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/phases/{N}/security-findings.toml"]
+behavior = """
+Read security-findings.toml for the specified phase (default: current from state.toml).
+Apply filters if provided. Display as table:
+  ID   | Severity | Status | CWE     | Title
+  SF1  | high     | new    | CWE-89  | SQL injection in user search
+  SF2  | medium   | fixed  | CWE-79  | XSS in comment rendering
+If no findings: "No security findings for phase {N}."
+"""
+
+[[commands]]
+name = "security finding"
+description = "Show full detail for one security finding"
+args = [
+    { name = "id", description = "Finding ID (e.g. SF1)", required = true },
+    { name = "--phase", description = "Phase number (default: current)", optional = true },
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/phases/{N}/security-findings.toml"]
+behavior = """
+Read security-findings.toml for the specified phase.
+Find the finding by ID. Display full detail:
+  Finding: {id}
+    Title: {title}
+    Severity: {severity}
+    Status: {status}
+    CWE: {cwe}
+    Category: {category}
+    Method: {method}
+    Discovered: Phase {discovered_phase}
+    Evidence: {evidence list}
+    Description: {description}
+    Recommendation: {recommendation}
+If ID not found: "Finding {id} not found in phase {N}."
+"""
+
+[[commands]]
+name = "security track"
+description = "Compare security findings across phases, show remediation progress"
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/phases/*/security-findings.toml"]
+behavior = """
+Read security-findings.toml from all phases. Track each finding by ID across phases.
+Display remediation progress:
+  Security Tracking:
+    Phase 1: 5 findings (3 critical, 2 high)
+    Phase 2: 4 findings (1 critical [-2], 2 high, 1 medium [new])
+    Phase 3: 2 findings (0 critical [-1], 1 high [-1], 1 medium)
+
+  Remediation:
+    Fixed: SF1 (CWE-89, critical), SF3 (CWE-79, high)
+    Regressed: (none)
+    Open: SF2 (CWE-502, high), SF5 (CWE-327, medium)
+"""
+
+[[commands]]
+name = "metrics baseline"
+description = "Record recurring indicator measurements"
+args = [
+    { name = "--phase", description = "Phase number", required = true },
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/dominion.toml", ".dominion/phases/{N-1}/metrics.toml"]
+writes = [".dominion/phases/{N}/metrics.toml"]
+behavior = """
+Measure recurring indicators for the specified phase:
+1. Build time — run build command from dominion.toml, measure wall clock
+2. Test duration — run test command, measure wall clock
+3. Test count — parse test output for pass/fail counts
+4. Dependency count — count entries in lockfile (Cargo.lock, package-lock.json, etc.)
+5. Compare against previous phase metrics (if exists) — compute deltas
+6. Write to metrics.toml [indicators] section
+
+Output:
+  Baseline (Phase {N}):
+    Build time:    {value}s ({delta}% vs Phase {N-1})
+    Test duration: {value}s ({delta}%)
+    Tests:         {count} ({delta})
+    Dependencies:  {count} ({delta})
+    Status: {ok/warning count}
+If any indicator exceeds threshold: flag as warning.
+"""
+
+# === Autonomy ===
+
+[[commands]]
+name = "auto readiness"
+description = "Pre-flight check for auto mode"
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/dominion.toml", ".dominion/state.toml", ".claude/settings.json", "registry/registry.toml"]
+writes = [".dominion/state.toml"]
+behavior = """
+1. Read dominion.toml [autonomy] — verify section exists with valid circuit breaker values
+2. Read dominion.toml [mcps] — get installed MCPs list
+3. Cross-reference installed MCPs against registry.toml safe_read_tools
+4. Check .claude/settings.json — verify each safe_read_tool is in permissions.allow
+5. For each installed MCP: attempt a lightweight probe (list tools or similar)
+6. Write [[mcp_status]] entries to state.toml with availability results
+
+Output:
+  Readiness Check:
+    Permissions: {approved}/{total} read tools pre-approved
+    MCPs: {available}/{total} available ({unavailable_list})
+    Circuit breakers: configured ({max_tokens}/task, {max_retries} retries)
+
+    Warnings:
+      - {mcp_name} unreachable — {missing_consequence from registry}
+
+    Ready for auto mode: YES|NO (with warnings)
+
+If [autonomy] section missing: "No autonomy config. Run /dominion:init or add [autonomy] to dominion.toml."
+If required MCP critical=true is unavailable: Ready = NO.
+"""
+
+[[commands]]
+name = "auto decisions"
+description = "List autonomous decisions from auto mode sessions"
+args = [
+    { name = "--session", description = "Filter by session ID ('last' for most recent)", optional = true },
+    { name = "--phase", description = "Filter by phase number", optional = true },
+    { name = "--reviewed", description = "Filter by review status (true/false)", optional = true }
+]
+reads = [".dominion/state.toml"]
+writes = []
+behavior = """
+Read state.toml [[autonomous_decisions]]. Apply filters if provided.
+Display as a table:
+  ID | Phase | Task | Type | Description | Reviewed | Outcome
+Sorted by timestamp (newest first).
+If --reviewed=false: show only unreviewed decisions.
+If no decisions: "No autonomous decisions recorded."
+"""
+
+[[commands]]
+name = "auto start"
+description = "Enter auto mode for the current session"
+args = []
+reads = [".dominion/dominion.toml"]
+writes = [".dominion/dominion.toml"]
+behavior = """
+Set [autonomy].mode = "auto" in dominion.toml.
+Print: "Auto mode enabled. Will revert on session end or auto stop."
+"""
+
+[[commands]]
+name = "auto stop"
+description = "Exit auto mode and return to interactive"
+args = []
+reads = [".dominion/dominion.toml"]
+writes = [".dominion/dominion.toml"]
+behavior = """
+Set [autonomy].mode = "interactive" in dominion.toml.
+Print: "Auto mode disabled. Returning to interactive mode."
+"""
+
+[[commands]]
+name = "auto log"
+description = "Record an autonomous decision made without human input"
+args = [
+    { name = "--task", description = "Task ID that triggered the decision", required = true },
+    { name = "--type", description = "Decision type: replan | skip | retry | split | reorder", required = true },
+    { name = "--description", description = "What was decided", required = true },
+    { name = "--reason", description = "Why — error context, breaker trigger", required = true },
+]
+reads = [".dominion/state.toml"]
+writes = [".dominion/state.toml"]
+behavior = """
+Append to [[autonomous_decisions]] in state.toml:
+  id = next sequential id
+  timestamp = current ISO 8601
+  phase = current position.phase
+  task = --task
+  type = --type (validate: one of replan, skip, retry, split, reorder)
+  description = --description
+  reason = --reason
+  session_id = current lock.session_id
+  reviewed = false
+  outcome = ""
+Print: "Autonomous decision AD{id} logged: {type} for task {task}."
+"""
+
+# === Direction ===
+
+[[commands]]
+name = "zone check"
+description = "Check direction zone for a file path"
+args = [
+    { name = "path", description = "File or directory path to check", required = true },
+]
+reads = [".dominion/dominion.toml"]
+behavior = """
+Read dominion.toml [direction] section.
+
+If [direction] does not exist or mode != "restructure":
+  Output: "No direction constraints. Mode: {mode or 'not configured'}"
+  Exit.
+
+If mode = "restructure":
+  Read [[direction.restructure.legacy_zones]].
+
+  If no legacy zones defined:
+    Output: "Full restructure. Follow target state: {target_state}"
+    Exit.
+
+  Check if {path} falls under any legacy zone path:
+  If yes:
+    Output: "Legacy zone: {zone_path}. Policy: {policy}. Minimal changes only."
+  If no:
+    Output: "Active zone. Follow target state: {target_state}. Strategy: {migration_strategy}"
+"""
+
+# === Profile ===
+
+[[commands]]
+name = "profile show"
+description = "Display current user profile (experience level, preferences)"
+args = []
+reads = ["~/.claude/.dominion/user-profile.toml"]
+behavior = """
+Read ~/.claude/.dominion/user-profile.toml.
+If file doesn't exist: "No profile found. Run /dominion:init to create one."
+
+Output format:
+  dominion-cli profile show
+    Experience: {level}
+    Sessions: {count} (first: {date}, last: {date})
+    Preferences:
+      {key}: {value}
+      ...
+    Tool opinions:
+      {tool}: {rating}/5 — {notes}
+      ...
+"""
+
+[[commands]]
+name = "profile set"
+description = "Update a user profile preference"
+args = [
+    { name = "key", required = true, description = "Preference key (e.g., 'verbosity', 'experience_level')" },
+    { name = "value", required = true, description = "Preference value" },
+]
+reads = ["~/.claude/.dominion/user-profile.toml"]
+writes = ["~/.claude/.dominion/user-profile.toml"]
+behavior = """
+Read ~/.claude/.dominion/user-profile.toml.
+If file doesn't exist: create from @templates/schemas/user-profile.toml.
+
+If key is "experience_level": validate value is beginner|intermediate|advanced.
+Otherwise: set [user.preferences].{key} = {value}.
+
+Output: "Set {key} = {value}"
+"""
+
+[[commands]]
+name = "profile tick"
+description = "Increment session count in user profile"
+args = []
+reads = ["~/.claude/.dominion/user-profile.toml"]
+writes = ["~/.claude/.dominion/user-profile.toml"]
+behavior = """
+Read user-profile.toml. Increment [sessions].count by 1.
+Update [sessions].last_session to current ISO 8601 timestamp.
+If [sessions].first_session is empty, set it to current timestamp.
+Print: "Session {count} recorded."
+If profile does not exist: silently skip (user has not initialized profile).
+"""
+
+# === Claim ===
+
+[[commands]]
+name = "claim status"
+description = "Show brownfield claim provenance for this project"
+args = []
+reads = [".dominion/dominion.toml"]
+behavior = """
+Read .dominion/dominion.toml [claim] section.
+If [claim] section doesn't exist or claimed_at is empty: "This project was initialized with /dominion:init (greenfield)."
+
+If claim data exists:
+  dominion-cli claim status
+    Claimed: {claimed_at}
+    Source: {source_setup}
+    Preserved: {count} artifacts
+      {artifact} — {sections count} user-original sections
+      ...
+    Added: {count} artifacts
+      {artifact} — {source}
+      ...
+"""
+
+# === Release ===
+
+[[commands]]
+name = "release prepare"
+description = "Generate changelog and PR synopsis from commit history"
+args = []
+reads = [".dominion/specs/release-spec.toml", ".dominion/dominion.toml"]
+writes = [".dominion/release/changelog-draft.md", ".dominion/release/synopsis-draft.md"]
+behavior = """
+1. Read release-spec.toml for changelog format and version config
+2. Get commit log since last git tag (or all commits if no tags)
+3. Group commits by type (feat, fix, refactor, etc.)
+4. Generate changelog draft to .dominion/release/changelog-draft.md
+5. Generate PR synopsis to .dominion/release/synopsis-draft.md
+6. Suggest version bump based on commit types
+7. Print: "Release drafts ready. Review in .dominion/release/"
+"""
+
+[[commands]]
+name = "release publish"
+description = "Execute full release ceremony: version bump, build, publish, tag"
+args = [
+    { name = "--level", description = "Version bump level: major, minor, patch", required = true },
+]
+reads = [".dominion/specs/release-spec.toml", ".dominion/release/"]
+behavior = """
+1. Verify drafts exist in .dominion/release/
+2. Run auth checks for all configured registries
+3. Bump version per release-spec
+4. Build artifacts if build.command configured
+5. Publish to each configured registry
+6. Create PR with synopsis
+7. Tag release
+8. Create GitHub release with changelog and artifacts
+9. Clean up .dominion/release/
+10. Print: "Release v{version} published."
+"""
+
+[[commands]]
+name = "release status"
+description = "Show current release spec configuration and version info"
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/specs/release-spec.toml"]
+behavior = """
+1. Read release-spec.toml
+2. Read current version from versioning.source
+3. Get last tag
+4. Count commits since last tag
+5. Print:
+  Release spec: {spec_version}
+  Current version: {version}
+  Last tag: {tag}
+  Commits since: {count}
+  Registries: {list}
+"""
+
+# === Roadmap ===
+
+[[commands]]
+name = "roadmap show"
+description = "Display roadmap summary"
+args = []
+reads = [".dominion/roadmap.toml"]
+behavior = """
+Read roadmap.toml. Display project name, total phases, and a summary table:
+  Phase | Title | Status (derived from state.toml position.phase)
+If no roadmap: "No roadmap.toml found."
+"""
+
+[[commands]]
+name = "roadmap phases"
+description = "List phases with objectives and status"
+args = [
+    { name = "--phase", description = "Show details for a specific phase", optional = true },
+]
+reads = [".dominion/roadmap.toml", ".dominion/state.toml"]
+behavior = """
+Read roadmap.toml. For each phase (or the specified one):
+  Phase {N}: {title}
+    Objectives: {list}
+    Success Criteria: {list}
+    Status: complete | in-progress | upcoming
+Derive status from state.toml position.phase.
+"""
+
+# === Style ===
+
+[[commands]]
+name = "style check"
+description = "Check code against style.toml conventions"
+args = [
+    { name = "--files", description = "Specific files to check (default: all governed files)", optional = true },
+]
+reads = [".dominion/style.toml"]
+behavior = """
+Read style.toml conventions. For each convention:
+1. Use Grep/Glob to check governed files for compliance
+2. Report violations with file:line references
+If no violations: "All style checks passed."
+If no style.toml: "No style.toml found."
+"""
+
+# === Documentation ===
+
+[[commands]]
+name = "doc generate"
+description = "Generate DOMINION.md project overview at project root"
+args = []
+reads = [".dominion/dominion.toml", ".dominion/roadmap.toml", ".dominion/agents/", ".dominion/phases/"]
+writes = ["DOMINION.md"]
+behavior = """
+Generate DOMINION.md at project root using data from:
+1. dominion.toml — project metadata, governance rules
+2. roadmap.toml — phase listing with status
+3. agents/ — agent roster with roles and models
+4. phases/ — phase artifact summaries
+Include auto-generated header: <!-- Auto-generated by Dominion. Do not edit manually. -->
+"""
+
+[[commands]]
+name = "doc show"
+description = "Display current DOMINION.md contents"
+args = []
+reads = ["DOMINION.md"]
+behavior = """
+Read and display DOMINION.md from project root.
+If not found: "No DOMINION.md found. Run doc generate first."
+"""
+
+# === Generic Data Access ===
+
+[[commands]]
+name = "data get"
+description = "Read any .dominion/ TOML file or a specific key within it"
+args = [
+    { name = "file", description = "TOML file path relative to .dominion/", required = true },
+    { name = "--key", description = "Dotted key path (e.g., findings.0.title)", optional = true },
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/**/*.toml"]
+behavior = """
+Read the specified TOML file from .dominion/. If --key given, traverse the parsed data
+to that path and output only that value. Refuses paths outside .dominion/ (rejects '..'
+and absolute paths).
+
+This is the generic escape hatch for project-specific data types created by /dominion:improve.
+When a new TOML file type is introduced (e.g., compliance.toml), agents can immediately
+read it via `data get` without waiting for a dedicated CLI command.
+"""
+
+[[commands]]
+name = "data set"
+description = "Write a value to any .dominion/ TOML file"
+args = [
+    { name = "file", description = "TOML file path relative to .dominion/", required = true },
+    { name = "--key", description = "Dotted key path to write", required = true },
+    { name = "--value", description = "JSON-encoded value to write", required = true },
+]
+writes = [".dominion/**/*.toml"]
+behavior = """
+Parse --value as JSON, traverse the TOML to the specified key path, set the value,
+write back. Creates intermediate tables as needed. Refuses paths outside .dominion/.
+
+Two-stage validation:
+1. json.loads(value) — rejects invalid JSON syntax
+2. TOML serialization — rejects values TOML cannot represent (e.g., null)
+"""
+
+# === Output Format ===
+
+[output]
+default = "human-readable"
+json_flag = "--json"
+json_description = "Machine-readable JSON output for agent consumption. Agent startup sequences should always use --json."
+
+# When --json is passed, derive JSON from the human-readable format using these rules.
+# Commands with an explicit json_example in their behavior override these defaults.
+[output.convention]
+tables = "Array of objects. Column headers become lowercase snake_case keys. Each row becomes one object."
+key_value = "Flat object. 'Key: Value' lines become {\"key\": \"value\"} pairs. Keys are lowercase snake_case."
+status_line = "Object with named fields parsed from labeled segments. 'Phase 2 | Step: plan' becomes {\"phase\": 2, \"step\": \"plan\"}."
+trees = "Nested objects with 'children' arrays. Node label becomes 'id' field."
+lists = "Array of strings (simple) or array of objects (structured items)."
+pass_fail = "Object with 'checks' array of {\"name\": str, \"status\": \"pass\"|\"warn\"|\"fail\", \"detail\": str}, plus 'summary' object."

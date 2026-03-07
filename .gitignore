@@ -1,0 +1,18 @@
+# Design documents and project instructions (not distributed)
+DOMINION.md
+CLAUDE.md
+docs/
+
+# Worktrees (generated during execution)
+.worktrees/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+.idea/
+.vscode/

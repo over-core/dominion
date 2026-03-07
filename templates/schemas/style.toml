@@ -1,0 +1,28 @@
+# Dominion Code Style — Schema Template
+# Machine-readable convention store, synced with CLAUDE.md
+
+[meta]
+schema_version = 1
+
+# Per-language sections populated from detection + wizard answers
+# Example for Rust (full-level):
+# [languages.rust]
+# edition = "2021"
+# formatter = "rustfmt"
+# linter = "clippy"
+# error_handling = { libraries = "thiserror", binaries = "anyhow" }
+# async_runtime = "tokio"
+# test_runner = "cargo nextest"
+# pre_commit = ["cargo fmt --check", "cargo clippy -- -D warnings", "cargo nextest run"]
+#
+# [languages.rust.conventions]
+# max_function_lines = 50
+# max_file_lines = 500
+# unwrap_policy = "test-only"
+# doc_comments = "all-public"
+# tracing = "async-io"
+
+# Free-text preferences
+[taste]
+dos = []                            # "Prefer iterators over loops", etc.
+donts = []                          # "Don't over-abstract", etc.

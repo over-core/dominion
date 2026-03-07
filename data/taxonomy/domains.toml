@@ -1,0 +1,282 @@
+[meta]
+schema_version = 1
+# Domain taxonomy for /dominion:improve DKCP Phase 1
+# Question tree structure — enough to ask smart follow-ups
+# Subdomain deep-dives are in [[subdomain_details]], linked by parent field
+
+# === Healthcare ===
+
+[[domains]]
+name = "healthcare"
+subdomains = ["clinical", "pharma", "medical-devices", "health-it", "telehealth"]
+follow_ups = [
+    "Clinical trials or patient care systems?",
+    "Subject to HIPAA compliance?",
+    "FDA-regulated software?",
+    "EHR/EMR integration needed?",
+]
+
+# === Finance ===
+
+[[domains]]
+name = "finance"
+subdomains = ["banking", "trading", "insurance", "payments", "crypto", "lending"]
+follow_ups = [
+    "Retail banking or institutional?",
+    "Real-time transaction processing?",
+    "PCI-DSS or SOX compliance?",
+    "Multi-currency support?",
+]
+
+# === E-commerce ===
+
+[[domains]]
+name = "e-commerce"
+subdomains = ["marketplace", "direct-to-consumer", "b2b", "subscription"]
+follow_ups = [
+    "Physical goods, digital, or services?",
+    "Marketplace or single-vendor?",
+    "Inventory management complexity?",
+    "Tax jurisdiction handling?",
+]
+
+# === Education ===
+
+[[domains]]
+name = "education"
+subdomains = ["k12", "higher-ed", "corporate-training", "edtech", "lms"]
+follow_ups = [
+    "Student-facing or educator-facing?",
+    "FERPA or COPPA compliance?",
+    "Assessment and grading?",
+    "Content delivery or creation?",
+]
+
+# === Media & Entertainment ===
+
+[[domains]]
+name = "media"
+subdomains = ["streaming", "publishing", "gaming", "social", "advertising"]
+follow_ups = [
+    "Content creation or distribution?",
+    "User-generated content moderation?",
+    "Rights management / DRM?",
+    "Real-time or on-demand?",
+]
+
+# === Logistics & Supply Chain ===
+
+[[domains]]
+name = "logistics"
+subdomains = ["shipping", "warehousing", "fleet-management", "last-mile", "procurement"]
+follow_ups = [
+    "B2B or B2C fulfillment?",
+    "Real-time tracking requirements?",
+    "Multi-carrier integration?",
+    "Cross-border customs handling?",
+]
+
+# === Real Estate ===
+
+[[domains]]
+name = "real-estate"
+subdomains = ["property-management", "listings", "construction", "proptech"]
+follow_ups = [
+    "Residential or commercial?",
+    "Property management or transactions?",
+    "MLS integration?",
+]
+
+# === Government & Public Sector ===
+
+[[domains]]
+name = "government"
+subdomains = ["civic-tech", "defense", "public-health", "taxation", "justice"]
+follow_ups = [
+    "Federal, state, or local?",
+    "FedRAMP or IL requirements?",
+    "Citizen-facing or internal?",
+    "Accessibility standards (Section 508)?",
+]
+
+# === Manufacturing & IoT ===
+
+[[domains]]
+name = "manufacturing"
+subdomains = ["industrial-iot", "quality-control", "supply-chain", "mes", "scada"]
+follow_ups = [
+    "Discrete or process manufacturing?",
+    "Real-time equipment monitoring?",
+    "OT/IT convergence?",
+    "Industrial protocol support (OPC-UA, MQTT)?",
+]
+
+# === Agriculture ===
+
+[[domains]]
+name = "agriculture"
+subdomains = ["precision-farming", "livestock", "supply-chain", "agritech"]
+follow_ups = [
+    "Crop management or livestock?",
+    "Sensor/IoT integration?",
+    "Supply chain traceability?",
+]
+
+# === Energy & Utilities ===
+
+[[domains]]
+name = "energy"
+subdomains = ["renewable", "oil-gas", "grid-management", "smart-metering"]
+follow_ups = [
+    "Generation, transmission, or distribution?",
+    "Renewable energy forecasting?",
+    "NERC CIP compliance?",
+    "Smart grid / AMI integration?",
+]
+
+# === Legal ===
+
+[[domains]]
+name = "legal"
+subdomains = ["contract-management", "ediscovery", "compliance", "legaltech"]
+follow_ups = [
+    "Law firm or in-house legal?",
+    "Contract lifecycle management?",
+    "Regulatory compliance tracking?",
+    "Privilege and confidentiality handling?",
+]
+
+# === Travel & Hospitality ===
+
+[[domains]]
+name = "travel"
+subdomains = ["booking", "hospitality", "airlines", "car-rental", "experiences"]
+follow_ups = [
+    "B2C booking or B2B distribution?",
+    "GDS/channel manager integration?",
+    "Dynamic pricing?",
+    "Multi-language / multi-currency?",
+]
+
+# === Telecommunications ===
+
+[[domains]]
+name = "telecom"
+subdomains = ["network-management", "billing", "customer-care", "5g"]
+follow_ups = [
+    "Network operations or customer-facing?",
+    "BSS or OSS systems?",
+    "5G / edge computing?",
+    "Regulatory compliance (FCC)?",
+]
+
+# === Cybersecurity ===
+
+[[domains]]
+name = "cybersecurity"
+subdomains = ["siem", "endpoint-protection", "identity", "threat-intelligence", "compliance"]
+follow_ups = [
+    "Detection and response or prevention?",
+    "SOC operations?",
+    "Compliance framework (SOC 2, ISO 27001)?",
+    "Zero trust architecture?",
+]
+
+# === AI / ML ===
+
+[[domains]]
+name = "ai-ml"
+subdomains = ["nlp", "computer-vision", "recommender-systems", "mlops", "generative-ai"]
+follow_ups = [
+    "Training infrastructure or inference serving?",
+    "MLOps / model lifecycle management?",
+    "Data labeling and annotation?",
+    "Model governance and bias auditing?",
+]
+
+# === Automotive ===
+
+[[domains]]
+name = "automotive"
+subdomains = ["connected-car", "autonomous-driving", "ev-charging", "fleet", "aftermarket"]
+follow_ups = [
+    "Vehicle software or infrastructure?",
+    "AUTOSAR or ASPICE compliance?",
+    "V2X communication?",
+    "Over-the-air updates?",
+]
+
+# === Biotech & Life Sciences ===
+
+[[domains]]
+name = "biotech"
+subdomains = ["genomics", "bioinformatics", "lab-automation", "clinical-research"]
+follow_ups = [
+    "Wet lab or dry lab (computational)?",
+    "Genomic data processing pipelines?",
+    "21 CFR Part 11 compliance?",
+    "LIMS integration?",
+]
+
+# === Developer Tools ===
+
+[[domains]]
+name = "developer-tools"
+subdomains = ["ide", "ci-cd", "testing", "monitoring", "package-management", "documentation"]
+follow_ups = [
+    "For individual developers or teams?",
+    "Cloud-hosted or self-hosted?",
+    "Language/framework specific or polyglot?",
+    "Enterprise or open-source model?",
+]
+
+# === SaaS / Platform ===
+
+[[domains]]
+name = "saas"
+subdomains = ["multi-tenant", "marketplace", "analytics", "crm", "erp", "hr"]
+follow_ups = [
+    "Multi-tenant architecture?",
+    "Self-serve or sales-led?",
+    "API-first or UI-first?",
+    "Enterprise SSO / SCIM requirements?",
+]
+
+# === Subdomain Deep-dives ===
+# Linked to parent domains by the parent field
+
+[[subdomain_details]]
+parent = "healthcare"
+name = "pharma"
+follow_ups = [
+    "Drug discovery or manufacturing?",
+    "Target identification or lead optimization?",
+    "GxP compliance requirements?",
+]
+
+[[subdomain_details]]
+parent = "healthcare"
+name = "clinical"
+follow_ups = [
+    "Patient-facing or provider-facing?",
+    "Clinical decision support?",
+    "HL7/FHIR interoperability?",
+]
+
+[[subdomain_details]]
+parent = "finance"
+name = "trading"
+follow_ups = [
+    "High-frequency or standard execution?",
+    "Market data feeds — which providers?",
+    "Risk management requirements?",
+]
+
+[[subdomain_details]]
+parent = "finance"
+name = "payments"
+follow_ups = [
+    "Payment gateway or processor?",
+    "PCI-DSS compliance level?",
+    "Cross-border payments?",
+]
