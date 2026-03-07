@@ -1,5 +1,6 @@
-# Design documents (not project files)
+# Design documents and project instructions (not distributed)
 DOMINION.md
+CLAUDE.md
 docs/
 
 # Worktrees (generated during execution)
