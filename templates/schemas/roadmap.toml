@@ -1,0 +1,21 @@
+# Dominion Roadmap — Schema Template
+# Milestones, phases, progress (auto-computed from plan completion)
+
+[meta]
+schema_version = 1
+
+[[milestones]]
+name = ""
+target = ""                         # "6 months", "Q3 2026", etc.
+
+[[milestones.phases]]
+number = 1
+name = ""
+status = "pending"                  # pending | in-progress | complete
+plans_total = 0
+plans_complete = 0
+
+# Success criteria (from dominion.toml, referenced here for audit)
+[[milestones.success_criteria]]
+ref = ""                            # references dominion.toml success_criteria
+status = "pending"

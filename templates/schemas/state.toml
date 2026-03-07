@@ -1,0 +1,22 @@
+# Dominion State — Schema Template
+# Auto-maintained, tracks session position
+
+[meta]
+schema_version = 1
+
+[position]
+phase = 0                           # 0 = init complete, no phase started
+step = "idle"                       # idle | discuss | explore | plan | execute | test | review | improve
+status = "ready"                    # ready | active | blocked | complete
+last_session = ""                   # date of last session
+
+[init]
+completed_at = ""                   # ISO 8601 timestamp
+cli_proven = false                  # proving ground passed
+validate_passed = false             # /dominion:validate passed
+
+# v0.2+ fields (not populated in v0.1)
+# [lock]
+# [blocker]
+# [outstanding]
+# [[decisions]]

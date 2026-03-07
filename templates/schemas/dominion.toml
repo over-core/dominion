@@ -1,0 +1,58 @@
+# Dominion Project Configuration — Schema Template
+# Customized per project during /dominion:init
+
+[meta]
+schema_version = 1
+dominion_version = "0.1.0"
+
+[project]
+name = ""                           # detected or user-provided
+vision = ""                         # user-provided during wizard
+target_users = ""                   # user-provided during wizard
+
+[project.constraints]
+team_size = ""                      # "solo + AI agents", "small team", etc.
+hard_rules = []                     # user-provided mandatory constraints
+
+[[project.success_criteria]]
+description = ""
+status = "pending"                  # pending | in-progress | done
+
+[direction]
+mode = "evolve"                     # maintain | evolve | transform
+
+# Only populated when mode = "transform"
+[direction.transform]
+target_state = ""
+migration_strategy = ""            # strangler-fig | big-bang | incremental
+
+[[direction.transform.legacy_zones]]
+path = ""
+policy = "minimal-touch"
+
+# Documentation fallback chain
+[[documentation.sources]]
+name = "context7"
+type = "mcp"
+priority = 1
+
+[[documentation.sources]]
+name = "official-docs"
+type = "web"
+priority = 2
+
+[documentation.fallback]
+action = "stop-and-ask"
+message = "Could not find docs. Do NOT read source files or trial-and-error compile."
+
+# CLI configuration
+[cli]
+spec_version = "0.1"
+language = ""                       # detected primary language
+build_system = ""                   # detected build system
+
+# MCP configuration (detected + recommended)
+[mcps]
+installed = []                      # detected at init
+recommended = []                    # from registry cross-reference
+missing_required = []               # required but not installed
