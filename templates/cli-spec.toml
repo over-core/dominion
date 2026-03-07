@@ -1,6 +1,18 @@
 [meta]
-spec_version = "0.1"
-minimum_commands = ["validate", "state resume", "state position", "agents list", "agents show", "agents generate", "knowledge hydrate", "project summary"]
+spec_version = "0.2"
+minimum_commands = [
+    "validate", "state resume", "state position", "state update", "state decisions", "state blockers",
+    "agents list", "agents show", "agents generate",
+    "knowledge hydrate", "project summary",
+    "signal blocker", "signal warning", "signal list", "signal resolve",
+    "plan task", "plan wave", "plan deps", "plan handoff", "plan index", "plan validate",
+    "phase init", "phase status", "phase progress",
+    "wave create", "wave status", "wave merge",
+    "research findings", "research finding", "research opportunities", "research summary",
+    "report create", "report finalize",
+    "backlog add", "backlog list", "backlog suggest",
+    "rollback", "history",
+]
 
 # === Validation ===
 
@@ -28,6 +40,9 @@ Perform these checks in order, report pass/fail for each:
 6. settings.json contains MCP permissions for all 'required' MCPs in agent configs
 7. CLI implements all commands listed in cli-spec.toml minimum_commands
 8. dominion.toml [documentation.fallback] section exists and has stop-and-ask terminal
+9. CLI spec version >= 0.2, all v0.2 minimum_commands implemented
+10. If active phase, .dominion/phases/{N}/ exists with expected TOML files for completed steps
+11. .dominion/signals/ exists, blocker signals reference valid tasks, no orphaned signals
 
 Output format:
   dominion validate
@@ -37,11 +52,16 @@ Output format:
     [PASS] AGENTS.md roster complete
     [PASS] settings.json permissions
     [WARN] MCP permissions — missing: sequential-thinking (optional)
-    [PASS] CLI completeness (8/8 commands)
+    [PASS] CLI completeness (N/N commands)
     [PASS] Documentation fallback chain
+    [PASS] CLI spec version (0.2)
+    [PASS] Phase directory structure
+    [PASS] Signal directory clean
 
-    7 passed, 1 warning, 0 failed
+    N passed, N warnings, N failed
 """
+
+# === State ===
 
 [[commands]]
 name = "state resume"
@@ -66,8 +86,50 @@ args = []
 reads = [".dominion/state.toml"]
 behavior = """
 Single-line output:
-  Phase N | Step: S | Status: STATUS
+  Phase N | Step: S | Wave: W | Status: STATUS
 """
+
+[[commands]]
+name = "state update"
+description = "Update pipeline position"
+args = [
+    { name = "--phase", description = "Set phase number", optional = true },
+    { name = "--step", description = "Set step (discuss|explore|plan|execute|test|review)", optional = true },
+    { name = "--wave", description = "Set current wave number", optional = true },
+    { name = "--status", description = "Set status (ready|active|blocked|complete)", optional = true },
+]
+reads = [".dominion/state.toml"]
+writes = [".dominion/state.toml"]
+behavior = """
+Update position fields in state.toml. Only update fields that are provided.
+Validate step is one of: idle, discuss, explore, plan, execute, test, review.
+Validate status is one of: ready, active, blocked, complete.
+"""
+
+[[commands]]
+name = "state decisions"
+description = "Search decisions log"
+args = [
+    { name = "--tags", description = "Filter by tag", optional = true },
+    { name = "--phase", description = "Filter by phase number", optional = true },
+]
+reads = [".dominion/state.toml"]
+behavior = """
+Read [[decisions]] from state.toml. Filter by tags or phase if provided.
+Format as numbered list with phase, task, agent, text, and tags.
+"""
+
+[[commands]]
+name = "state blockers"
+description = "List active blockers"
+args = []
+reads = [".dominion/state.toml", ".dominion/signals/"]
+behavior = """
+Read [blocker] from state.toml and any signal files in .dominion/signals/.
+Format as list with task, level, and reason.
+"""
+
+# === Agents ===
 
 [[commands]]
 name = "agents list"
@@ -120,6 +182,8 @@ Read all agent TOML files. Generate AGENTS.md with sections:
 5. Spawning reference — per agent: invocation, MCP tools, what it produces
 """
 
+# === Knowledge ===
+
 [[commands]]
 name = "knowledge hydrate"
 description = "Rebuild project MEMORY.md from .dominion/knowledge/index.toml"
@@ -140,6 +204,8 @@ Note: writes to the Claude project memory path
 (~/.claude/projects/<hash>/memory/MEMORY.md), NOT to project root.
 """
 
+# === Project ===
+
 [[commands]]
 name = "project summary"
 description = "One-paragraph project overview"
@@ -151,6 +217,445 @@ Read dominion.toml [project] section. Format as:
   Stack: {detected languages/frameworks}
   Direction: {mode}
   Team: {team_size}
+"""
+
+# === Signals ===
+
+[[commands]]
+name = "signal blocker"
+description = "Raise a blocker signal"
+args = [
+    { name = "--level", description = "Blocker level: task | wave | phase | critical", required = true },
+    { name = "--task", description = "Task id that raised the blocker", required = true },
+    { name = "--reason", description = "Human-readable reason", required = true },
+]
+reads = [".dominion/state.toml"]
+writes = [".dominion/signals/blocker-{task}.toml", ".dominion/state.toml"]
+behavior = """
+Create signal file at .dominion/signals/blocker-{task}.toml with:
+  type = "blocker"
+  level = {level}
+  task = {task}
+  reason = {reason}
+  raised_at = {ISO 8601 timestamp}
+
+Update state.toml [blocker] section with task, level, reason.
+If level is wave or higher, set position.status = "blocked".
+"""
+
+[[commands]]
+name = "signal warning"
+description = "Raise a warning signal (FYI, no halt)"
+args = [
+    { name = "--task", description = "Task id raising the warning", required = true },
+    { name = "--message", description = "Warning message", required = true },
+]
+writes = [".dominion/signals/warning-{task}-{seq}.toml"]
+behavior = """
+Create signal file at .dominion/signals/warning-{task}-{seq}.toml with:
+  type = "warning"
+  task = {task}
+  message = {message}
+  raised_at = {ISO 8601 timestamp}
+
+Warnings do not halt execution or update state.toml.
+"""
+
+[[commands]]
+name = "signal list"
+description = "List current signals"
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+    { name = "--affecting", description = "Filter by task id", optional = true },
+]
+reads = [".dominion/signals/*.toml"]
+behavior = """
+Read all .toml files in .dominion/signals/. Format as table:
+  Type      Task    Level    Message/Reason
+  blocker   02-03   wave     Dependency API changed
+  warning   02-01   —        Consider caching
+
+With --affecting: filter to signals for the specified task.
+With --json: output as JSON array.
+"""
+
+[[commands]]
+name = "signal resolve"
+description = "Resolve and remove a signal"
+args = [
+    { name = "signal-file", description = "Signal file name or task id", required = true },
+]
+reads = [".dominion/signals/"]
+writes = [".dominion/signals/", ".dominion/state.toml"]
+behavior = """
+Delete the signal file. If it was a blocker, clear state.toml [blocker]
+and set position.status back to "active".
+"""
+
+# === Plan ===
+
+[[commands]]
+name = "plan task"
+description = "Show task details and handoffs"
+args = [
+    { name = "id", description = "Task id (e.g., 02-01)", required = true },
+    { name = "--files", description = "Show file ownership only", optional = true },
+    { name = "--criteria", description = "Show acceptance criteria only", optional = true },
+]
+reads = [".dominion/phases/{N}/plan.toml"]
+behavior = """
+Read plan.toml, find task by id. Display:
+  Task {id}: {title}
+  Wave: {wave} | Agent: {agent}
+  Depends on: {depends_on}
+  Files: {file_ownership}
+  Criteria:
+    - {criterion 1}
+    - {criterion 2}
+  Verify: {verify_command}
+  Handoffs: {from → note}
+
+With --files: show only file ownership list.
+With --criteria: show only acceptance criteria.
+"""
+
+[[commands]]
+name = "plan wave"
+description = "Show all tasks in a wave"
+args = [
+    { name = "number", description = "Wave number", required = true },
+]
+reads = [".dominion/phases/{N}/plan.toml"]
+behavior = """
+Read plan.toml, filter tasks by wave number. Format as table:
+  Wave {N} Tasks:
+  ID      Title                   Agent       Deps
+  02-01   Add user auth           Developer   —
+  02-02   Create API endpoint     Developer   —
+"""
+
+[[commands]]
+name = "plan deps"
+description = "Show dependency chain for a task"
+args = [
+    { name = "id", description = "Task id", required = true },
+]
+reads = [".dominion/phases/{N}/plan.toml"]
+behavior = """
+Walk the depends_on chain for the task. Display as tree:
+  02-05
+  ├── 02-03
+  │   └── 02-01
+  └── 02-04
+      └── 02-01
+"""
+
+[[commands]]
+name = "plan handoff"
+description = "Write a targeted handoff note between tasks"
+args = [
+    { name = "from", description = "Source task id", required = true },
+    { name = "--to", description = "Target task id", required = true },
+    { name = "message", description = "Handoff note content", required = true },
+]
+reads = [".dominion/phases/{N}/plan.toml"]
+writes = [".dominion/phases/{N}/plan.toml"]
+behavior = """
+Find the target task's [[tasks.handoffs]] array. Add entry:
+  from = {from}
+  note = {message}
+
+Validate both task ids exist in plan.toml.
+"""
+
+[[commands]]
+name = "plan index"
+description = "Group tasks into waves (Architect tool)"
+args = []
+reads = [".dominion/phases/{N}/plan.toml"]
+writes = [".dominion/phases/{N}/plan.toml"]
+behavior = """
+Read all tasks, build DAG from depends_on. Topological sort to assign waves.
+Wave 1 = no deps, Wave 2 = deps all in wave 1, etc.
+Check for file ownership conflicts within waves.
+Update each task's wave field. Report wave structure.
+"""
+
+[[commands]]
+name = "plan validate"
+description = "Validate plan structure"
+args = [
+    { name = "file", description = "Path to plan.toml", required = true },
+]
+reads = ["{file}"]
+behavior = """
+Validate plan.toml structure:
+1. All task ids are unique and follow {phase}-{seq} format
+2. All depends_on references point to existing task ids
+3. No circular dependencies
+4. All tasks have >=2 acceptance criteria
+5. No file ownership conflicts within same wave
+6. Wave numbering is sequential starting from 1
+
+Report pass/fail for each check.
+"""
+
+# === Phase & Wave ===
+
+[[commands]]
+name = "phase init"
+description = "Create phase directory structure"
+args = [
+    { name = "number", description = "Phase number", required = true },
+    { name = "--title", description = "Phase title", required = true },
+]
+writes = [".dominion/phases/{N}/", ".dominion/state.toml"]
+behavior = """
+Create directory structure:
+  .dominion/phases/{N}/
+  .dominion/phases/{N}/summaries/
+
+Update state.toml position.phase = {N}, position.step = "idle", position.status = "ready".
+"""
+
+[[commands]]
+name = "phase status"
+description = "Current phase overview"
+args = []
+reads = [".dominion/state.toml", ".dominion/phases/{N}/"]
+behavior = """
+Read state.toml for current phase. Scan phase directory for artifacts.
+Format as:
+  Phase {N}: {title}
+  Step: {step} | Status: {status}
+  Artifacts: research.toml [exists], plan.toml [missing], ...
+"""
+
+[[commands]]
+name = "phase progress"
+description = "Detailed progress for a phase"
+args = [
+    { name = "number", description = "Phase number", required = true },
+]
+reads = [".dominion/phases/{N}/progress.toml", ".dominion/phases/{N}/plan.toml"]
+behavior = """
+Read progress.toml and plan.toml. Format as:
+  Phase {N} Progress:
+  Wave 1: complete (3/3 tasks)
+  Wave 2: in-progress (1/2 tasks complete, 1 blocked)
+  Wave 3: pending
+
+  Blocked: 02-04 — reason
+"""
+
+[[commands]]
+name = "wave create"
+description = "Create wave tracking entry in progress.toml"
+args = [
+    { name = "number", description = "Wave number", required = true },
+]
+reads = [".dominion/phases/{N}/progress.toml"]
+writes = [".dominion/phases/{N}/progress.toml"]
+behavior = """
+Add [[waves]] entry with number, status = "pending", task entries from plan.toml.
+"""
+
+[[commands]]
+name = "wave status"
+description = "Current wave overview"
+args = []
+reads = [".dominion/state.toml", ".dominion/phases/{N}/progress.toml"]
+behavior = """
+Read current wave from state.toml and progress.toml. Format as:
+  Wave {N}: {status}
+  Tasks:
+    02-01  [complete]  Add user auth
+    02-02  [in-progress]  Create API endpoint
+"""
+
+[[commands]]
+name = "wave merge"
+description = "Trigger wave merge protocol"
+args = []
+reads = [".dominion/phases/{N}/progress.toml"]
+writes = [".dominion/phases/{N}/progress.toml"]
+behavior = """
+For each complete task in current wave:
+1. Verify SUMMARY.md exists in summaries/
+2. Run verify_command if specified
+3. Merge worktree branch: git merge --no-ff dominion/{task-id}
+4. Clean up worktree: git worktree remove .worktrees/dominion-{task-id}
+5. Update progress.toml wave status and merge_commit
+
+Halt on merge conflict — present to user.
+"""
+
+# === Research ===
+
+[[commands]]
+name = "research findings"
+description = "Filter research findings by severity"
+args = [
+    { name = "--severity", description = "Filter: high | medium | low", optional = true },
+]
+reads = [".dominion/phases/{N}/research.toml"]
+behavior = """
+Read research.toml [[findings]]. Filter by severity if provided.
+Format as table:
+  ID    Severity  Category       Title
+  F1    high      architecture   Circular dependency in auth module
+  F2    medium    testing        Missing integration tests for API
+"""
+
+[[commands]]
+name = "research finding"
+description = "Show single finding detail"
+args = [
+    { name = "id", description = "Finding id (e.g., F1)", required = true },
+]
+reads = [".dominion/phases/{N}/research.toml"]
+behavior = """
+Read research.toml, find finding by id. Display full detail:
+  F1: {title}
+  Severity: {severity} | Category: {category}
+  Description: {description}
+  Evidence: {evidence}
+  Recommendation: {recommendation}
+"""
+
+[[commands]]
+name = "research opportunities"
+description = "List opportunities from research"
+args = []
+reads = [".dominion/phases/{N}/research.toml"]
+behavior = """
+Read research.toml [[opportunities]]. Format as table:
+  ID    Title                    Benefit              Effort
+  O1    Add caching layer        50% faster queries   medium
+"""
+
+[[commands]]
+name = "research summary"
+description = "Auto-generated research overview"
+args = []
+reads = [".dominion/phases/{N}/research.toml"]
+behavior = """
+Read research.toml. Summarize:
+  Research Summary (Phase {N}):
+  Findings: {high} high, {medium} medium, {low} low
+  Opportunities: {count}
+  Assumptions: {verified} verified, {unverified} unverified, {false} false
+"""
+
+# === Reports ===
+
+[[commands]]
+name = "report create"
+description = "Create test-report or review artifact"
+args = [
+    { name = "type", description = "Report type: test-report | review", required = true },
+    { name = "phase", description = "Phase number", required = true },
+]
+reads = [".dominion/phases/{N}/plan.toml", ".dominion/phases/{N}/progress.toml"]
+writes = [".dominion/phases/{N}/{type}.toml"]
+behavior = """
+Initialize the report TOML file from schema template.
+Set meta.phase = {phase}. Pre-populate structure from plan.toml tasks.
+"""
+
+[[commands]]
+name = "report finalize"
+description = "Finalize a report"
+args = [
+    { name = "file", description = "Path to report TOML file", required = true },
+]
+reads = ["{file}"]
+writes = ["{file}"]
+behavior = """
+Validate report is complete (no empty required fields).
+Add finalized_at timestamp. Mark as final (read-only convention).
+"""
+
+# === Backlog ===
+
+[[commands]]
+name = "backlog add"
+description = "Capture an idea during work"
+args = [
+    { name = "--tags", description = "Comma-separated tags", optional = true },
+    { name = "text", description = "Backlog item text", required = true },
+]
+reads = [".dominion/backlog.toml"]
+writes = [".dominion/backlog.toml"]
+behavior = """
+Read backlog.toml (create from schema if not exists).
+Add [[items]] entry with auto-incremented id, text, tags, current task/phase.
+"""
+
+[[commands]]
+name = "backlog list"
+description = "View all backlog items"
+args = [
+    { name = "--status", description = "Filter by status: open | planned | done", optional = true },
+    { name = "--tags", description = "Filter by tag", optional = true },
+]
+reads = [".dominion/backlog.toml"]
+behavior = """
+Read backlog.toml [[items]]. Filter if flags provided. Format as table:
+  ID  Phase  Priority  Tags         Text
+  1   2      high      refactor     Extract auth middleware
+  2   2      medium    testing      Add load tests
+"""
+
+[[commands]]
+name = "backlog suggest"
+description = "Smart suggestions for planning"
+args = [
+    { name = "--phase", description = "Target phase number", optional = true },
+]
+reads = [".dominion/backlog.toml", ".dominion/phases/{N}/review.toml"]
+behavior = """
+Read backlog.toml and latest review.toml. Suggest high-priority items
+that align with upcoming phase goals. Format as ranked list with rationale.
+"""
+
+# === Rollback & History ===
+
+[[commands]]
+name = "rollback"
+description = "Roll back to a safe boundary"
+args = [
+    { name = "--to-wave", description = "Roll back to wave boundary", optional = true },
+    { name = "--task", description = "Revert single task", optional = true },
+    { name = "--to-phase", description = "Roll back entire phase", optional = true },
+]
+reads = [".dominion/phases/{N}/progress.toml"]
+writes = [".dominion/phases/{N}/progress.toml", ".dominion/state.toml"]
+behavior = """
+Exactly one of --to-wave, --task, or --to-phase must be provided.
+
+--to-wave N: revert all commits after wave N's merge commit.
+--task ID: revert commits for a single task (git revert).
+--to-phase N: revert to the commit at phase N start.
+
+Always confirm with user before executing. Update progress.toml and state.toml.
+"""
+
+[[commands]]
+name = "history"
+description = "Show commit map for a phase"
+args = [
+    { name = "--phase", description = "Phase number", required = true },
+]
+reads = [".dominion/phases/{N}/progress.toml"]
+behavior = """
+Read progress.toml. Map commits to tasks and waves:
+  Phase {N} History:
+  Wave 1 (merged: abc123)
+    02-01: def456, ghi789
+    02-02: jkl012
+  Wave 2 (in-progress)
+    02-03: mno345
 """
 
 # === Output Format ===
