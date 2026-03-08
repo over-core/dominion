@@ -56,3 +56,22 @@ build_system = ""                   # detected build system
 installed = []                      # detected at init
 recommended = []                    # from registry cross-reference
 missing_required = []               # required but not installed
+
+# Autonomy configuration
+[autonomy]
+mode = "interactive"               # interactive | auto
+
+[autonomy.circuit_breakers]
+max_tokens_per_task = 50000         # 0 = no limit
+max_retry_attempts = 3              # 0 = no limit
+max_cascade_replans = 2             # 0 = no limit
+max_failed_tasks_per_wave = 0       # 0 = no limit
+session_time_limit_hours = 8        # 0 = no limit
+
+[autonomy.replan_constraints]
+can_split_tasks = true
+can_reorder_within_wave = true
+can_add_dependencies = true
+cannot_change_wave_count = true
+cannot_modify_completed_tasks = true
+cannot_alter_governance_rules = true
