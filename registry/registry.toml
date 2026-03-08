@@ -6,6 +6,7 @@ last_updated = "2026-03-07"
 
 [mcps.context7]
 tier = "required"
+critical = false
 category = "documentation"
 rating = 4.8
 platforms = ["linux", "macos", "windows"]
@@ -20,6 +21,7 @@ safe_read_tools = [
 
 [mcps.serena]
 tier = "required"
+critical = true
 category = "code-navigation"
 rating = 4.5
 platforms = ["linux", "macos", "windows"]
@@ -54,6 +56,7 @@ php = ["intelephense", "phpactor"]
 
 [mcps.sequential-thinking]
 tier = "recommended"
+critical = false
 category = "reasoning"
 rating = 4.7
 platforms = ["linux", "macos", "windows"]
@@ -67,6 +70,7 @@ safe_read_tools = [
 
 [mcps.github]
 tier = "recommended"
+critical = false
 category = "vcs"
 rating = 4.6
 platforms = ["linux", "macos", "windows"]
@@ -88,6 +92,7 @@ safe_read_tools = [
 
 [mcps.gitlab]
 tier = "recommended"
+critical = false
 category = "vcs"
 rating = 4.3
 platforms = ["linux", "macos", "windows"]
@@ -101,6 +106,7 @@ safe_read_tools = []
 
 [mcps.echovault]
 tier = "optional"
+critical = false
 category = "memory"
 rating = 4.2
 platforms = ["linux"]
