@@ -139,7 +139,7 @@ notes = "Required for Dominion governance enforcement. Source-diving prevention,
 category = "development"
 rating = 4.4
 compatible_with_dominion = true
-notes = "Useful for /dominion:educate custom skill creation in v0.6+"
+notes = "Useful for /dominion:improve custom skill creation"
 
 [plugins.gsd]
 category = "methodology"
