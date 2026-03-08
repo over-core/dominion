@@ -49,3 +49,25 @@ Continue to {next step}? [Y / pause / redo]
 - **Y**: dispatch next step
 - **pause**: save state (status remains "complete" for current step), release lock, exit gracefully
 - **redo**: re-run current step (warn about overwriting artifacts)
+
+## Auto Mode Overrides
+
+When running in auto mode (`--auto`), the following overrides apply:
+
+### Dispatch Changes
+- **discuss**: skip interactive discussion — use roadmap.toml phase goals as intent
+- **improve**: collect-only — generate data, queue proposals, do not present or apply
+
+### No Control Points
+Do not present "Continue? [Y / pause / redo]" prompts. Proceed directly to the next step.
+
+### Halt Conditions
+Auto mode halts (becomes a control point) only for:
+- Governance hard stops (architecture, security, data format changes)
+- Critical blocker signals (level = "critical")
+- Circuit breaker: `max_failed_tasks_per_wave` exceeded
+- Circuit breaker: `session_time_limit_hours` exceeded
+
+On halt: set `position.status = "blocked"`, checkpoint state, wait for human.
+
+See `@references/auto-mode.md` for full protocol.
