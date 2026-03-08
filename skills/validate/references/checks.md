@@ -189,3 +189,40 @@ Fail: parse errors or cross-reference mismatches
 Pass: index valid, all files referenced, budget respected
 Warn: no knowledge index (knowledge management hasn't run yet), or approaching budget
 Fail: parse error, missing referenced files, or orphaned files
+
+## Check 19: Autonomy Configuration
+
+- If `.dominion/dominion.toml` has an `[autonomy]` section:
+  - Verify `[autonomy.circuit_breakers]` exists with all required fields: max_tokens_per_task, max_retry_attempts, max_cascade_replans, max_failed_tasks_per_wave, session_time_limit_hours
+  - Verify all values are integers >= 0
+  - Verify `[autonomy.replan_constraints]` exists with all required boolean fields
+  - Verify `autonomy.mode` is one of: interactive, auto
+
+Pass: autonomy config valid
+Warn: no [autonomy] section (auto mode not configured)
+Fail: invalid values or missing required fields
+
+## Check 20: Autonomous Decision Integrity
+
+- If `.dominion/state.toml` has `[[autonomous_decisions]]` entries:
+  - Verify each has required fields: id, timestamp, phase, task, type, description, reason, session_id
+  - Verify `type` is one of: replan, skip, retry, split, reorder
+  - Verify `id` values are unique
+  - Verify `reviewed` is boolean
+  - If `reviewed = true`: verify `outcome` is one of: accepted, rolled-back
+
+Pass: all decisions have valid structure
+Warn: no autonomous decisions (no auto mode sessions yet)
+Fail: missing required fields, invalid types, or duplicate ids
+
+## Check 21: MCP Status Consistency
+
+- If `.dominion/state.toml` has `[[mcp_status]]` entries:
+  - For each entry: verify `name` references an MCP in `dominion.toml [mcps.installed]`
+  - Verify `available` is boolean
+  - Verify `checked_at` is a valid ISO 8601 timestamp (if non-empty)
+  - Check for orphaned entries: MCP status for MCPs not in dominion.toml
+
+Pass: MCP status entries reference valid MCPs
+Warn: no MCP status entries (readiness check hasn't run yet)
+Fail: orphaned entries or invalid field values
