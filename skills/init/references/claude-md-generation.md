@@ -32,7 +32,7 @@ Tech stack: {languages + frameworks}
 ```
 
 ### Section 3: Language Conventions (30-60 lines)
-One subsection per detected Tier 1/2 language:
+One subsection per detected full/standard-level language:
 ```markdown
 ## {Language} Conventions
 - Formatter: {from style.toml}

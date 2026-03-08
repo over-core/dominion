@@ -26,8 +26,8 @@ If transform:
 
 ## Section 3: Code Style (per detected language)
 
-For each Tier 1 language, present detected conventions and ask to confirm or change.
-For each Tier 2 language, present detected tooling and ask for any convention preferences.
+For each full-level language, present detected conventions and ask to confirm or change.
+For each standard-level language, present detected tooling and ask for any convention preferences.
 
 Example for Rust:
 1. "Error handling: thiserror+anyhow / custom / other?" (pre-select if detected)

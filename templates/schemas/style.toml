@@ -5,7 +5,7 @@
 schema_version = 1
 
 # Per-language sections populated from detection + wizard answers
-# Example for Rust (Tier 1):
+# Example for Rust (full-level):
 # [languages.rust]
 # edition = "2021"
 # formatter = "rustfmt"

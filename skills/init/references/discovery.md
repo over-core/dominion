@@ -110,7 +110,7 @@ Check for existing PR/MR templates:
 
 ## Phase 8: Style Sampling
 
-For each Tier 1 detected language, read 3-5 representative source files:
+For each full-level detected language, read 3-5 representative source files:
 - Pick files from different directories (avoid test files for convention detection)
 - Note: naming conventions (snake_case, camelCase), indentation, line length
 - Note: error handling patterns, import organization, comment style
