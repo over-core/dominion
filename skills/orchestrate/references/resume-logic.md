@@ -62,3 +62,31 @@ Read these fields from `.dominion/state.toml`:
     2. Force-unlock (if session is stale)
   ```
 - If lock is expired (older than expires_after_hours): auto-clear and proceed
+
+### Auto mode halted (status = "blocked", autonomy.mode = "auto")
+- The pipeline was running in auto mode and hit a governance hard stop or circuit breaker
+- Present the halt reason from `[blocker]`
+- Present any unreviewed `[[autonomous_decisions]]`:
+  ```
+  Auto mode was halted: {reason}
+
+  {N} autonomous decisions were made before halt:
+    {id}. {type}: {description}
+
+  Options:
+    1. Resolve blocker and continue in auto mode
+    2. Resolve blocker and switch to interactive mode
+    3. Review autonomous decisions first (/dominion:improve)
+  ```
+
+### Auto session completed (step = "improve", status = "complete", autonomous_decisions exist with reviewed = false)
+- Auto mode finished the full pipeline including collect-only improve
+- Present summary of what happened:
+  ```
+  Auto session completed Phase {N}.
+
+  {N} autonomous decisions to review.
+  {N} improvement proposals queued.
+
+  Run /dominion:improve to review decisions and proposals.
+  ```
