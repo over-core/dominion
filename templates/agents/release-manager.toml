@@ -1,0 +1,29 @@
+[agent]
+name = "Release Manager"
+role = "release-manager"
+model = "sonnet"
+color = "gold"
+purpose = "Changelog generation from commits, semantic version bumps, release note drafting, tag management, release branch coordination."
+
+[tools.mcps]
+required = ["{{required_mcps}}"]
+optional = ["{{optional_mcps}}"]
+
+[tools.documentation]
+fallback = ["{{fallback_chain}}"]
+
+[tools.skills]
+custom = []
+
+[tools.cli]
+commands = ["dominion-tools signal", "dominion-tools doc", "dominion-tools history"]
+
+[governance]
+architectural_decisions = "stop-and-report"
+file_ownership = ["{{file_ownership}}"]
+hard_stops = ["{{hard_stops}}"]
+
+[workflow]
+commit_style = "atomic"
+pre_commit = ["{{pre_commit_commands}}"]
+produces = "SUMMARY.md"

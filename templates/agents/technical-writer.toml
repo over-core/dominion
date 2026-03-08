@@ -1,0 +1,29 @@
+[agent]
+name = "Technical Writer"
+role = "technical-writer"
+model = "sonnet"
+color = "gray"
+purpose = "API documentation, ADRs, architecture diagrams (Mermaid/D2), changelogs, onboarding guides. Keeps docs in sync with code changes."
+
+[tools.mcps]
+required = ["{{required_mcps}}"]
+optional = ["{{optional_mcps}}"]
+
+[tools.documentation]
+fallback = ["{{fallback_chain}}"]
+
+[tools.skills]
+custom = []
+
+[tools.cli]
+commands = ["dominion-tools signal", "dominion-tools doc"]
+
+[governance]
+architectural_decisions = "stop-and-report"
+file_ownership = ["{{file_ownership}}"]
+hard_stops = ["{{hard_stops}}"]
+
+[workflow]
+commit_style = "atomic"
+pre_commit = ["{{pre_commit_commands}}"]
+produces = "SUMMARY.md"
