@@ -1,0 +1,15 @@
+# Dominion Metrics History — Schema Template
+# Cumulative metrics across all phases, auto-appended after each review
+
+[meta]
+schema_version = 1
+
+[[phases]]
+number = 0
+tests_added = 0
+blocker_rate = 0.0                  # blockers / tasks ratio
+tokens_per_task = 0
+findings_high = 0
+findings_medium = 0
+acceptance_pass_rate = 0.0          # passed / total criteria ratio
+improvement_proposals = 0
