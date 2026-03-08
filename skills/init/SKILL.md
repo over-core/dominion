@@ -137,7 +137,21 @@ If `.gitignore` exists, append:
 
 If `.gitignore` doesn't exist, create it with the above content.
 
-## Step 13: Summary
+## Step 13: Generate DOMINION.md
+
+Generate `DOMINION.md` at project root from `@templates/dominion-md.md`:
+1. Read `dominion.toml` — extract project info, direction, workflow config
+2. Read `roadmap.toml` — extract milestone and phase summary
+3. Read all `.dominion/agents/*.toml` — build agent roster table
+4. Fill template placeholders
+5. Write to `DOMINION.md` at project root
+
+The Attendant maintains this file. It is regenerated when:
+- Agent roster changes (`dominion-tools agents generate`)
+- Improve step applies structural changes
+- Roadmap phases are added or completed
+
+## Step 14: Summary
 
 Present to the user:
 ```
@@ -149,6 +163,7 @@ Generated:
   .claude/settings.json  MCP permissions (extended)
   CLAUDE.md           Project instructions (you own this now)
   AGENTS.md           Agent roster (auto-generated)
+  DOMINION.md           Project overview and Dominion cheatsheet
   dominion-tools/     CLI tool ({language}, {N} commands)
 
 Validation: {PASS/FAIL with details}
