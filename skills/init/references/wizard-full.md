@@ -161,7 +161,7 @@ For each activated role:
 
 If no roles detected:
 ```
-No specialized roles detected. You can add them later with /dominion:educate --agent.
+No specialized roles detected. You can add them later with /dominion:improve --agent.
 ```
 
 ## Section 6: Tools & MCPs
@@ -186,7 +186,7 @@ Ask:
    - Other (describe)
    - None
 
-Store for v0.6 `/dominion:educate`. In v0.1, just record the answer in dominion.toml.
+Store for `/dominion:improve --from`. In v0.1, just record the answer in dominion.toml.
 
 ## Section 8: Taste
 
