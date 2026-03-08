@@ -3,7 +3,7 @@ spec_version = "0.2"
 minimum_commands = [
     "validate", "state resume", "state position", "state update", "state decisions", "state blockers",
     "agents list", "agents show", "agents generate",
-    "knowledge hydrate", "project summary",
+    "knowledge sync", "project summary",
     "signal blocker", "signal warning", "signal list", "signal resolve",
     "plan task", "plan wave", "plan deps", "plan handoff", "plan index", "plan validate",
     "phase init", "phase status", "phase progress",
@@ -200,8 +200,8 @@ Read all agent TOML files. Generate AGENTS.md with sections:
 # === Knowledge ===
 
 [[commands]]
-name = "knowledge hydrate"
-description = "Rebuild project MEMORY.md from .dominion/knowledge/index.toml"
+name = "knowledge sync"
+description = "Sync project MEMORY.md from .dominion/knowledge/index.toml"
 args = []
 reads = [".dominion/knowledge/index.toml", ".dominion/knowledge/*.md", ".dominion/state.toml", ".dominion/dominion.toml"]
 writes = ["MEMORY.md is written to the project's Claude memory path"]

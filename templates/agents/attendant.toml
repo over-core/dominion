@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools agents generate", "dominion-tools validate", "dominion-tools knowledge hydrate", "dominion-tools state"]
+commands = ["dominion-tools agents generate", "dominion-tools validate", "dominion-tools knowledge sync", "dominion-tools state"]
 
 [governance]
 architectural_decisions = "stop-and-report"

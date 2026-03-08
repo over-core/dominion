@@ -79,7 +79,7 @@ For each command, test graceful failure:
 - `agents show` with nonexistent role → "not found" message listing available roles
 - `state resume` when state.toml has phase = 0 → "no active phase" message
 - `validate` with intentionally broken setup → reports failures, doesn't falsely pass
-- `knowledge hydrate` with empty index.toml → creates minimal MEMORY.md
+- `knowledge sync` with empty index.toml → creates minimal MEMORY.md
 
 ### CLI UX Tests
 
