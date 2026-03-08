@@ -14,9 +14,10 @@ fallback = ["{{fallback_chain}}"]
 
 [tools.skills]
 custom = []
+structural_awareness = "@templates/references/structural-awareness.md"
 
 [tools.cli]
-commands = ["dominion-tools state resume", "dominion-tools project summary", "dominion-tools roadmap"]
+commands = ["dominion-tools state resume", "dominion-tools project summary", "dominion-tools roadmap", "dominion-tools release prepare"]
 
 [governance]
 architectural_decisions = "explain-to-human"
