@@ -63,6 +63,27 @@ For each accepted role:
 For rejected roles:
 - Note in improvements.toml as a rejected proposal (so it's not suggested again next phase)
 
+## Preference Promotion
+
+Check if any project-specific preferences from `.dominion/style.toml` or `.dominion/dominion.toml` match across this and previous projects (if the user has worked on multiple Dominion projects).
+
+If the user explicitly states "I always want this" for any preference during the retrospective, promote it:
+
+```
+Promote "{preference}" to global preferences?
+This will apply to all future Dominion projects. [Y/n]
+```
+
+If accepted:
+- Read or create `~/.claude/.dominion/global-preferences.toml`
+- Add the preference under the appropriate section
+- Confirm: "Added to global preferences."
+
+<IMPORTANT>
+Only write to `~/.claude/.dominion/` when the user explicitly approves a promotion.
+Never infer preferences to promote — only act on explicit user statements.
+</IMPORTANT>
+
 ## Present Retrospective
 
 Structure the reflection in three sections:
