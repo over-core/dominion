@@ -1,5 +1,5 @@
 [meta]
-spec_version = "0.4"
+spec_version = "0.5"
 minimum_commands = [
     "validate", "state resume", "state position", "state update", "state decisions", "state blockers",
     "agents list", "agents show", "agents generate",
@@ -13,6 +13,7 @@ minimum_commands = [
     "backlog add", "backlog list", "backlog suggest",
     "rollback", "history",
     "improve list", "improve show", "metrics show", "metrics trends",
+    "auto readiness", "auto decisions",
 ]
 
 # === Validation ===
@@ -743,6 +744,56 @@ Display as a table:
   1     | 23    | 10%          | 32000       | 3             | 90%       | 2
   2     | 47    | 5% (-50%)    | 28000 (-13%)| 1 (-66%)      | 95%       | 3
 Highlight improvements in green context (positive deltas for pass rate, negative for blockers/findings).
+"""
+
+# === Autonomy ===
+
+[[commands]]
+name = "auto readiness"
+description = "Pre-flight check for auto mode"
+args = []
+reads = [".dominion/dominion.toml", ".dominion/state.toml", ".claude/settings.json", "registry/registry.toml"]
+writes = [".dominion/state.toml"]
+behavior = """
+1. Read dominion.toml [autonomy] — verify section exists with valid circuit breaker values
+2. Read dominion.toml [mcps] — get installed MCPs list
+3. Cross-reference installed MCPs against registry.toml safe_read_tools
+4. Check .claude/settings.json — verify each safe_read_tool is in permissions.allow
+5. For each installed MCP: attempt a lightweight probe (list tools or similar)
+6. Write [[mcp_status]] entries to state.toml with availability results
+
+Output:
+  Readiness Check:
+    Permissions: {approved}/{total} read tools pre-approved
+    MCPs: {available}/{total} available ({unavailable_list})
+    Circuit breakers: configured ({max_tokens}/task, {max_retries} retries)
+
+    Warnings:
+      - {mcp_name} unreachable — {missing_consequence from registry}
+
+    Ready for auto mode: YES|NO (with warnings)
+
+If [autonomy] section missing: "No autonomy config. Run /dominion:init or add [autonomy] to dominion.toml."
+If required MCP critical=true is unavailable: Ready = NO.
+"""
+
+[[commands]]
+name = "auto decisions"
+description = "List autonomous decisions from auto mode sessions"
+args = [
+    { name = "--session", description = "Filter by session ID ('last' for most recent)", optional = true },
+    { name = "--phase", description = "Filter by phase number", optional = true },
+    { name = "--reviewed", description = "Filter by review status (true/false)", optional = true }
+]
+reads = [".dominion/state.toml"]
+writes = []
+behavior = """
+Read state.toml [[autonomous_decisions]]. Apply filters if provided.
+Display as a table:
+  ID | Phase | Task | Type | Description | Reviewed | Outcome
+Sorted by timestamp (newest first).
+If --reviewed=false: show only unreviewed decisions.
+If no decisions: "No autonomous decisions recorded."
 """
 
 # === Output Format ===
