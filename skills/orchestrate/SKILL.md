@@ -21,7 +21,10 @@ Before starting:
 
 1. Verify `.dominion/` exists
 2. Read `.dominion/state.toml` — determine current position
-3. Follow `@references/resume-logic.md` to determine next action
+3. Detect mode:
+   - If `--auto` flag passed: follow `@references/auto-mode.md` (readiness check, then unattended execution)
+   - Otherwise: follow interactive mode below
+4. Follow `@references/resume-logic.md` to determine next action
 
 ## Step 1: Status Dashboard
 
