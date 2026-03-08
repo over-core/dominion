@@ -13,6 +13,10 @@ agent_affinity = ["Researcher", "Architect", "Developer", "Reviewer"]
 install_command = "claude mcp add context7 -- npx -y @upstash/context7-mcp@latest"
 notes = "Must call resolve-library-id before query-docs."
 missing_consequence = "Agents rely on WebFetch for docs — slower, less reliable, higher token cost"
+safe_read_tools = [
+    "mcp__context7__resolve-library-id",
+    "mcp__context7__query-docs",
+]
 
 [mcps.serena]
 tier = "required"
@@ -23,6 +27,19 @@ agent_affinity = ["Researcher", "Architect", "Developer", "Reviewer"]
 install_command = "See https://github.com/serena-ai/serena for setup"
 notes = "Needs project activation. Configure with detected LSPs (rust-analyzer, Pyright, etc.)"
 missing_consequence = "Agents fall back to Grep/Glob for code navigation — much less effective for large codebases"
+safe_read_tools = [
+    "mcp__serena__get_symbols_overview",
+    "mcp__serena__find_symbol",
+    "mcp__serena__find_referencing_symbols",
+    "mcp__serena__find_file",
+    "mcp__serena__list_dir",
+    "mcp__serena__search_for_pattern",
+    "mcp__serena__activate_project",
+    "mcp__serena__read_memory",
+    "mcp__serena__list_memories",
+    "mcp__serena__get_current_config",
+    "mcp__serena__check_onboarding_performed",
+]
 
 [mcps.serena.lsp_config]
 rust = "rust-analyzer"
@@ -44,6 +61,9 @@ agent_affinity = ["Researcher", "Architect", "Security Auditor"]
 install_command = "claude mcp add sequential-thinking -- npx -y @anthropic/sequential-thinking-mcp"
 notes = "Improves multi-step reasoning for complex analysis tasks"
 missing_consequence = "No impact on basic tasks. Complex research/architecture may be less thorough"
+safe_read_tools = [
+    "mcp__sequential-thinking__sequentialthinking",
+]
 
 [mcps.github]
 tier = "recommended"
@@ -55,6 +75,16 @@ install_command = "claude mcp add github -- npx -y @anthropic/github-mcp"
 when = "github-actions detected OR .git/config contains github.com"
 notes = "PR management, issue tracking, code review integration"
 missing_consequence = "Agents use gh CLI fallback for GitHub operations"
+safe_read_tools = [
+    "mcp__plugin_github_github__get_file_contents",
+    "mcp__plugin_github_github__list_issues",
+    "mcp__plugin_github_github__list_pull_requests",
+    "mcp__plugin_github_github__search_code",
+    "mcp__plugin_github_github__get_commit",
+    "mcp__plugin_github_github__list_commits",
+    "mcp__plugin_github_github__list_branches",
+    "mcp__plugin_github_github__get_me",
+]
 
 [mcps.gitlab]
 tier = "recommended"
@@ -66,6 +96,8 @@ install_command = "claude mcp add gitlab -- npx -y @anthropic/gitlab-mcp"
 when = "gitlab-ci detected OR .git/config contains gitlab"
 notes = "MR management, issue tracking, pipeline status"
 missing_consequence = "Agents use glab CLI fallback for GitLab operations"
+safe_read_tools = []
+# Note: gitlab MCP tool names vary by installation — cannot hardcode
 
 [mcps.echovault]
 tier = "optional"
@@ -77,6 +109,10 @@ agent_affinity = ["Researcher", "Advisor", "Attendant"]
 install_command = "See https://github.com/echovault/echovault-mcp"
 notes = "Structured key-value memory. Complements MEMORY.md hot cache with searchable storage"
 missing_consequence = "MEMORY.md + .dominion/knowledge/ still work. No structured cross-session memory"
+safe_read_tools = [
+    "mcp__echovault__memory_search",
+    "mcp__echovault__memory_context",
+]
 
 # === Plugins ===
 
