@@ -26,11 +26,15 @@ Follow `@references/codebase-analysis.md`
 
 Follow `@references/assumption-listing.md`
 
-## Step 3: Write Research
+## Step 3: Assumption Verification
 
-Write `.dominion/phases/{N}/research.toml` using `@templates/schemas/research.toml` as the schema. Populate with findings, opportunities, and assumptions from Steps 1-2.
+Follow `@references/assumption-verification.md`
 
-## Step 4: Present Summary
+## Step 4: Write Research
+
+Write `.dominion/phases/{N}/research.toml` using `@templates/schemas/research.toml` as the schema. Populate with findings, opportunities, and assumptions from Steps 1-3.
+
+## Step 5: Present Summary
 
 Display to the user:
 ```
@@ -47,7 +51,7 @@ Unverified assumptions:
   - {A1}: {text}
 ```
 
-## Step 5: Update State
+## Step 6: Update State
 
 Update `.dominion/state.toml`:
 - `position.step` = "explore"
