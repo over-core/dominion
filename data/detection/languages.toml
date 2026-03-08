@@ -1,12 +1,12 @@
 [meta]
 schema_version = 1
-# Tiers: 1 = deep conventions, 2 = solid detection + basic conventions, 3 = detection only
+# Levels: full = deep conventions, standard = solid detection + basic conventions, detected = detection only
 
-# === TIER 1: Deep support ===
+# === Full: Deep support ===
 
 [[languages]]
 name = "rust"
-tier = 1
+level = "full"
 indicators = ["Cargo.toml"]
 file_extensions = [".rs"]
 package_managers = ["cargo"]
@@ -35,7 +35,7 @@ tracing_options = ["async-io", "all-public", "none"]
 
 [[languages]]
 name = "python"
-tier = 1
+level = "full"
 indicators = ["pyproject.toml", "setup.py", "setup.cfg", "requirements.txt"]
 file_extensions = [".py"]
 package_managers = ["uv", "pip", "poetry", "pdm", "pipenv"]
@@ -58,7 +58,7 @@ docstring_style_options = ["google", "numpy", "sphinx"]
 
 [[languages]]
 name = "typescript"
-tier = 1
+level = "full"
 indicators = ["tsconfig.json"]
 file_extensions = [".ts", ".tsx"]
 package_managers = ["npm", "pnpm", "yarn", "bun"]
@@ -78,7 +78,7 @@ module_system_options = ["esm", "commonjs"]
 
 [[languages]]
 name = "go"
-tier = 1
+level = "full"
 indicators = ["go.mod"]
 file_extensions = [".go"]
 package_managers = ["go-modules"]
@@ -93,11 +93,11 @@ error_handling = "explicit-returns"
 goroutine_policy_options = ["structured", "liberal"]
 interface_style_options = ["accept-interfaces-return-structs", "minimal"]
 
-# === TIER 2: Solid support ===
+# === Standard: Solid support ===
 
 [[languages]]
 name = "java"
-tier = 2
+level = "standard"
 indicators = ["pom.xml", "build.gradle", "build.gradle.kts"]
 file_extensions = [".java"]
 package_managers = ["maven", "gradle"]
@@ -109,7 +109,7 @@ build_files = ["pom.xml", "build.gradle", "build.gradle.kts"]
 
 [[languages]]
 name = "kotlin"
-tier = 2
+level = "standard"
 indicators = ["build.gradle.kts", "*.kt"]
 file_extensions = [".kt", ".kts"]
 package_managers = ["gradle", "maven"]
@@ -121,7 +121,7 @@ build_files = ["build.gradle.kts"]
 
 [[languages]]
 name = "csharp"
-tier = 2
+level = "standard"
 indicators = ["*.csproj", "*.sln"]
 file_extensions = [".cs"]
 package_managers = ["nuget", "dotnet"]
@@ -133,7 +133,7 @@ build_files = ["*.csproj", "*.sln", "Directory.Build.props"]
 
 [[languages]]
 name = "ruby"
-tier = 2
+level = "standard"
 indicators = ["Gemfile", "*.gemspec"]
 file_extensions = [".rb"]
 package_managers = ["bundler", "gem"]
@@ -145,7 +145,7 @@ build_files = ["Gemfile", "Gemfile.lock"]
 
 [[languages]]
 name = "php"
-tier = 2
+level = "standard"
 indicators = ["composer.json"]
 file_extensions = [".php"]
 package_managers = ["composer"]
@@ -155,70 +155,70 @@ test_runners = ["phpunit", "pest"]
 lsp = ["intelephense", "phpactor"]
 build_files = ["composer.json", "composer.lock"]
 
-# === TIER 3: Detection only (no conventions, user provides) ===
+# === Detected: Detection only (no conventions, user provides) ===
 
 [[languages]]
 name = "c"
-tier = 3
+level = "detected"
 indicators = ["CMakeLists.txt", "Makefile", "*.c"]
 file_extensions = [".c", ".h"]
 
 [[languages]]
 name = "cpp"
-tier = 3
+level = "detected"
 indicators = ["CMakeLists.txt", "*.cpp", "*.cc"]
 file_extensions = [".cpp", ".cc", ".cxx", ".hpp", ".hh", ".h"]
 
 [[languages]]
 name = "swift"
-tier = 3
+level = "detected"
 indicators = ["Package.swift", "*.xcodeproj"]
 file_extensions = [".swift"]
 
 [[languages]]
 name = "scala"
-tier = 3
+level = "detected"
 indicators = ["build.sbt", "*.scala"]
 file_extensions = [".scala", ".sc"]
 
 [[languages]]
 name = "elixir"
-tier = 3
+level = "detected"
 indicators = ["mix.exs"]
 file_extensions = [".ex", ".exs"]
 
 [[languages]]
 name = "dart"
-tier = 3
+level = "detected"
 indicators = ["pubspec.yaml"]
 file_extensions = [".dart"]
 
 [[languages]]
 name = "zig"
-tier = 3
+level = "detected"
 indicators = ["build.zig"]
 file_extensions = [".zig"]
 
 [[languages]]
 name = "lua"
-tier = 3
+level = "detected"
 indicators = ["*.lua", "init.lua"]
 file_extensions = [".lua"]
 
 [[languages]]
 name = "haskell"
-tier = 3
+level = "detected"
 indicators = ["*.cabal", "stack.yaml"]
 file_extensions = [".hs"]
 
 [[languages]]
 name = "ocaml"
-tier = 3
+level = "detected"
 indicators = ["dune-project", "*.opam"]
 file_extensions = [".ml", ".mli"]
 
 [[languages]]
 name = "nim"
-tier = 3
+level = "detected"
 indicators = ["*.nimble"]
 file_extensions = [".nim"]
