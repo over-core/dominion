@@ -30,6 +30,23 @@ Follow `@references/assumption-listing.md`
 
 Follow `@references/assumption-verification.md`
 
+## Step 3.5: Role Trigger Detection
+
+Check for new specialized role opportunities:
+1. Read `@data/detection/roles.toml` for all role triggers
+2. Read `.dominion/agents/` to get currently active roles
+3. Cross-reference: are there triggers firing for roles not yet activated?
+4. For each new trigger found: record as a role proposal in research.toml `[[role_proposals]]`
+
+```toml
+[[role_proposals]]
+role = ""                           # role name from roles.toml
+trigger = ""                        # what triggered the detection
+confidence = ""                     # high | medium | low
+```
+
+If no new triggers found: skip. This step is silent unless new roles are detected.
+
 ## Step 4: Write Research
 
 Write `.dominion/phases/{N}/research.toml` using `@templates/schemas/research.toml` as the schema. Populate with findings, opportunities, and assumptions from Steps 1-3.
