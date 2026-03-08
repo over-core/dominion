@@ -129,6 +129,21 @@ Read [blocker] from state.toml and any signal files in .dominion/signals/.
 Format as list with task, level, and reason.
 """
 
+[[commands]]
+name = "state checkpoint"
+description = "Checkpoint current session state on session end"
+args = []
+reads = [".dominion/state.toml"]
+writes = [".dominion/state.toml"]
+behavior = """
+1. Read state.toml
+2. Compute session delta: git log since position.last_session
+3. Update position.last_session to current ISO 8601 timestamp
+4. If lock.session_id matches current session: clear lock
+5. If position.status = "active" and no in-progress work detected: set status = "ready"
+6. Print: "Session checkpointed. {N} commits this session."
+"""
+
 # === Agents ===
 
 [[commands]]
