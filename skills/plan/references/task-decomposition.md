@@ -21,6 +21,14 @@ Break the phase goal into tasks following these rules:
 
 4. **Atomic commits.** The work for a task should be committable as a single logical commit. If a task would require multiple unrelated commits, split it.
 
+5. **Token budget.** Read `dominion.toml [autonomy.circuit_breakers].max_tokens_per_task`. Estimate the token cost for each task based on:
+   - Files to read (count and size of files in scope)
+   - Changes to produce (number of new/modified files, estimated lines)
+   - Test cycles expected (compile/test iterations)
+   - Rough guide: reading a file ≈ 1-2k tokens, producing a file ≈ 2-4k tokens, a test/fix cycle ≈ 5-10k tokens
+   - If the estimate exceeds 80% of the budget, the task is too large — split it along file ownership or responsibility boundaries
+   - Record the estimate in `token_estimate`. If `[autonomy]` section doesn't exist, set `token_estimate = 0` (not estimated)
+
 ## Task ID Format
 
 Use `{phase}-{seq}` zero-padded: `01-01`, `01-02`, ..., `02-01`, etc.
@@ -48,3 +56,4 @@ For each task, produce:
 - `depends_on`: list of task ids
 - `agent`: role name
 - `file_ownership`: list of directories/files this task may modify
+- `token_estimate`: estimated token cost (0 if not estimated)

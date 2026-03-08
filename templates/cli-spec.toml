@@ -413,6 +413,7 @@ Validate plan.toml structure:
 4. All tasks have >=2 acceptance criteria
 5. No file ownership conflicts within same wave
 6. Wave numbering is sequential starting from 1
+7. If dominion.toml [autonomy.circuit_breakers].max_tokens_per_task > 0: warn if any task token_estimate > 80% of budget, fail if any > 100%
 
 Report pass/fail for each check.
 """
