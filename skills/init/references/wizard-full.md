@@ -46,13 +46,77 @@ Example for Python:
 
 ## Section 4: Git Workflow
 
-Ask:
-1. "Branching strategy?" → trunk-based / github-flow / gitflow / custom
-2. "Commit format?" → conventional commits / ticket-prefixed / free-form
-3. "Merge strategy?" → squash / rebase / merge commits
-4. "Code review?" → all changes / major only / agents review (solo devs)
+Ask (present detected values as defaults):
+1. "Branching strategy?" → trunk-based / github-flow / gitflow / custom (default: detected or github-flow)
+2. "Commit format?" → conventional commits / ticket-prefixed / free-form (default: detected or conventional)
+3. "Merge strategy?" → squash / rebase / merge commits (default: detected or squash)
+4. "Code review?" → all changes / major only / agents review (solo devs) (default: agents review for solo, all changes otherwise)
 5. "Release workflow?" → semver / calver / custom / none yet
 6. "Any git pet peeves?" → free text → style.toml [taste] or CLAUDE.md
+
+Store answers in dominion.toml:
+```toml
+[workflow]
+branching = "{answer}"
+commit_format = "{answer}"
+merge_strategy = "{answer}"
+review_process = "{answer}"
+release_workflow = "{answer}"
+```
+
+### Generated Git Artifacts
+
+After wizard completion, generate these artifacts:
+
+#### `.githooks/pre-commit`
+
+Generate a shell script that:
+- Runs formatters for each detected language (from style.toml [language.{lang}.formatter])
+- Runs linters for each detected language (from style.toml [language.{lang}.linter])
+- Runs fast test validation if configured (style.toml [language.{lang}.test_command])
+- Validates commit message format if commit_format != "free-form"
+- Exits non-zero on any failure
+
+If existing pre-commit tooling was detected (Phase 6e), do NOT generate — warn user and skip.
+
+Make executable: `chmod +x .githooks/pre-commit`
+Configure git: `git config core.hooksPath .githooks`
+
+#### `.githooks/commit-msg`
+
+Generate a shell script that validates commit messages:
+- If conventional commits: check `^(feat|fix|docs|refactor|chore|test|perf|ci|build|style|revert)(\(.+\))?: .+$`
+- If ticket-prefixed: check for ticket pattern at start (ask user for pattern, e.g., `[A-Z]+-[0-9]+`)
+- If free-form: skip generation
+
+Make executable: `chmod +x .githooks/commit-msg`
+
+#### `.dominion/templates/pull-request.md`
+
+Generate a PR template:
+
+```markdown
+## Summary
+
+<!-- Brief description of changes -->
+
+## Changes
+
+<!-- List of changes -->
+
+## Testing
+
+<!-- How were changes tested? -->
+
+## Checklist
+
+- [ ] Tests pass
+- [ ] Code follows project conventions
+- [ ] Documentation updated (if applicable)
+```
+
+If existing PR template detected (Phase 6f), do NOT generate — preserve existing.
+If `.github/` exists, also copy to `.github/pull_request_template.md`.
 
 ## Section 5: Tools & MCPs
 
