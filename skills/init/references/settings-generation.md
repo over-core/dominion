@@ -7,8 +7,9 @@ Extend (never replace) `.claude/settings.json` with Dominion permissions.
 If `.claude/settings.json` exists, read it and preserve all existing entries.
 If it doesn't exist, create it.
 
-## Permissions to Add
+## Core Permissions
 
+Always add:
 ```json
 {
   "permissions": {
@@ -19,53 +20,32 @@ If it doesn't exist, create it.
 }
 ```
 
-Add MCP read-operation permissions for each installed MCP. Reference `@registry/registry.toml` for the tool names:
+## MCP Permission Detection
 
-For serena (if installed):
-```json
-"mcp__serena__get_symbols_overview",
-"mcp__serena__find_symbol",
-"mcp__serena__find_referencing_symbols",
-"mcp__serena__find_file",
-"mcp__serena__list_dir",
-"mcp__serena__search_for_pattern",
-"mcp__serena__activate_project",
-"mcp__serena__read_memory",
-"mcp__serena__list_memories",
-"mcp__serena__get_current_config",
-"mcp__serena__check_onboarding_performed"
-```
+Reference: `@registry/registry.toml`
 
-For context7 (if installed):
-```json
-"mcp__context7__resolve-library-id",
-"mcp__context7__query-docs"
-```
+For each MCP detected during discovery (Phase 5):
 
-For sequential-thinking (if installed):
-```json
-"mcp__sequential-thinking__sequentialthinking"
-```
+1. Look up the MCP in registry.toml `[mcps.{name}]`
+2. If found and has `safe_read_tools` array: add all tools to `permissions.allow`
+3. If found but `safe_read_tools` is empty: skip (tool names vary by installation)
+4. If NOT found in registry (unknown/custom MCP): do not add permissions, warn user:
+   ```
+   Unknown MCP "{name}" detected. No auto-permissions added.
+   You can manually add read permissions to .claude/settings.json.
+   ```
 
-For echovault (if installed):
-```json
-"mcp__echovault__memory_search",
-"mcp__echovault__memory_context"
-```
-
-For github (if installed):
-```json
-"mcp__plugin_github_github__get_file_contents",
-"mcp__plugin_github_github__list_issues",
-"mcp__plugin_github_github__list_pull_requests",
-"mcp__plugin_github_github__search_code"
-```
+For MCPs rated "recommended" in registry but not installed:
+- During wizard (Section 5), present with install command and ask user
+- If user installs: add safe_read_tools permissions
+- If user skips: note in dominion.toml [tools.skipped_mcps]
 
 ## Rules
 
 - Only add READ operations. Write operations require human approval.
 - Merge with existing permissions — never duplicate, never remove.
 - If settings.json has an existing `permissions.allow` array, append to it.
+- Unknown MCPs: preserve existing permissions, do not remove.
 
 ## Configure Serena Project
 
