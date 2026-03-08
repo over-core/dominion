@@ -32,6 +32,47 @@ WARNING: A blocker is active. Check: dominion-tools state blockers
 
 (This rule is informational in v0.1 — becomes enforcement in v0.2+)
 
+## Rule 3: Session Start — Auto-Resume
+
+Hook type: `UserPromptSubmit` (fires on first user message of a session)
+
+Create a hookify rule that runs on the first prompt of each session:
+
+Behavior:
+1. Check if `.dominion/state.toml` exists — if not, skip
+2. Run `dominion-tools state resume` to get current position
+3. Check for stale locks: if `lock.locked_at` is older than `lock.expires_after_hours`, clear the lock
+4. Check `.dominion/signals/` for active blocker files — count them
+5. Present status line:
+   ```
+   Dominion: Phase {N} "{title}", step {step}. {blocker_count} blockers. {backlog_count} backlog items.
+   ```
+6. If blocker_count > 0: append "Run /dominion:status for details."
+7. If step = "idle" and phase = 0: "Dominion initialized. Run /dominion:orchestrate to start."
+
+Skip conditions:
+- No `.dominion/` directory (not a Dominion project)
+- No `state.toml` (init not complete)
+
+Implementation note: This hook should be lightweight — read state.toml and signals directory, format output. Do NOT run expensive commands or modify state.
+
+## Rule 4: Session End — Auto-Checkpoint
+
+Hook type: `Stop` (fires when session ends)
+
+Create a hookify rule that runs on session end:
+
+Behavior:
+1. Check if `.dominion/state.toml` exists — if not, skip
+2. Run `dominion-tools state checkpoint`
+3. This updates `position.last_session` and clears expired locks
+
+Skip conditions:
+- No `.dominion/` directory
+- No `state.toml`
+
+Implementation note: Must be non-blocking and fast. Do not prompt user. If checkpoint fails, fail silently — session end should never block.
+
 ## Implementation
 
 Use the hookify skill/API to create these rules. Store rule definitions
