@@ -226,3 +226,47 @@ Fail: missing required fields, invalid types, or duplicate ids
 Pass: MCP status entries reference valid MCPs
 Warn: no MCP status entries (readiness check hasn't run yet)
 Fail: orphaned entries or invalid field values
+
+## Check 22: Direction Configuration
+
+- If `.dominion/dominion.toml` has a `[direction]` section:
+  - Verify `mode` is one of: maintain, improve, restructure
+  - If mode = "restructure": verify `[direction.restructure]` exists
+  - Verify `target_state` is non-empty when mode is restructure
+  - Verify `migration_strategy` is one of: strangler-fig, big-bang, incremental
+
+Pass: direction config valid
+Warn: no [direction] section (default maintain behavior)
+Fail: invalid mode or missing restructure config
+
+## Check 23: Restructure Legacy Zones
+
+- If `[direction]` mode = "restructure" and `[[direction.restructure.legacy_zones]]` entries exist:
+  - For each legacy zone: verify `path` is non-empty
+  - Verify `policy` is "minimal-change"
+  - Verify the path exists in the project (warn if it doesn't — may be planned)
+
+Pass: all legacy zones have valid paths and policies
+Warn: legacy zone path does not exist in project (may be planned)
+Fail: missing path or invalid policy value
+
+## Check 24: Specialized Role Agent Files
+
+- For each `.dominion/agents/*.toml` file:
+  - If the role matches a name in `@data/detection/roles.toml`:
+    - Verify the agent template exists in `@templates/agents/{role}.toml`
+    - Verify the agent has a matching `.claude/agents/{role}.md`
+
+Pass: all specialized role agents reference valid templates and have .md files
+Warn: no specialized roles activated (acceptable)
+Fail: agent references non-existent template or missing .md file
+
+## Check 25: Domain Taxonomy Integrity
+
+- Verify `@data/taxonomy/domains.toml` parses as valid TOML
+- Verify each `[[domains]]` entry has: name, subdomains (array), follow_ups (array)
+- Verify each `[[subdomain_details]]` entry has: parent, name, follow_ups (array)
+- Verify subdomain_details `parent` values reference existing domain names
+
+Pass: taxonomy valid and consistent
+Fail: parse error, missing required fields, or orphaned subdomains
