@@ -31,6 +31,7 @@ Recommended setup:
   Git:      [detected or default: conventional commits, squash merge]
   Style:    [detected formatters + linters per language]
   Hooks:    source-diving prevention, documentation fallback enforcement
+  Co-author: AI co-author trailers enabled (default)
 ```
 
 ## Missing MCP Warnings

@@ -68,6 +68,7 @@ Ask (present detected values as defaults):
 4. "Code review?" → all changes / major only / agents review (solo devs) (default: agents review for solo, all changes otherwise)
 5. "Release workflow?" → semver / calver / custom / none yet
 6. "Any git pet peeves?" → free text → style.toml [taste] or CLAUDE.md
+7. "Include AI co-author trailers in commits? [Y/n]" → dominion.toml [workflow.ai_co_author]
 
 Store answers in dominion.toml:
 ```toml
@@ -77,6 +78,7 @@ commit_format = "{answer}"
 merge_strategy = "{answer}"
 review_process = "{answer}"
 release_workflow = "{answer}"
+ai_co_author = {answer}
 ```
 
 ### Generated Git Artifacts
@@ -105,6 +107,9 @@ Generate a shell script that validates commit messages:
 - If free-form: skip generation
 
 Make executable: `chmod +x .githooks/commit-msg`
+
+If `ai_co_author = true`: append Co-Authored-By trailer logic to the commit-msg hook.
+If `ai_co_author = false`: do not append any trailer.
 
 #### `.dominion/templates/pull-request.md`
 
