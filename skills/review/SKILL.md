@@ -30,18 +30,25 @@ Follow `@references/architecture-check.md`
 
 Follow `@references/cross-task-review.md`
 
-## Step 4: Write Review
+## Step 4: Improvement Proposals
 
-Write `.dominion/phases/{N}/review.toml` using `@templates/schemas/review.toml` as the schema. Populate with findings from Steps 1-3.
+Follow `@references/improvement-proposals.md`
 
-Note: v0.2 produces findings only. The `[[proposals]]` section is deferred to v0.4.
+## Step 5: Metrics Collection
 
-## Step 5: Present Review
+Follow `@references/metrics-collection.md`
+
+## Step 6: Write Review
+
+Write `.dominion/phases/{N}/review.toml` using `@templates/schemas/review.toml` as the schema. Populate with findings from Steps 1-3 and proposals from Step 4.
+
+## Step 7: Present Review
 
 Display to the user:
 ```
 Review Complete (Phase {N}):
   Findings: {high} high, {medium} medium, {low} low, {info} info
+  Proposals: {count} improvement proposals
 
 High-severity findings:
   - {R1}: {title} — {suggestion}
@@ -53,11 +60,11 @@ Categories:
   Cross-task: {count}
 ```
 
-## Step 6: Update State and Announce
+## Step 8: Update State and Announce
 
 Update `.dominion/state.toml`:
 - `position.step` = "review"
 - `position.status` = "complete"
 - `position.last_session` = {today's date}
 
-Announce: "Phase {N} is complete. Review the findings above. To start the next phase, run /dominion:orchestrate or /dominion:discuss."
+Announce: "Phase {N} review complete. Run /dominion:improve to review proposals and apply improvements."
