@@ -6,7 +6,7 @@ schema_version = 2
 
 [position]
 phase = 0                           # 0 = init complete, no phase started
-step = "idle"                       # idle | discuss | explore | plan | execute | test | review
+step = "idle"                       # idle | discuss | explore | plan | execute | test | review | improve
 wave = 0                            # current wave number, 0 = not in execute
 current_task = ""                   # task id being executed, "" = none
 status = "ready"                    # ready | active | blocked | complete
@@ -37,3 +37,21 @@ task = ""
 agent = ""
 text = ""
 tags = []
+
+[[autonomous_decisions]]
+id = 0
+timestamp = ""                      # ISO 8601
+phase = 0
+task = ""                           # task id context
+type = ""                           # replan | skip | retry | split | reorder
+description = ""                    # what was decided
+reason = ""                         # why — error context, breaker trigger, etc.
+session_id = ""                     # which auto session made this
+reviewed = false                    # set true after user reviews in improve step
+outcome = ""                        # accepted | rolled-back (set during review)
+
+[[mcp_status]]
+name = ""                           # MCP name from registry
+available = true
+checked_at = ""                     # ISO 8601
+fallback_active = false             # true if currently using fallback
