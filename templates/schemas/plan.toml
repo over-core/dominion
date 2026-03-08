@@ -13,6 +13,7 @@ wave = 0
 depends_on = []                     # task ids
 agent = "Developer"
 file_ownership = []                 # directories/files this task may modify
+token_estimate = 0                  # estimated tokens for task, 0 = not estimated
 
 [tasks.acceptance]
 criteria = []                       # list of verifiable done conditions
