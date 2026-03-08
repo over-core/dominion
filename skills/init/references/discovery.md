@@ -118,6 +118,17 @@ For each full-level detected language, read 3-5 representative source files:
 
 Use this to pre-fill style.toml convention choices for the wizard.
 
+## Phase 9: User Profile Detection
+
+Check if `~/.claude/.dominion/` exists:
+- If `user-profile.toml` exists: read experience level and preferences
+- If `global-preferences.toml` exists: read cross-project preferences
+- Record existence and contents for wizard shortcutting
+
+<IMPORTANT>
+These files are outside the project directory. Only READ — never write to paths outside the project root during discovery. Profile updates happen separately.
+</IMPORTANT>
+
 ## Output Structure
 
 Organize discovery results as structured data in the conversation context:
@@ -132,3 +143,5 @@ Organize discovery results as structured data in the conversation context:
 - `project_shape`: monorepo/workspace/single-project, primary language
 - `recommended_mcps`: from registry cross-reference
 - `recommended_roles`: specialized roles to activate (from infrastructure detection)
+- `user_profile`: experience level, preferences (if exists)
+- `global_preferences`: cross-project preferences (if exists)

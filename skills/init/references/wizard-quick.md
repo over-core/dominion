@@ -54,7 +54,7 @@ Generate with these defaults? [Y / full setup / customize]
 - **Y** — proceed directly to generation (Task 9 reference files)
 - **full setup** — switch to `@references/wizard-full.md`
 - **customize** — ask: "Which sections would you like to customize?" and present:
-  1. Direction (maintain/evolve/transform)
+  1. Direction (maintain/improve/restructure)
   2. Code style
   3. Git workflow
   4. Tools & MCPs

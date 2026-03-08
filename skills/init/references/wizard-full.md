@@ -3,6 +3,21 @@
 Each section is independent. In customize mode, only selected sections run.
 Skipped sections use detected defaults from discovery.
 
+## Pre-Wizard: Global Preferences Check
+
+If discovery found `global-preferences.toml`:
+
+```
+Found global preferences. Applying:
+  {list key preferences, e.g., "conventional commits, squash merge, f-strings"}
+
+Skip to project-specific questions? [Y / full setup]
+```
+
+If **Y**: auto-fill Sections 3 (Code Style), 4 (Git Workflow), and 8 (Taste) from global preferences. Only ask Sections 1, 2, 5, 6, 7, 9, 10. Show pre-filled values as confirmations: "Code style: using global preferences (f-strings, google docstrings). OK? [Y / customize]"
+
+If **full setup**: run all sections normally, showing global preferences as pre-selected defaults.
+
 ## Section 1: Project Identity
 
 Ask:
@@ -213,3 +228,18 @@ Ask:
 1. "What's the first milestone for this project?" → roadmap.toml
 2. "Can you list the rough phases to get there?" → roadmap.toml phases
 3. "Any success criteria for the milestone?" → dominion.toml [project.success_criteria]
+
+## Section 11: Experience Level
+
+Ask:
+1. "How should Dominion communicate with you?"
+   - **Beginner** — explain everything, recommend defaults, teach best practices
+   - **Intermediate** — brief explanations, suggest with rationale (default)
+   - **Advanced** — skip to choices, terse proposals, silent unless critical
+
+Store in user profile. If `~/.claude/.dominion/user-profile.toml` doesn't exist, note the answer for profile creation after init completes.
+
+If `user-profile.toml` already exists with a level set:
+```
+Your profile says "{level}". Keep this? [Y / change]
+```
