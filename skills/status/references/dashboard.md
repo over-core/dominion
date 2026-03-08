@@ -13,6 +13,8 @@ Read these files (skip any that don't exist):
 5. `.dominion/signals/` — list directory, count `.toml` files by type (blocker vs warning)
 6. `.dominion/backlog.toml` — count items by priority (high/medium/low) and status (open only)
 7. `.dominion/state.toml` `[[decisions]]` — count decisions for current phase
+8. `.dominion/phases/{N}/metrics.toml` — phase metrics summary (only if step is improve or later)
+9. `.dominion/improvements.toml` — pending improvement proposals count
 
 ## Dashboard Format
 
@@ -54,6 +56,16 @@ Active blockers: {count}
 **Backlog section** (only if open backlog items exist):
 ```
 Backlog: {total} items ({high} high, {medium} medium, {low} low)
+```
+
+**Metrics section** (only after review step):
+```
+Metrics: {tests_added} tests, {findings_high} high findings, {acceptance_pass_rate}% pass rate
+```
+
+**Improvements section** (only if improvements.toml has pending proposals):
+```
+Pending proposals: {count}
 ```
 
 ### Edge Cases
