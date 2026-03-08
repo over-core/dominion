@@ -1,0 +1,115 @@
+[meta]
+schema_version = 1
+# Role activation triggers for specialized agents
+# Cross-references infrastructure.toml activates_role but is the authoritative source
+
+# === DevOps ===
+
+[[roles]]
+name = "devops"
+agent_template = "devops.toml"
+description = "Pipeline design, container optimization, deployment strategies"
+triggers = [
+    { files = ["Dockerfile", "docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml", "Containerfile"] },
+    { directories = [".github/workflows", ".circleci"] },
+    { files = [".gitlab-ci.yml", "Jenkinsfile"] },
+    { files = ["Chart.yaml"] },
+]
+
+# === Frontend Engineer ===
+
+[[roles]]
+name = "frontend-engineer"
+agent_template = "frontend-engineer.toml"
+description = "Component architecture, state management, accessibility"
+triggers = [
+    { frameworks = ["react", "vue", "svelte", "angular"] },
+    { frameworks = ["nextjs", "nuxt"] },
+    { npm_deps = ["@testing-library/react", "@storybook/react"] },
+]
+
+# === Database Engineer ===
+
+[[roles]]
+name = "database-engineer"
+agent_template = "database-engineer.toml"
+description = "Schema design, query optimization, migration authoring"
+triggers = [
+    { infrastructure = ["postgresql", "mysql", "sqlite", "mongodb"] },
+    { frameworks = ["sqlx", "diesel", "sea-orm", "sqlalchemy", "prisma", "drizzle", "gorm"] },
+    { files = ["migrations/", "db/migrate/", "alembic/", "prisma/schema.prisma"] },
+]
+
+# === Cloud Engineer ===
+
+[[roles]]
+name = "cloud-engineer"
+agent_template = "cloud-engineer.toml"
+description = "IaC, IAM, networking, cost optimization"
+triggers = [
+    { infrastructure = ["terraform", "pulumi", "cdk"] },
+    { files = ["serverless.yml", "sam-template.yaml", "cloudformation.yaml"] },
+    { file_extensions = [".tf"] },
+]
+
+# === Observability Engineer ===
+
+[[roles]]
+name = "observability-engineer"
+agent_template = "observability-engineer.toml"
+description = "Monitoring, alerting, SLO/SLI, distributed tracing"
+triggers = [
+    { infrastructure = ["prometheus", "grafana", "opentelemetry"] },
+    { npm_deps = ["@opentelemetry/sdk-node", "prom-client"] },
+    { pyproject_deps = ["opentelemetry-sdk", "prometheus-client"] },
+    { cargo_deps = ["opentelemetry", "tracing-opentelemetry"] },
+]
+
+# === API Designer ===
+
+[[roles]]
+name = "api-designer"
+agent_template = "api-designer.toml"
+description = "Contract-first design, versioning, backward compatibility"
+triggers = [
+    { infrastructure = ["openapi", "grpc", "graphql"] },
+    { files = ["openapi.yaml", "openapi.json", "swagger.yaml", "swagger.json"] },
+    { file_extensions = [".proto", ".graphql", ".gql"] },
+]
+
+# === Analyst ===
+
+[[roles]]
+name = "analyst"
+agent_template = "analyst.toml"
+description = "Measurement, profiling, data quality, metrics visualization"
+triggers = [
+    { files = ["benchmarks/", "benches/", "perf/"] },
+    { cargo_deps = ["criterion"] },
+    { pyproject_deps = ["pandas", "numpy", "polars", "dask"] },
+    { npm_deps = ["d3", "chart.js", "recharts"] },
+]
+
+# === Technical Writer ===
+
+[[roles]]
+name = "technical-writer"
+agent_template = "technical-writer.toml"
+description = "API docs, ADRs, architecture diagrams, changelogs"
+triggers = [
+    { project_trait = "team" },
+    { files = ["docs/", "doc/", "documentation/"] },
+    { files = ["mkdocs.yml", "docusaurus.config.js", ".readthedocs.yml"] },
+]
+
+# === Release Manager ===
+
+[[roles]]
+name = "release-manager"
+agent_template = "release-manager.toml"
+description = "Changelog generation, version bumps, release coordination"
+triggers = [
+    { files = ["CHANGELOG.md", "CHANGES.md", "HISTORY.md"] },
+    { files = [".releaserc", ".releaserc.json", "release.config.js"] },
+    { project_trait = "versioned" },
+]
