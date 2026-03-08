@@ -36,6 +36,24 @@ For each pipeline-apply proposal:
 3. Commit per task: `git commit -m "improve: {proposal title} — {task description}"`
 4. Update improvements.toml: set `applied_at` = final commit hash, `applied_by` = "pipeline"
 
+### Structural Changes (Ad-Hoc Pipeline)
+
+These create new Dominion building blocks — require the full ad-hoc pipeline with Reviewer criticism:
+
+- **New agent**: follow ad-hoc pipeline Steps 2-6 (investigate, design, criticize, present, create)
+- **New skill**: follow ad-hoc pipeline Steps 2-6
+- **New CLI command**: add to cli-spec.toml, Developer implements
+- **New hook rule**: write hookify rule
+- **New config section**: add to dominion.toml
+
+For each structural proposal:
+1. Read `@templates/references/structural-awareness.md`
+2. Researcher checks overlap (`@references/overlap-check.md`)
+3. Reviewer criticizes the proposal
+4. If approved: Attendant creates artifacts
+5. Commit: `git commit -m "improve: add {type} {name}"`
+6. Update improvements.toml: set `applied_by` = "structural"
+
 ## Guard Rails
 
 - Never auto-apply. Each change is visible to the user in this session.
