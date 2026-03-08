@@ -16,13 +16,13 @@ Ask:
 Ask:
 1. "What's the project's current state?"
    - **Maintain** — codebase is good, preserve existing patterns
-   - **Evolve** — mostly good, improve incrementally (boy scout rule)
-   - **Transform** — significant restructuring planned
+   - **Improve** — mostly good, improve incrementally (boy scout rule)
+   - **Restructure** — significant restructuring planned
 
-If transform:
-2. "Describe the target state" → dominion.toml [direction.transform.target_state]
+If restructure:
+2. "Describe the target state" → dominion.toml [direction.restructure.target_state]
 3. "Migration strategy?" → strangler-fig / big-bang / incremental
-4. "Any legacy zones to protect?" → paths → dominion.toml [direction.transform.legacy_zones]
+4. "Any legacy zones to protect?" → paths → dominion.toml [direction.restructure.legacy_zones]
 
 ## Section 3: Code Style (per detected language)
 
@@ -118,7 +118,33 @@ Generate a PR template:
 If existing PR template detected (Phase 6f), do NOT generate — preserve existing.
 If `.github/` exists, also copy to `.github/pull_request_template.md`.
 
-## Section 5: Tools & MCPs
+## Section 5: Specialized Roles
+
+Read `@data/detection/roles.toml` for role triggers. Cross-reference against discovery results.
+
+Present detected roles:
+```
+Detected specialized roles:
+  1. DevOps — CI/CD and Docker configs found
+  2. Database Engineer — PostgreSQL detected via sqlalchemy
+
+Add or remove? [confirm / add <role> / remove <number>]
+```
+
+- **confirm**: activate detected roles
+- **add <role>**: show available roles from roles.toml, let user pick
+- **remove <number>**: deactivate a detected role
+
+For each activated role:
+- Read the agent template from `@templates/agents/{role}.toml`
+- The Attendant will generate the agent config during the generation phase
+
+If no roles detected:
+```
+No specialized roles detected. You can add them later with /dominion:educate --agent.
+```
+
+## Section 6: Tools & MCPs
 
 For each recommended MCP (from registry cross-reference):
 - "[name] — [purpose]. Include? [Y/n]"
@@ -129,7 +155,7 @@ For missing required MCPs:
 For detected custom/unknown MCPs:
 - "Found [name]. Keep in agent configs? [Y/n]"
 
-## Section 6: Knowledge Sources
+## Section 7: Knowledge Sources
 
 Ask:
 1. "Any external knowledge bases?"
@@ -142,14 +168,14 @@ Ask:
 
 Store for v0.6 `/dominion:educate`. In v0.1, just record the answer in dominion.toml.
 
-## Section 7: Taste
+## Section 8: Taste
 
 Free-form section:
 1. "Things you want agents to ALWAYS do?" → style.toml [taste.dos]
 2. "Things you want agents to NEVER do?" → style.toml [taste.donts]
 3. "Any other preferences?" → captured in CLAUDE.md or style.toml as appropriate
 
-## Section 8: Autonomy
+## Section 9: Autonomy
 
 Ask:
 1. "Enable auto mode for unattended pipeline runs? [Y/n]" (default: Y)
@@ -181,7 +207,7 @@ Optional follow-up (only if user says yes):
 2. "Max tokens per task? [150000]" → override default
 3. "Session time limit (hours)? [8]" → override default
 
-## Section 9: Roadmap
+## Section 10: Roadmap
 
 Ask:
 1. "What's the first milestone for this project?" → roadmap.toml
