@@ -30,6 +30,20 @@ migration_strategy = ""             # strangler-fig | big-bang | incremental
 path = ""                           # directory path
 policy = "minimal-change"           # minimal-change (only policy for now)
 
+# Brownfield claim provenance (only populated after /dominion:claim)
+[claim]
+claimed_at = ""                      # ISO 8601, empty if greenfield init
+source_setup = ""                    # "claude-code-native" | "gsd" | "conductor" | "custom" | ""
+
+[[claim.preserved]]
+artifact = ""                        # e.g., "CLAUDE.md", ".claude/agents/reviewer.md"
+sections = []                        # which sections were user-original
+policy = "never-overwrite"           # Dominion will not touch these
+
+[[claim.added]]
+artifact = ""                        # what Dominion added
+source = "dominion-generated"        # provenance
+
 # Documentation fallback chain
 [[documentation.sources]]
 name = "context7"
