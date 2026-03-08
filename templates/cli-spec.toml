@@ -1,5 +1,5 @@
 [meta]
-spec_version = "0.7"
+spec_version = "0.8"
 minimum_commands = [
     "validate", "state resume", "state position", "state update", "state decisions", "state blockers",
     "agents list", "agents show", "agents generate",
@@ -16,6 +16,7 @@ minimum_commands = [
     "auto readiness", "auto decisions",
     "zone check",
     "profile show", "profile set", "claim status",
+    "release prepare", "release publish", "release status",
 ]
 
 # === Validation ===
@@ -892,6 +893,62 @@ If claim data exists:
     Added: {count} artifacts
       {artifact} — {source}
       ...
+"""
+
+# === Release ===
+
+[[commands]]
+name = "release prepare"
+description = "Generate changelog and PR synopsis from commit history"
+args = []
+reads = [".dominion/specs/release-spec.toml", ".dominion/dominion.toml"]
+writes = [".dominion/release/changelog-draft.md", ".dominion/release/synopsis-draft.md"]
+behavior = """
+1. Read release-spec.toml for changelog format and version config
+2. Get commit log since last git tag (or all commits if no tags)
+3. Group commits by type (feat, fix, refactor, etc.)
+4. Generate changelog draft to .dominion/release/changelog-draft.md
+5. Generate PR synopsis to .dominion/release/synopsis-draft.md
+6. Suggest version bump based on commit types
+7. Print: "Release drafts ready. Review in .dominion/release/"
+"""
+
+[[commands]]
+name = "release publish"
+description = "Execute full release ceremony: version bump, build, publish, tag"
+args = [
+    { name = "--level", description = "Version bump level: major, minor, patch", required = true },
+]
+reads = [".dominion/specs/release-spec.toml", ".dominion/release/"]
+behavior = """
+1. Verify drafts exist in .dominion/release/
+2. Run auth checks for all configured registries
+3. Bump version per release-spec
+4. Build artifacts if build.command configured
+5. Publish to each configured registry
+6. Create PR with synopsis
+7. Tag release
+8. Create GitHub release with changelog and artifacts
+9. Clean up .dominion/release/
+10. Print: "Release v{version} published."
+"""
+
+[[commands]]
+name = "release status"
+description = "Show current release spec configuration and version info"
+args = []
+reads = [".dominion/specs/release-spec.toml"]
+behavior = """
+1. Read release-spec.toml
+2. Read current version from versioning.source
+3. Get last tag
+4. Count commits since last tag
+5. Print:
+  Release spec: {spec_version}
+  Current version: {version}
+  Last tag: {tag}
+  Commits since: {count}
+  Registries: {list}
 """
 
 # === Output Format ===
