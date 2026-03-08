@@ -131,6 +131,7 @@ If validate passes, update state.toml: `validate_passed = true`
 If `.gitignore` exists, append:
 ```
 # Dominion
+.dominion/state.toml
 .worktrees/
 ```
 
