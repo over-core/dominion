@@ -35,7 +35,33 @@ For each decision:
 - **Accept**: set `reviewed = true`, `outcome = "accepted"` in state.toml
 - **Roll back**: set `reviewed = true`, `outcome = "rolled-back"` — follow `@skills/orchestrate/references/rollback-protocol.md` to revert the relevant commits. Present the rollback result before continuing.
 
-After all decisions are reviewed, proceed to the standard retrospective sections.
+After all decisions are reviewed, proceed to role suggestions.
+
+## Role Suggestions
+
+Check the most recent research.toml for `[[role_proposals]]` entries.
+
+If none exist, skip this section.
+
+If proposals exist, present them:
+
+```
+New specialized roles detected:
+
+  {role}: {trigger}
+  Confidence: {confidence}
+  Purpose: {description from roles.toml}
+
+  Activate this agent? [Y/n]
+```
+
+For each accepted role:
+- Read the agent template from `@templates/agents/{role}.toml`
+- Attendant generates the agent config: `.dominion/agents/{role}.toml` + `.claude/agents/{role}.md`
+- Run `dominion-tools agents generate` to update AGENTS.md
+
+For rejected roles:
+- Note in improvements.toml as a rejected proposal (so it's not suggested again next phase)
 
 ## Present Retrospective
 
