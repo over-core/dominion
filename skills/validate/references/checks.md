@@ -148,3 +148,44 @@ Fail: invalid workflow values
 Pass: all installed MCP read permissions present
 Warn: some optional MCP permissions missing (list which)
 Fail: required MCP (tier = "required") permissions missing
+
+## Check 16: Improvements Journal
+
+- If `.dominion/improvements.toml` exists:
+  - Verify it parses as valid TOML
+  - Verify all proposal ids are unique
+  - Verify status values are valid (pending | accepted | rejected | rolled-back)
+  - Verify accepted proposals with `applied_by = "direct"` have `applied_at` set
+
+Pass: improvements.toml valid with consistent statuses
+Warn: no improvements.toml (no improve step has run yet)
+Fail: parse error, duplicate ids, or inconsistent status/applied_at
+
+## Check 17: Metrics Consistency
+
+- For each completed phase with metrics.toml:
+  - Verify metrics.toml parses
+  - Verify `phase.number` matches the directory phase number
+  - Cross-reference with test-report.toml: `acceptance_criteria_passed + acceptance_criteria_failed` should equal test-report's `total_criteria`
+  - Cross-reference with progress.toml: `tasks_completed + tasks_failed` should match total tasks
+
+- If `.dominion/metrics-history.toml` exists:
+  - Verify it parses
+  - Verify phase numbers are sequential and match completed phases
+
+Pass: metrics consistent with source data
+Warn: no metrics files (review step hasn't generated metrics yet)
+Fail: parse errors or cross-reference mismatches
+
+## Check 18: Knowledge Index
+
+- If `.dominion/knowledge/index.toml` exists:
+  - Verify it parses as valid TOML
+  - For each entry: verify the referenced file exists in `.dominion/knowledge/`
+  - Verify no orphaned knowledge files (files in `.dominion/knowledge/` not in index, excluding index.toml itself)
+  - Verify hot entry summaries are non-empty
+  - Count total hot entry summary lines — warn if over memory_budget_lines
+
+Pass: index valid, all files referenced, budget respected
+Warn: no knowledge index (knowledge management hasn't run yet), or approaching budget
+Fail: parse error, missing referenced files, or orphaned files
