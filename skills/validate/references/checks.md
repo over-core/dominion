@@ -270,3 +270,35 @@ Fail: agent references non-existent template or missing .md file
 
 Pass: taxonomy valid and consistent
 Fail: parse error, missing required fields, or orphaned subdomains
+
+## Check 26: Claim Provenance Integrity
+
+- If `.dominion/dominion.toml` has a `[claim]` section with non-empty `claimed_at`:
+  - For each `[[claim.preserved]]` entry:
+    - Verify the `artifact` path exists
+    - Verify the artifact has not been deleted since claim
+  - For each `[[claim.added]]` entry:
+    - Verify the `artifact` path exists
+  - Verify `source_setup` is a valid value: "claude-code-native" | "gsd" | "conductor" | "custom"
+
+Pass: all provenance records reference existing artifacts
+Warn: no claim section (greenfield project — acceptable)
+Fail: preserved artifact missing (data loss) or invalid source_setup
+
+## Check 27: User Profile Schema
+
+- If `~/.claude/.dominion/user-profile.toml` exists:
+  - Verify it parses as valid TOML
+  - Verify `[user].experience_level` is beginner | intermediate | advanced
+  - Verify `[sessions].count` is a non-negative integer
+
+Pass: profile valid or not present
+Fail: profile exists but has invalid schema
+
+## Check 28: State Gitignored
+
+- Check if `.gitignore` exists and contains `.dominion/state.toml`
+
+Pass: state.toml is gitignored
+Warn: .gitignore missing or doesn't mention state.toml
+Fail: state.toml is tracked by git (run `git ls-files .dominion/state.toml`)
