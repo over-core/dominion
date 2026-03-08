@@ -52,15 +52,63 @@ Do NOT:
 After Developer completes, spawn a Tester agent:
 
 ```
-Validate dominion-tools against .dominion/specs/cli-spec.toml.
+Write a test suite and validate dominion-tools against .dominion/specs/cli-spec.toml.
 
-For each command in the spec:
-1. Run the command (it should work against the .dominion/ files just created)
+Write tests to: dominion-tools/tests/
+Use the project's test runner and conventions from CLAUDE.md.
+
+### Functional Tests (per command)
+
+For each command in cli-spec.toml [commands]:
+1. Run the command against the .dominion/ files just created
 2. Verify output format matches the behavior description
-3. Verify --json flag produces valid JSON
-4. Report pass/fail per command
+3. Verify --json flag produces valid, parseable JSON
+4. Verify --json output contains expected keys matching the command's reads/behavior
 
-Expected: all 8 commands pass.
+### Error Handling Tests
+
+For each command, test graceful failure:
+- Missing .dominion/ directory entirely → clear error, not a stack trace
+- Missing individual TOML files the command reads → specific error naming the missing file
+- Malformed TOML (invalid syntax) → parse error with file path, not crash
+- Empty TOML files (valid but no data) → sensible defaults or empty output, not crash
+
+### Edge Case Tests
+
+- `agents list` with zero agent files → empty table, no crash
+- `agents show` with nonexistent role → "not found" message listing available roles
+- `state resume` when state.toml has phase = 0 → "no active phase" message
+- `validate` with intentionally broken setup → reports failures, doesn't falsely pass
+- `knowledge hydrate` with empty index.toml → creates minimal MEMORY.md
+
+### CLI UX Tests
+
+- `--help` on every command and on the root → prints usage, exits 0
+- Unknown command → helpful error suggesting valid commands, exits non-zero
+- Exit codes: 0 for success, non-zero for failure
+- No command (bare `dominion-tools`) → prints help or status summary
+
+### JSON Schema Consistency
+
+For every command that supports --json:
+- Output is valid JSON (parseable)
+- Top-level structure is an object (not array, not bare value)
+- Keys use snake_case consistently
+- Empty results return empty objects/arrays, not null
+
+### Test Report
+
+After running all tests, produce a summary:
+  dominion-tools test results
+    [PASS] validate — functional (3/3)
+    [PASS] validate — error handling (4/4)
+    [PASS] state resume — functional (2/2)
+    ...
+    [FAIL] agents show — edge case: nonexistent role (expected exit 1, got 0)
+
+    N passed, M failed
+
+Expected: all tests pass.
 ```
 
 ## Step 5: Handle Failures

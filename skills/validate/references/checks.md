@@ -67,3 +67,40 @@ Warn: missing (init may not have completed)
 
 Pass: state file valid with init timestamp
 Fail: missing or invalid state
+
+## Check 9: CLI Spec Version
+
+- Read `.dominion/specs/cli-spec.toml`
+- Verify `spec_version` >= "0.2"
+- Verify all entries in `minimum_commands` are implemented by `dominion-tools`
+
+Pass: spec version current and all minimum commands respond to --help
+Fail: outdated spec version or missing commands
+
+## Check 10: Phase Directory Structure
+
+- Read `.dominion/state.toml` — if `position.phase` > 0 (active phase):
+  - Verify `.dominion/phases/{N}/` directory exists
+  - For each completed step, verify the expected artifact exists:
+    - discuss complete → `intent.md` exists
+    - explore complete → `research.toml` exists and parses
+    - plan complete → `plan.toml` exists and parses
+    - execute complete → `progress.toml` exists and parses, `summaries/` directory exists
+    - test complete → `test-report.toml` exists and parses
+    - review complete → `review.toml` exists and parses
+
+Pass: phase directory matches completed step artifacts
+Warn: no active phase (phase = 0, skip this check)
+Fail: missing artifacts for completed steps
+
+## Check 11: Signal Directory
+
+- Verify `.dominion/signals/` directory exists
+- For each `.toml` file in signals/:
+  - Verify it parses as valid TOML
+  - If type = "blocker": verify the `task` field references a valid task id from the current phase's plan.toml (if plan.toml exists)
+- Check for orphaned signals: signals referencing tasks from completed/non-existent phases
+
+Pass: signal directory clean, all signals reference valid tasks
+Warn: no signals directory (acceptable if no phase has run execute yet)
+Fail: unparseable signal files or orphaned signals

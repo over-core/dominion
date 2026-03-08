@@ -1,0 +1,28 @@
+# Dominion Test Report — Schema Template
+# Tester output, acceptance validation and coverage analysis per phase
+
+[meta]
+schema_version = 1
+phase = 0
+
+[summary]
+total_criteria = 0                  # from plan.toml acceptance criteria
+criteria_passed = 0
+criteria_failed = 0
+tests_run = 0
+tests_passed = 0
+tests_failed = 0
+coverage_delta = ""                 # "+12%", "-3%", "N/A"
+
+[[criteria_results]]
+task = ""                           # task id
+criterion = ""                      # acceptance criterion text
+status = ""                         # passed | failed
+evidence = ""                       # test output, file reference
+
+[[gaps]]
+id = ""                             # G1, G2, ...
+description = ""                    # what is not covered
+severity = ""                       # high | medium | low
+new_test_written = false            # true if Tester wrote a test for this
+test_file = ""                      # path to new test if written

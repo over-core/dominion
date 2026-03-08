@@ -1,0 +1,26 @@
+# Dominion Plan — Schema Template
+# Architect output, wave-grouped executable plan per phase
+
+[meta]
+schema_version = 1
+phase = 0
+title = ""
+
+[[tasks]]
+id = ""                             # {phase}-{seq} zero-padded, e.g. "02-01"
+title = ""
+wave = 0
+depends_on = []                     # task ids
+agent = "Developer"
+file_ownership = []                 # directories/files this task may modify
+
+[tasks.acceptance]
+criteria = []                       # list of verifiable done conditions
+verify_command = ""                 # shell command to validate, "" if none
+
+[[tasks.assumptions]]
+ref = ""                            # references research.toml assumption id
+
+[[tasks.handoffs]]
+from = ""                           # upstream task id
+note = ""                           # populated by Developer during execution
