@@ -41,6 +41,53 @@ Each step has prerequisites. Verify before dispatching:
 
 If a prerequisite is missing, inform the user and suggest the required step.
 
+## Cost Estimation Gate
+
+After plan step completes and before execute step dispatches:
+
+1. Read `.dominion/phases/{N}/plan.toml` — count tasks per wave, identify agent assignments
+2. For each task: look up the assigned agent's `.dominion/agents/{role}.toml` for model
+3. Apply token estimates:
+   - Developer (sonnet): 40K per task
+   - Tester (sonnet): 20K per task
+   - Reviewer (opus): 30K per task
+   - Other sonnet agents: 30K per task
+   - Other opus agents: 40K per task
+4. Add overhead: test step (20K) + review step (30K)
+
+Present to user:
+```
+Phase {N} cost estimate:
+  Wave 1: {task_count} tasks × {agents} ≈ {tokens}K tokens
+  Wave 2: {task_count} tasks × {agents} ≈ {tokens}K tokens
+  Test + Review: ≈ {tokens}K tokens
+  Total: ≈ {total}K tokens
+
+Proceed? [Y/n]
+```
+
+If user approves: write `[estimates]` section to plan.toml and continue to execute.
+If user declines: pause pipeline, set `position.status = "complete"` for plan step.
+
+In auto mode: write estimates to plan.toml, log but do not halt. Circuit breakers handle cost control.
+
+### Estimates Schema (plan.toml addition)
+
+```toml
+[estimates]
+total_tokens = 0
+estimated_at = ""
+
+[[estimates.waves]]
+wave = 1
+tasks = 0
+tokens = 0
+
+[estimates.overhead]
+test = 20000
+review = 30000
+```
+
 ## State Updates
 
 Before dispatching a step:
