@@ -27,3 +27,9 @@ risk = ""                           # low | medium | high
 status = "unverified"               # unverified | verified | false
 verified_by = ""                    # how it was verified (test, docs, manual check)
 verified_at = ""                    # ISO 8601 timestamp
+
+# Role proposals (detected during explore, suggested during improve)
+[[role_proposals]]
+role = ""                           # role name from roles.toml
+trigger = ""                        # what triggered the detection
+confidence = ""                     # high | medium | low
