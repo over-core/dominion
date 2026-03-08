@@ -14,6 +14,19 @@ Protocol for dispatching pipeline steps to their skills.
 | review   | /dominion:review     | Reviewer    | review.toml            |
 | improve  | /dominion:improve    | Advisor     | improvements.toml, knowledge |
 
+## Profile-Aware Dispatch
+
+Before dispatching any step, check if `~/.claude/.dominion/user-profile.toml` exists.
+
+If it exists, read `experience_level` and pass it to the dispatched agent as context:
+- **Beginner**: agents explain what they're doing and why at each major decision
+- **Intermediate**: agents give brief status updates, explain only non-obvious decisions
+- **Advanced**: agents work silently, report results only
+
+This affects presentation, not behavior. All agents perform the same work regardless of level.
+
+Increment `[sessions].count` in the user profile at the start of each orchestrate session.
+
 ## Transition Rules
 
 Each step has prerequisites. Verify before dispatching:
