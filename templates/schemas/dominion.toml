@@ -62,7 +62,7 @@ missing_required = []               # required but not installed
 mode = "interactive"               # interactive | auto
 
 [autonomy.circuit_breakers]
-max_tokens_per_task = 50000         # 0 = no limit
+max_tokens_per_task = 150000        # agent context capacity, 0 = no limit
 max_retry_attempts = 3              # 0 = no limit
 max_cascade_replans = 2             # 0 = no limit
 max_failed_tasks_per_wave = 0       # 0 = no limit

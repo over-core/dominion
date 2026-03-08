@@ -160,7 +160,7 @@ If yes, generate `[autonomy]` section in dominion.toml with defaults:
 mode = "interactive"
 
 [autonomy.circuit_breakers]
-max_tokens_per_task = 50000
+max_tokens_per_task = 150000
 max_retry_attempts = 3
 max_cascade_replans = 2
 max_failed_tasks_per_wave = 0
@@ -178,7 +178,7 @@ cannot_alter_governance_rules = true
 If no: skip section. Auto mode will not be available until the user adds the section manually.
 
 Optional follow-up (only if user says yes):
-2. "Max tokens per task? [50000]" → override default
+2. "Max tokens per task? [150000]" → override default
 3. "Session time limit (hours)? [8]" → override default
 
 ## Section 9: Roadmap
