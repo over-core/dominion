@@ -15,6 +15,7 @@ minimum_commands = [
     "improve list", "improve show", "metrics show", "metrics trends",
     "auto readiness", "auto decisions",
     "zone check",
+    "profile show", "profile set", "claim status",
 ]
 
 # === Validation ===
@@ -826,6 +827,71 @@ If mode = "restructure":
     Output: "Legacy zone: {zone_path}. Policy: {policy}. Minimal changes only."
   If no:
     Output: "Active zone. Follow target state: {target_state}. Strategy: {migration_strategy}"
+"""
+
+# === Profile ===
+
+[[commands]]
+name = "profile show"
+description = "Display current user profile (experience level, preferences)"
+args = []
+reads = ["~/.claude/.dominion/user-profile.toml"]
+behavior = """
+Read ~/.claude/.dominion/user-profile.toml.
+If file doesn't exist: "No profile found. Run /dominion:init to create one."
+
+Output format:
+  dominion-tools profile show
+    Experience: {level}
+    Sessions: {count} (first: {date}, last: {date})
+    Preferences:
+      {key}: {value}
+      ...
+    Tool opinions:
+      {tool}: {rating}/5 — {notes}
+      ...
+"""
+
+[[commands]]
+name = "profile set"
+description = "Update a user profile preference"
+args = [
+    { name = "key", required = true, description = "Preference key (e.g., 'verbosity', 'experience_level')" },
+    { name = "value", required = true, description = "Preference value" },
+]
+reads = ["~/.claude/.dominion/user-profile.toml"]
+writes = ["~/.claude/.dominion/user-profile.toml"]
+behavior = """
+Read ~/.claude/.dominion/user-profile.toml.
+If file doesn't exist: create from @templates/schemas/user-profile.toml.
+
+If key is "experience_level": validate value is beginner|intermediate|advanced.
+Otherwise: set [user.preferences].{key} = {value}.
+
+Output: "Set {key} = {value}"
+"""
+
+# === Claim ===
+
+[[commands]]
+name = "claim status"
+description = "Show brownfield claim provenance for this project"
+args = []
+reads = [".dominion/dominion.toml"]
+behavior = """
+Read .dominion/dominion.toml [claim] section.
+If [claim] section doesn't exist or claimed_at is empty: "This project was initialized with /dominion:init (greenfield)."
+
+If claim data exists:
+  dominion-tools claim status
+    Claimed: {claimed_at}
+    Source: {source_setup}
+    Preserved: {count} artifacts
+      {artifact} — {sections count} user-original sections
+      ...
+    Added: {count} artifacts
+      {artifact} — {source}
+      ...
 """
 
 # === Output Format ===
