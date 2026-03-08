@@ -19,16 +19,16 @@ description = ""
 status = "pending"                  # pending | in-progress | done
 
 [direction]
-mode = "evolve"                     # maintain | evolve | transform
+mode = "maintain"                   # maintain | improve | restructure
 
-# Only populated when mode = "transform"
-[direction.transform]
-target_state = ""
-migration_strategy = ""            # strangler-fig | big-bang | incremental
+# Only populated when mode = "restructure"
+[direction.restructure]
+target_state = ""                   # description of target architecture
+migration_strategy = ""             # strangler-fig | big-bang | incremental
 
-[[direction.transform.legacy_zones]]
-path = ""
-policy = "minimal-touch"
+[[direction.restructure.legacy_zones]]
+path = ""                           # directory path
+policy = "minimal-change"           # minimal-change (only policy for now)
 
 # Documentation fallback chain
 [[documentation.sources]]
