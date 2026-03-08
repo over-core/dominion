@@ -14,6 +14,7 @@ minimum_commands = [
     "rollback", "history",
     "improve list", "improve show", "metrics show", "metrics trends",
     "auto readiness", "auto decisions",
+    "zone check",
 ]
 
 # === Validation ===
@@ -795,6 +796,36 @@ Display as a table:
 Sorted by timestamp (newest first).
 If --reviewed=false: show only unreviewed decisions.
 If no decisions: "No autonomous decisions recorded."
+"""
+
+# === Direction ===
+
+[[commands]]
+name = "zone check"
+description = "Check direction zone for a file path"
+args = [
+    { name = "path", description = "File or directory path to check", required = true },
+]
+reads = [".dominion/dominion.toml"]
+behavior = """
+Read dominion.toml [direction] section.
+
+If [direction] does not exist or mode != "restructure":
+  Output: "No direction constraints. Mode: {mode or 'not configured'}"
+  Exit.
+
+If mode = "restructure":
+  Read [[direction.restructure.legacy_zones]].
+
+  If no legacy zones defined:
+    Output: "Full restructure. Follow target state: {target_state}"
+    Exit.
+
+  Check if {path} falls under any legacy zone path:
+  If yes:
+    Output: "Legacy zone: {zone_path}. Policy: {policy}. Minimal changes only."
+  If no:
+    Output: "Active zone. Follow target state: {target_state}. Strategy: {migration_strategy}"
 """
 
 # === Output Format ===
