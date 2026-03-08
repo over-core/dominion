@@ -104,3 +104,47 @@ Fail: missing artifacts for completed steps
 Pass: signal directory clean, all signals reference valid tasks
 Warn: no signals directory (acceptable if no phase has run execute yet)
 Fail: unparseable signal files or orphaned signals
+
+## Check 12: Git Hooks
+
+- If `.dominion/dominion.toml` has a `[workflow]` section:
+  - If `workflow.commit_format` != "free-form": verify `.githooks/commit-msg` exists and is executable
+  - Verify `.githooks/pre-commit` exists and is executable (unless pre-existing pre-commit tooling was detected)
+  - Verify `git config core.hooksPath` is set to `.githooks`
+
+Pass: git hooks match workflow config
+Warn: no [workflow] section (v0.2 project, hooks not generated yet)
+Fail: workflow configured but hooks missing or not executable
+
+## Check 13: Session Lifecycle Hooks
+
+- Verify `.claude/hooks/` contains session start and session end hook rules
+- Verify session start hook references `dominion-tools state resume`
+- Verify session end hook references `dominion-tools state checkpoint`
+
+Pass: both session hooks present and reference correct commands
+Warn: no `.claude/hooks/` directory (hooks not generated yet)
+Fail: partial hooks (one present, one missing)
+
+## Check 14: Workflow Configuration
+
+- If `.dominion/dominion.toml` has a `[workflow]` section:
+  - Verify `branching` is one of: trunk-based, github-flow, gitflow, custom
+  - Verify `commit_format` is one of: conventional, ticket-prefixed, free-form
+  - Verify `merge_strategy` is one of: squash, rebase, merge
+  - Verify `review_process` is one of: all, major-only, agents-review
+
+Pass: all workflow values are valid
+Warn: no [workflow] section
+Fail: invalid workflow values
+
+## Check 15: MCP Permission Coverage
+
+- Read `registry/registry.toml` (shipped with Dominion, use `@registry/registry.toml`)
+- Read `.claude/settings.json`
+- For each MCP detected as installed:
+  - If MCP has `safe_read_tools` in registry: verify all tools are in settings.json `permissions.allow`
+
+Pass: all installed MCP read permissions present
+Warn: some optional MCP permissions missing (list which)
+Fail: required MCP (tier = "required") permissions missing
