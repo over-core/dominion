@@ -1,5 +1,5 @@
 [meta]
-spec_version = "0.2"
+spec_version = "0.4"
 minimum_commands = [
     "validate", "state resume", "state position", "state update", "state decisions", "state blockers",
     "agents list", "agents show", "agents generate",
@@ -12,6 +12,7 @@ minimum_commands = [
     "report create", "report finalize",
     "backlog add", "backlog list", "backlog suggest",
     "rollback", "history",
+    "improve list", "improve show", "metrics show", "metrics trends",
 ]
 
 # === Validation ===
@@ -671,6 +672,77 @@ Read progress.toml. Map commits to tasks and waves:
     02-02: jkl012
   Wave 2 (in-progress)
     02-03: mno345
+"""
+
+# === Improvements ===
+
+[[commands]]
+name = "improve list"
+description = "List improvement proposals from improvements.toml"
+args = [
+    { name = "--status", description = "Filter by status (pending/accepted/rejected/rolled-back)", optional = true },
+    { name = "--phase", description = "Filter by phase number", optional = true },
+    { name = "--type", description = "Filter by type (tooling/governance/convention)", optional = true }
+]
+reads = [".dominion/improvements.toml"]
+writes = []
+behavior = """
+Read improvements.toml. Apply filters if provided. Display proposals as a table:
+  ID | Phase | Type | Title | Status
+Sorted by phase (newest first), then by ID.
+"""
+
+[[commands]]
+name = "improve show"
+description = "Show details of a single improvement proposal"
+args = [
+    { name = "id", description = "Proposal ID (e.g., P1)", required = true }
+]
+reads = [".dominion/improvements.toml"]
+writes = []
+behavior = """
+Read improvements.toml. Find the proposal with matching id.
+Display: id, phase, type, title, evidence (list), reason, status, applied_at, applied_by.
+If not found: "Proposal {id} not found."
+"""
+
+# === Metrics ===
+
+[[commands]]
+name = "metrics show"
+description = "Display metrics for a phase"
+args = [
+    { name = "--phase", description = "Phase number", required = true }
+]
+reads = [".dominion/phases/{N}/metrics.toml"]
+writes = []
+behavior = """
+Read metrics.toml for the specified phase. Display quality and process sections:
+  Quality:
+    Tests added: {N}, passing: {N}, linter warnings: {N}
+    Coverage delta: {delta}
+    Review findings: {high} high, {medium} medium, {low} low
+    Acceptance: {passed}/{total} criteria passed
+  Process:
+    Tasks: {completed} completed, {failed} failed, {replanned} replanned
+    Waves: {count}, blockers: {count}, rollbacks: {count}
+    Avg tokens/task: {N}
+    Improvement proposals: {N}
+"""
+
+[[commands]]
+name = "metrics trends"
+description = "Show metric trends across phases"
+args = []
+reads = [".dominion/metrics-history.toml"]
+writes = []
+behavior = """
+Read metrics-history.toml. For each metric, compute delta between consecutive phases.
+Display as a table:
+  Phase | Tests | Blocker Rate | Tokens/Task | High Findings | Pass Rate | Proposals
+  1     | 23    | 10%          | 32000       | 3             | 90%       | 2
+  2     | 47    | 5% (-50%)    | 28000 (-13%)| 1 (-66%)      | 95%       | 3
+Highlight improvements in green context (positive deltas for pass rate, negative for blockers/findings).
 """
 
 # === Output Format ===

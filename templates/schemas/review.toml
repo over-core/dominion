@@ -14,11 +14,10 @@ description = ""
 file = ""                           # file path
 suggestion = ""                     # actionable fix
 
-# v0.4+ improvement proposals (not populated in v0.2)
-# [[proposals]]
-# id = ""
-# type = ""                         # tooling | governance | convention
-# title = ""
-# evidence = []
-# reason = ""
-# status = "pending"                # pending | accepted | rejected
+[[proposals]]
+id = ""                             # P1, P2, ...
+type = ""                           # tooling | governance | convention
+title = ""
+evidence = []                       # file references (summaries, review findings)
+reason = ""                         # why this improvement matters
+status = "pending"                  # pending | accepted | rejected
