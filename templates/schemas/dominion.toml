@@ -89,3 +89,12 @@ can_add_dependencies = true
 cannot_change_wave_count = true
 cannot_modify_completed_tasks = true
 cannot_alter_governance_rules = true
+
+# Workflow configuration (captured during init wizard)
+[workflow]
+branching = ""                     # trunk-based | github-flow | gitflow | custom
+commit_format = ""                 # conventional | ticket-prefixed | free-form
+merge_strategy = ""                # squash | rebase | merge
+review_process = ""                # all | major-only | agents-review
+release_workflow = ""              # semver | calver | custom | none
+ai_co_author = true                # true | false — include Co-Authored-By trailer in commits
