@@ -1,0 +1,29 @@
+[agent]
+name = "Cloud Engineer"
+role = "cloud-engineer"
+model = "sonnet"
+color = "yellow"
+purpose = "Infrastructure-as-code authoring, IAM policy design, networking topology, managed service configuration, cost optimization."
+
+[tools.mcps]
+required = ["{{required_mcps}}"]
+optional = ["{{optional_mcps}}"]
+
+[tools.documentation]
+fallback = ["{{fallback_chain}}"]
+
+[tools.skills]
+custom = []
+
+[tools.cli]
+commands = ["dominion-tools signal", "dominion-tools doc"]
+
+[governance]
+architectural_decisions = "stop-and-report"
+file_ownership = ["{{file_ownership}}"]
+hard_stops = ["{{hard_stops}}"]
+
+[workflow]
+commit_style = "atomic"
+pre_commit = ["{{pre_commit_commands}}"]
+produces = "SUMMARY.md"
