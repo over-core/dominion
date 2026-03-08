@@ -11,6 +11,31 @@ Read:
 4. `.dominion/phases/{N}/test-report.toml` — test results and gaps
 5. `.dominion/phases/{N}/review.toml` — findings
 6. `.dominion/phases/{N}/progress.toml` — wave/task execution data
+7. `.dominion/state.toml` — `[[autonomous_decisions]]` for auto mode review
+
+## Autonomous Decision Review
+
+Check state.toml for `[[autonomous_decisions]]` where `reviewed = false`.
+
+If none exist, skip this section.
+
+If unreviewed decisions exist, present them BEFORE the standard retrospective:
+
+```
+{N} autonomous decisions from auto mode:
+
+  {id}. [{type}] {description}
+     Task: {task} | Reason: {reason}
+     Session: {session_id} | Time: {timestamp}
+
+     [Accept / Roll back]
+```
+
+For each decision:
+- **Accept**: set `reviewed = true`, `outcome = "accepted"` in state.toml
+- **Roll back**: set `reviewed = true`, `outcome = "rolled-back"` — follow `@skills/orchestrate/references/rollback-protocol.md` to revert the relevant commits. Present the rollback result before continuing.
+
+After all decisions are reviewed, proceed to the standard retrospective sections.
 
 ## Present Retrospective
 
