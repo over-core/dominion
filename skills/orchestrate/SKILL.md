@@ -1,6 +1,6 @@
 ---
 name: orchestrate
-description: Drive the full phase pipeline — discuss, explore, plan, execute, test, review — with auto-resume, status dashboard, and user control points between steps.
+description: Drive the full phase pipeline — discuss, explore, plan, execute, test, review, improve — with auto-resume, status dashboard, and user control points between steps.
 ---
 
 # /dominion:orchestrate
@@ -9,7 +9,7 @@ Drive the full development phase pipeline.
 
 <IMPORTANT>
 This skill manages the entire pipeline lifecycle. The pipeline is:
-  discuss → explore → plan → execute → test → review
+  discuss → explore → plan → execute → test → review → improve
 
 Before starting:
 1. Check `.dominion/dominion.toml` exists. If not: "Run /dominion:init first."
@@ -34,6 +34,7 @@ Phase {N}: {title}
   [status] execute
   [status] test
   [status] review
+  [status] improve
 ```
 
 Where status is: `✓` complete, `◐` in progress, `○` not started.
@@ -68,8 +69,8 @@ Phase {N} Complete:
   Tests: {passed}/{total} criteria passed
   Findings: {high} high, {medium} medium, {low} low
 
-Next: /dominion:orchestrate to start the next phase
+Next: /dominion:orchestrate to start the next phase.
 ```
 
-Update state.toml: step = "review", status = "complete".
+Update state.toml: step = "improve", status = "complete".
 Clear lock.

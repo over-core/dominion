@@ -12,6 +12,7 @@ Protocol for dispatching pipeline steps to their skills.
 | execute  | /dominion:execute    | Developer   | progress.toml, summaries |
 | test     | /dominion:test       | Tester      | test-report.toml       |
 | review   | /dominion:review     | Reviewer    | review.toml            |
+| improve  | /dominion:improve    | Advisor     | improvements.toml, knowledge |
 
 ## Transition Rules
 
@@ -23,6 +24,7 @@ Each step has prerequisites. Verify before dispatching:
 - **execute**: plan.toml exists for current phase, lock acquired
 - **test**: progress.toml exists, execute step complete
 - **review**: test-report.toml exists for current phase
+- **improve**: review.toml and metrics.toml exist for current phase
 
 If a prerequisite is missing, inform the user and suggest the required step.
 

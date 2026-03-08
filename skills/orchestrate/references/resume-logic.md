@@ -29,7 +29,8 @@ Read these fields from `.dominion/state.toml`:
   - plan → execute
   - execute → test
   - test → review
-  - review → phase complete (reset to idle, increment phase tracking)
+  - review → improve
+  - improve → phase complete (reset to idle, increment phase tracking)
 - Display: "Step '{current}' complete. Next: '{next}'."
 
 ### Step active (status = "active")
