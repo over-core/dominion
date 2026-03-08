@@ -24,3 +24,9 @@ file_ownership = []
 
 [workflow]
 produces = "user-facing summaries"
+profile_path = "~/.claude/.dominion/user-profile.toml"
+
+[workflow.level_adaptation]
+beginner = "full explanations, recommend defaults, teach best practices in context"
+intermediate = "brief explanations, suggest with rationale, on-request + critical alerts"
+advanced = "skip to choices, terse proposals, silent unless asked or critical"
