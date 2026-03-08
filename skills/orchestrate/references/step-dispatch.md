@@ -88,6 +88,25 @@ test = 20000
 review = 30000
 ```
 
+## Dry-Run Halt
+
+If `--dry-run` flag is set:
+
+After the cost estimation gate (plan step complete + estimates presented), halt the pipeline:
+
+```
+Dry run complete.
+  Plan: {task_count} tasks across {wave_count} waves
+  Estimated cost: ≈ {total}K tokens
+  Artifacts: intent.md, research.toml, plan.toml
+
+Resume with /dominion:orchestrate to execute.
+```
+
+Set `position.step = "plan"`, `position.status = "complete"`. Release lock. Exit.
+
+When the user later runs `/dominion:orchestrate` without `--dry-run`, resume-logic picks up from execute step normally.
+
 ## State Updates
 
 Before dispatching a step:

@@ -14,7 +14,10 @@ This skill manages the entire pipeline lifecycle. The pipeline is:
 Before starting:
 1. Check `.dominion/dominion.toml` exists. If not: "Run /dominion:init first."
 2. Check lock in `.dominion/state.toml`. If locked by another session and not expired, warn the user and suggest `/dominion:quick` for lightweight tasks.
-3. Set lock with current session info.
+3. Parse flags:
+   - `--auto`: follow auto-mode protocol
+   - `--dry-run`: run discuss → explore → plan only, then halt
+4. Set lock with current session info.
 </IMPORTANT>
 
 ## Pre-check
@@ -23,6 +26,7 @@ Before starting:
 2. Read `.dominion/state.toml` — determine current position
 3. Detect mode:
    - If `--auto` flag passed: follow `@references/auto-mode.md` (readiness check, then unattended execution)
+   - If `--dry-run` flag passed: set dry_run = true (compatible with interactive mode only, not --auto)
    - Otherwise: follow interactive mode below
 4. Follow `@references/resume-logic.md` to determine next action
 
