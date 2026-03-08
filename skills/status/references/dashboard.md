@@ -15,6 +15,9 @@ Read these files (skip any that don't exist):
 7. `.dominion/state.toml` `[[decisions]]` — count decisions for current phase
 8. `.dominion/phases/{N}/metrics.toml` — phase metrics summary (only if step is improve or later)
 9. `.dominion/improvements.toml` — pending improvement proposals count
+10. `.dominion/dominion.toml` `[autonomy]` — mode and circuit breaker config (only if section exists)
+11. `.dominion/state.toml` `[[autonomous_decisions]]` — count unreviewed decisions
+12. `.dominion/state.toml` `[[mcp_status]]` — MCP availability summary
 
 ## Dashboard Format
 
@@ -66,6 +69,21 @@ Metrics: {tests_added} tests, {findings_high} high findings, {acceptance_pass_ra
 **Improvements section** (only if improvements.toml has pending proposals):
 ```
 Pending proposals: {count}
+```
+
+**Autonomy section** (only if [autonomy] exists in dominion.toml):
+```
+Mode: {autonomy.mode} | Circuit breakers: {max_tokens}/task, {max_retries} retries
+```
+
+**Autonomous decisions section** (only if unreviewed decisions exist):
+```
+Unreviewed decisions: {count}
+```
+
+**MCP status section** (only if any MCP is unavailable):
+```
+MCPs degraded: {unavailable_list} — fallback active
 ```
 
 ### Edge Cases
