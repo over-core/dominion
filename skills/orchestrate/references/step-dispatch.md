@@ -21,7 +21,7 @@ Each step has prerequisites. Verify before dispatching:
 - **discuss**: phase number identified from roadmap.toml
 - **explore**: discuss complete (intent.md exists or phase goals are in roadmap)
 - **plan**: research.toml exists for current phase
-- **execute**: plan.toml exists for current phase, lock acquired
+- **execute**: plan.toml exists for current phase, lock acquired, `dominion-tools plan validate` passes
 - **test**: progress.toml exists, execute step complete
 - **review**: test-report.toml exists for current phase
 - **improve**: review.toml and metrics.toml exist for current phase
