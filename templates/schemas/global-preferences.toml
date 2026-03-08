@@ -1,0 +1,25 @@
+# Dominion Global Preferences — Schema Template
+# Stored at ~/.claude/.dominion/global-preferences.toml
+# Cross-project preferences that travel with the user.
+# Project conventions take precedence when they conflict.
+
+[meta]
+schema_version = 1
+
+[preferences]
+# Promoted from project-specific preferences
+# Examples:
+# git_style = "conventional-commits"
+# merge_strategy = "squash"
+
+[preferences.languages]
+# Language-specific preferences applied to all projects
+# Examples:
+# [preferences.languages.python]
+# string_formatting = "f-strings"
+# type_hints = "all-signatures"
+# docstring_style = "google"
+
+# [preferences.languages.rust]
+# error_handling = "thiserror+anyhow"
+# unwrap_policy = "test-only"
