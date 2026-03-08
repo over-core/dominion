@@ -23,5 +23,7 @@ effort = ""                         # low | medium | high
 [[assumptions]]
 id = ""                             # A1, A2, ...
 text = ""
+risk = ""                           # low | medium | high
 status = "unverified"               # unverified | verified | false
-verified_by = ""
+verified_by = ""                    # how it was verified (test, docs, manual check)
+verified_at = ""                    # ISO 8601 timestamp
