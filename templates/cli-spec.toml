@@ -1,7 +1,7 @@
 [meta]
 spec_version = "0.8"
 minimum_commands = [
-    "validate", "state resume", "state position", "state update", "state decisions", "state blockers", "state checkpoint",
+    "validate", "state resume", "state position", "state update", "state decisions", "state blockers", "state checkpoint", "state decision",
     "agents list", "agents show", "agents generate",
     "knowledge sync", "project summary",
     "signal blocker", "signal warning", "signal list", "signal resolve",
@@ -147,6 +147,25 @@ behavior = """
 4. If lock.session_id matches current session: clear lock
 5. If position.status = "active" and no in-progress work detected: set status = "ready"
 6. Print: "Session checkpointed. {N} commits this session."
+"""
+
+[[commands]]
+name = "state decision"
+description = "Record a significant decision during task execution"
+args = [
+    { name = "--task", description = "Task ID context", required = true },
+    { name = "--text", description = "Decision description", required = true },
+    { name = "--tags", description = "Comma-separated tags (e.g. architecture,trade-off)", optional = true },
+]
+reads = [".dominion/state.toml"]
+writes = [".dominion/state.toml"]
+behavior = """
+Append a new entry to [[decisions]] in state.toml.
+Auto-assign id (max existing id + 1).
+Set phase from current position.phase.
+Set agent from current session context.
+Parse --tags as comma-separated list into tags array.
+Print: "Decision D{id} recorded for task {task}."
 """
 
 # === Agents ===
