@@ -67,7 +67,7 @@ Proceed? [Y/n]
 ```
 
 If user approves: write `[estimates]` section to plan.toml and continue to execute.
-If user declines: pause pipeline, set `position.status = "complete"` for plan step.
+If user declines: pause pipeline, run `dominion-tools state update --step plan --status complete`.
 
 In auto mode: write estimates to plan.toml, log but do not halt. Circuit breakers handle cost control.
 
@@ -103,19 +103,18 @@ Dry run complete.
 Resume with /dominion:orchestrate to execute.
 ```
 
-Set `position.step = "plan"`, `position.status = "complete"`. Release lock. Exit.
+Run `dominion-tools state update --step plan --status complete`. Release lock. Exit.
 
 When the user later runs `/dominion:orchestrate` without `--dry-run`, resume-logic picks up from execute step normally.
 
 ## State Updates
 
 Before dispatching a step:
-- Set `position.step` = {step name}
-- Set `position.status` = "active"
+- Run `dominion-tools state update --step {step name} --status active`
 
 After step completes:
-- Set `position.status` = "complete"
-- Update `position.last_session`
+- Run `dominion-tools state update --status complete`
+- Run `dominion-tools state checkpoint`
 
 ## User Control Points
 
@@ -147,6 +146,6 @@ Auto mode halts (becomes a control point) only for:
 - Circuit breaker: `max_failed_tasks_per_wave` exceeded
 - Circuit breaker: `session_time_limit_hours` exceeded
 
-On halt: set `position.status = "blocked"`, checkpoint state, wait for human.
+On halt: run `dominion-tools state update --status blocked`, then `dominion-tools state checkpoint`, wait for human.
 
 See `@references/auto-mode.md` for full protocol.
