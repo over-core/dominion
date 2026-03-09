@@ -26,7 +26,9 @@ minimum_commands = [
 [[commands]]
 name = "validate"
 description = "Check config integrity, agent consistency, CLI completeness"
-args = []
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+]
 reads = [
     ".dominion/dominion.toml",
     ".dominion/state.toml",
@@ -66,6 +68,12 @@ Output format:
     [PASS] Signal directory clean
 
     N passed, N warnings, N failed
+
+With --json:
+  {"checks": [
+    {"name": "toml_integrity", "status": "pass", "detail": "All TOML files parse"},
+    {"name": "agent_consistency", "status": "pass", "detail": "8/8 matched"}
+  ], "summary": {"passed": 11, "warnings": 1, "failed": 0}}
 """
 
 # === State ===
@@ -73,7 +81,9 @@ Output format:
 [[commands]]
 name = "state resume"
 description = "Display current position for session start"
-args = []
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+]
 reads = [".dominion/state.toml", ".dominion/roadmap.toml"]
 behavior = """
 Read state.toml position. Format as:
@@ -89,11 +99,16 @@ If phase = 0:
 [[commands]]
 name = "state position"
 description = "Show current position in compact form"
-args = []
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+]
 reads = [".dominion/state.toml"]
 behavior = """
 Single-line output:
   Phase N | Step: S | Wave: W | Status: STATUS
+
+With --json:
+  {"phase": 2, "step": "plan", "wave": 1, "status": "active"}
 """
 
 [[commands]]
@@ -190,6 +205,7 @@ name = "agents list"
 description = "List active agents with role, model, and purpose"
 args = [
     { name = "--available", description = "Show all roles including inactive specialized roles", optional = true },
+    { name = "--json", description = "Output as JSON", optional = true },
 ]
 reads = [".dominion/agents/*.toml"]
 behavior = """
@@ -214,6 +230,7 @@ name = "agents show"
 description = "Show full config for one agent"
 args = [
     { name = "role", description = "Agent role name (e.g., developer, researcher)", required = true },
+    { name = "--json", description = "Output as JSON", optional = true },
 ]
 reads = [".dominion/agents/{role}.toml"]
 behavior = """
@@ -355,6 +372,7 @@ args = [
     { name = "id", description = "Task id (e.g., 02-01)", required = true },
     { name = "--files", description = "Show file ownership only", optional = true },
     { name = "--criteria", description = "Show acceptance criteria only", optional = true },
+    { name = "--json", description = "Output as JSON", optional = true },
 ]
 reads = [".dominion/phases/{N}/plan.toml"]
 behavior = """
@@ -371,6 +389,12 @@ Read plan.toml, find task by id. Display:
 
 With --files: show only file ownership list.
 With --criteria: show only acceptance criteria.
+
+With --json:
+  {"id": "02-01", "title": "Add user auth", "wave": 1, "agent": "developer",
+   "depends_on": [], "file_ownership": ["src/auth/"], "token_estimate": 40000,
+   "acceptance_criteria": ["criterion 1", "criterion 2"],
+   "verify_command": "pytest tests/auth/", "handoffs": []}
 """
 
 [[commands]]
@@ -378,6 +402,7 @@ name = "plan wave"
 description = "Show all tasks in a wave"
 args = [
     { name = "number", description = "Wave number", required = true },
+    { name = "--json", description = "Output as JSON", optional = true },
 ]
 reads = [".dominion/phases/{N}/plan.toml"]
 behavior = """
@@ -476,7 +501,9 @@ Update state.toml position.phase = {N}, position.step = "idle", position.status 
 [[commands]]
 name = "phase status"
 description = "Current phase overview"
-args = []
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+]
 reads = [".dominion/state.toml", ".dominion/phases/{N}/"]
 behavior = """
 Read state.toml for current phase. Scan phase directory for artifacts.
@@ -491,6 +518,7 @@ name = "phase progress"
 description = "Detailed progress for a phase"
 args = [
     { name = "number", description = "Phase number", required = true },
+    { name = "--json", description = "Output as JSON", optional = true },
 ]
 reads = [".dominion/phases/{N}/progress.toml", ".dominion/phases/{N}/plan.toml"]
 behavior = """
@@ -501,6 +529,12 @@ Read progress.toml and plan.toml. Format as:
   Wave 3: pending
 
   Blocked: 02-04 — reason
+
+With --json:
+  {"phase": 2, "waves": [
+    {"number": 1, "status": "complete", "tasks_complete": 3, "tasks_total": 3},
+    {"number": 2, "status": "in_progress", "tasks_complete": 1, "tasks_total": 2, "blocked": ["02-04"]}
+  ]}
 """
 
 [[commands]]
@@ -518,7 +552,9 @@ Add [[waves]] entry with number, status = "pending", task entries from plan.toml
 [[commands]]
 name = "wave status"
 description = "Current wave overview"
-args = []
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+]
 reads = [".dominion/state.toml", ".dominion/phases/{N}/progress.toml"]
 behavior = """
 Read current wave from state.toml and progress.toml. Format as:
@@ -552,6 +588,7 @@ name = "research findings"
 description = "Filter research findings by severity"
 args = [
     { name = "--severity", description = "Filter: high | medium | low", optional = true },
+    { name = "--json", description = "Output as JSON", optional = true },
 ]
 reads = [".dominion/phases/{N}/research.toml"]
 behavior = """
@@ -592,7 +629,9 @@ Read research.toml [[opportunities]]. Format as table:
 [[commands]]
 name = "research summary"
 description = "Auto-generated research overview"
-args = []
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+]
 reads = [".dominion/phases/{N}/research.toml"]
 behavior = """
 Read research.toml. Summarize:
@@ -653,6 +692,7 @@ description = "View all backlog items"
 args = [
     { name = "--status", description = "Filter by status: open | planned | done", optional = true },
     { name = "--tags", description = "Filter by tag", optional = true },
+    { name = "--json", description = "Output as JSON", optional = true },
 ]
 reads = [".dominion/backlog.toml"]
 behavior = """
@@ -721,7 +761,8 @@ description = "List improvement proposals from improvements.toml"
 args = [
     { name = "--status", description = "Filter by status (pending/accepted/rejected/rolled-back)", optional = true },
     { name = "--phase", description = "Filter by phase number", optional = true },
-    { name = "--type", description = "Filter by type (tooling/governance/convention)", optional = true }
+    { name = "--type", description = "Filter by type (tooling/governance/convention)", optional = true },
+    { name = "--json", description = "Output as JSON", optional = true },
 ]
 reads = [".dominion/improvements.toml"]
 writes = []
@@ -770,7 +811,8 @@ If not found: "Proposal {id} not found."
 name = "metrics show"
 description = "Display metrics for a phase"
 args = [
-    { name = "--phase", description = "Phase number", required = true }
+    { name = "--phase", description = "Phase number", required = true },
+    { name = "--json", description = "Output as JSON", optional = true },
 ]
 reads = [".dominion/phases/{N}/metrics.toml"]
 writes = []
@@ -808,7 +850,9 @@ Highlight improvements in green context (positive deltas for pass rate, negative
 [[commands]]
 name = "auto readiness"
 description = "Pre-flight check for auto mode"
-args = []
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+]
 reads = [".dominion/dominion.toml", ".dominion/state.toml", ".claude/settings.json", "registry/registry.toml"]
 writes = [".dominion/state.toml"]
 behavior = """
@@ -989,7 +1033,9 @@ behavior = """
 [[commands]]
 name = "release status"
 description = "Show current release spec configuration and version info"
-args = []
+args = [
+    { name = "--json", description = "Output as JSON", optional = true },
+]
 reads = [".dominion/specs/release-spec.toml"]
 behavior = """
 1. Read release-spec.toml
@@ -1083,3 +1129,13 @@ If not found: "No DOMINION.md found. Run doc generate first."
 default = "human-readable"
 json_flag = "--json"
 json_description = "Machine-readable JSON output for agent consumption. Agent startup sequences should always use --json."
+
+# When --json is passed, derive JSON from the human-readable format using these rules.
+# Commands with an explicit json_example in their behavior override these defaults.
+[output.convention]
+tables = "Array of objects. Column headers become lowercase snake_case keys. Each row becomes one object."
+key_value = "Flat object. 'Key: Value' lines become {\"key\": \"value\"} pairs. Keys are lowercase snake_case."
+status_line = "Object with named fields parsed from labeled segments. 'Phase 2 | Step: plan' becomes {\"phase\": 2, \"step\": \"plan\"}."
+trees = "Nested objects with 'children' arrays. Node label becomes 'id' field."
+lists = "Array of strings (simple) or array of objects (structured items)."
+pass_fail = "Object with 'checks' array of {\"name\": str, \"status\": \"pass\"|\"warn\"|\"fail\", \"detail\": str}, plus 'summary' object."
