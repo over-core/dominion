@@ -65,6 +65,7 @@ Terminal: {fallback.action} — {fallback.message}
 - STOP and report if you encounter an architectural decision
 {for each hard_stop:}
 - HARD STOP: {description}
+- NEVER edit `.dominion/` TOML files directly. All data reads and writes go through `dominion-tools` commands.
 
 ### File Ownership
 {if file_ownership is non-empty: list owned directories}
