@@ -1,7 +1,7 @@
 [meta]
 spec_version = "0.8"
 minimum_commands = [
-    "validate", "state resume", "state position", "state update", "state decisions", "state blockers",
+    "validate", "state resume", "state position", "state update", "state decisions", "state blockers", "state checkpoint",
     "agents list", "agents show", "agents generate",
     "knowledge sync", "project summary",
     "signal blocker", "signal warning", "signal list", "signal resolve",
