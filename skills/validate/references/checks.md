@@ -368,3 +368,50 @@ Fail: roadmap.toml exists but has invalid structure — list specific violations
 Pass: style.toml structure valid
 Warn: no style.toml (project may not have style conventions configured)
 Fail: style.toml exists but has invalid structure — list specific violations
+
+## Check 35: CLI Command Coverage
+
+For every command in `minimum_commands` (from `.dominion/specs/cli-spec.toml`):
+- Search all skill files (`skills/*/SKILL.md`) and reference files (`skills/*/references/*.md`, `templates/references/*.md`) for the command name
+- A command is "covered" if it appears as a `dominion-tools {command}` instruction in at least one file
+
+Pass: all commands referenced by at least one skill or reference file
+Warn: commands with no references (list them) — these are defined but no agent is instructed to use them
+Fail: N/A (warnings only — some commands may be utility/diagnostic)
+
+## Check 36: TOML Write/Read Path Completeness
+
+For every CLI command in `.dominion/specs/cli-spec.toml` that has a non-empty `writes` field:
+- Identify the TOML field(s) written
+- Search for a corresponding read — either a CLI command with matching `reads` field, or a skill/reference that reads the same field
+- A write path is "complete" if the data it writes is read somewhere
+
+For every TOML section/field referenced in skill files with a read instruction:
+- Verify a corresponding write path exists — either a CLI command with matching `writes` field, or a skill/reference that writes to it
+
+Pass: all write paths have corresponding reads, all read paths have corresponding writes
+Warn: orphaned write paths (data written but never read) or orphaned read paths (data expected but never written) — list them with file:line references
+
+## Check 37: No Direct TOML Manipulation in Instructions
+
+Search all skill files and reference files for patterns that describe direct TOML field writes:
+- `Set {field} =` or `set {field} =` followed by a value
+- `Update {file}.toml:` followed by field assignments
+- `position.step =`, `position.status =`, `position.wave =` outside of schema documentation
+
+Exclude: schema template files (`templates/schemas/`), comments, conditional checks (`if`, `verify`, `check`)
+
+Pass: no direct TOML manipulation found — all data writes use `dominion-tools` commands
+Fail: list each instance with file:line and the CLI command that should be used instead
+
+## Check 38: Instruction Specificity
+
+Search all skill files and reference files for vague action instructions:
+- "Regenerate {artifact}" without a `dominion-tools` command
+- "Update {file}" without specifying which CLI command
+- "Write to {file}" without specifying which CLI command (outside of schema init/creation context)
+
+Exclude: schema creation during init (where files are created for the first time from templates)
+
+Pass: all action instructions specify the exact CLI command or tool to use
+Warn: vague instructions found — list each with file:line and suggest the specific command
