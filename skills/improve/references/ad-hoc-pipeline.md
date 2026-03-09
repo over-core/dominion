@@ -112,9 +112,44 @@ For each output type, follow the creation steps from [structural-awareness.md](.
 4. Run `dominion-tools doc generate` to regenerate DOMINION.md
 
 ### Skill
-1. Write `.dominion/skills/{name}.md` with frontmatter
-2. Write reference files if needed
-3. Run `dominion-tools doc generate` to regenerate DOMINION.md
+
+Check if the `skill-creator` plugin is installed (look for `/skill-creator` in available skills).
+
+**If skill-creator is installed (preferred):**
+
+Hand off to skill-creator with the architecture context from Steps 1-5:
+
+```
+The Dominion improve pipeline has approved a new skill:
+- Name: {name}
+- Purpose: {purpose}
+- Governance: {any hard stops or file ownership from Reviewer}
+- Reference files needed: {list from design proposal}
+- Wiring: skill will be placed at `.dominion/skills/{name}.md`
+
+Use this context to write the SKILL.md. Follow Dominion's skill writing conventions:
+- Directive prose (instructions the LLM follows, not documentation)
+- Use markdown links for sub-steps: `[filename.md](references/filename.md)`
+- Keep SKILL.md under 500 lines; use references/ for detail
+
+After writing, run the eval loop: create test cases, spawn with/without-skill runs, grade, iterate with user feedback, then optimize the description for triggering accuracy.
+```
+
+After skill-creator completes, the Attendant places the validated files:
+1. Move skill files to `.dominion/skills/{name}.md` (and `references/` if created)
+2. Run `dominion-tools doc generate` to regenerate DOMINION.md
+3. Update `.claude/settings.json` if the skill needs permissions
+
+**If skill-creator is NOT installed:**
+
+STOP. Tell the user:
+```
+Skill-creator plugin is required for skill creation.
+Install: /plugin marketplace install skill-creator
+Then re-run /dominion:improve --skill to create the skill with proper quality validation.
+```
+
+Do not attempt to write skills manually without skill-creator's eval loop — untested skills with unoptimized descriptions will not trigger correctly.
 
 ### Knowledge
 1. Write `.dominion/knowledge/{topic}.md`

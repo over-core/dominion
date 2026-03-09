@@ -33,9 +33,9 @@ A repeatable procedure or workflow invoked as a `/dominion:*` command.
 - Optional: `.dominion/skills/{name}/references/*.md` — sub-step instructions
 
 **To create:**
-1. Write `.dominion/skills/{name}.md` with frontmatter (`name`, `description`)
-2. Write directive instructions (what the LLM should do, not explanations)
-3. Use markdown links for sub-steps: [filename.md](references/filename.md)
+1. Define architecture: name, purpose, reference files needed, governance rules (Dominion pipeline Steps 1-5)
+2. Author and validate: invoke `/skill-creator` with the architecture context — it writes the SKILL.md, runs eval loops, and optimizes the description for triggering (requires skill-creator plugin — install with `/plugin marketplace install skill-creator`)
+3. Use markdown links for sub-steps: `[filename.md](references/filename.md)`
 4. Run `dominion-tools doc generate` to regenerate DOMINION.md
 
 **When to create vs use knowledge:**

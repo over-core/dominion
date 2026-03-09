@@ -139,9 +139,11 @@ notes = "Required for hook creation. Provides declarative rule format with patte
 
 [plugins.skill-creator]
 category = "development"
-rating = 4.4
+rating = 4.8
 compatible_with_dominion = true
-notes = "Useful for /dominion:improve custom skill creation"
+required = true
+install_command = "/plugin marketplace install skill-creator"
+notes = "Required for skill creation. Provides eval-driven authoring with test runs, grading, and description optimization via /skill-creator. Without it, Dominion cannot create quality-validated skills via /dominion:improve --skill."
 
 [plugins.gsd]
 category = "methodology"
