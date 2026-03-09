@@ -66,10 +66,6 @@ Execution Complete (Phase {N}):
 
 ## Step 5: Update State
 
-Update `.dominion/state.toml`:
-- `position.step` = "execute"
-- `position.status` = "complete" (or "blocked" if blockers remain)
-- `position.wave` = 0
-- `position.current_task` = ""
-- Clear `[lock]`
-- `position.last_session` = {today's date}
+Update state:
+- Run `dominion-tools state update --step execute --status {complete|blocked}`
+- Run `dominion-tools state checkpoint`

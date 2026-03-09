@@ -60,10 +60,9 @@ Follow `@references/knowledge-management.md`
 
 ### Step 5: Update State and Announce
 
-Update `.dominion/state.toml`:
-- `position.step` = "improve"
-- `position.status` = "complete"
-- `position.last_session` = {today's date}
+Update state:
+- Run `dominion-tools state update --step improve --status complete`
+- Run `dominion-tools state checkpoint`
 
 Run `dominion-tools knowledge sync` to rebuild MEMORY.md with any new knowledge entries.
 

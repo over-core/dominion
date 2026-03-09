@@ -36,10 +36,8 @@ Follow `@references/intent-capture.md`
 
 ## Step 3: Update State
 
-Update `.dominion/state.toml`:
-- `position.phase` = {N}
-- `position.step` = "discuss"
-- `position.status` = "complete"
-- `position.last_session` = {today's date}
+Update state:
+- Run `dominion-tools state update --phase {N} --step discuss --status complete`
+- Run `dominion-tools state checkpoint`
 
 Run: `dominion-tools phase init {N} --title "{title}"`

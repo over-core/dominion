@@ -79,5 +79,4 @@ Phase {N} Complete:
 Next: /dominion:orchestrate to start the next phase.
 ```
 
-Update state.toml: step = "improve", status = "complete".
-Clear lock.
+Run `dominion-tools state update --step improve --status complete` and `dominion-tools state checkpoint`.

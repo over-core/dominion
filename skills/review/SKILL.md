@@ -62,9 +62,8 @@ Categories:
 
 ## Step 8: Update State and Announce
 
-Update `.dominion/state.toml`:
-- `position.step` = "review"
-- `position.status` = "complete"
-- `position.last_session` = {today's date}
+Update state:
+- Run `dominion-tools state update --step review --status complete`
+- Run `dominion-tools state checkpoint`
 
 Announce: "Phase {N} review complete. Run /dominion:improve to review proposals and apply improvements."

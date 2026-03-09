@@ -70,7 +70,6 @@ Unverified assumptions:
 
 ## Step 6: Update State
 
-Update `.dominion/state.toml`:
-- `position.step` = "explore"
-- `position.status` = "complete"
-- `position.last_session` = {today's date}
+Update state:
+- Run `dominion-tools state update --step explore --status complete`
+- Run `dominion-tools state checkpoint`

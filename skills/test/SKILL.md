@@ -48,7 +48,6 @@ Gaps ({count}):
 
 ## Step 5: Update State
 
-Update `.dominion/state.toml`:
-- `position.step` = "test"
-- `position.status` = "complete"
-- `position.last_session` = {today's date}
+Update state:
+- Run `dominion-tools state update --step test --status complete`
+- Run `dominion-tools state checkpoint`

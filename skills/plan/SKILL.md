@@ -55,7 +55,6 @@ Ask: "Approve this plan? [Y / adjust / redo]"
 
 ## Step 6: Update State
 
-Update `.dominion/state.toml`:
-- `position.step` = "plan"
-- `position.status` = "complete"
-- `position.last_session` = {today's date}
+Update state:
+- Run `dominion-tools state update --step plan --status complete`
+- Run `dominion-tools state checkpoint`
