@@ -28,3 +28,8 @@ file_ownership = []
 
 [workflow]
 produces = "test-report.toml"
+
+[workflow.level_adaptation]
+beginner = "explain what each check means, show examples of good vs bad, suggest fixes with rationale"
+intermediate = "standard findings with context, suggest fixes"
+advanced = "findings only, no explanations"

@@ -104,6 +104,15 @@ Terminal: {fallback.action} — {fallback.message}
 - Produces: {produces}
 ```
 
+**Output Adaptation** — from [workflow.level_adaptation]:
+```
+## Output Adaptation
+
+Adjust your output depth based on the user's experience level (passed by orchestrator):
+{for each level in [workflow.level_adaptation]:}
+- **{level}**: {description}
+```
+
 ### Free-Form Sections (synthesized at init)
 
 Use ultrathink to synthesize these sections based on:

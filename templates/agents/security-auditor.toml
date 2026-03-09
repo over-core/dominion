@@ -32,3 +32,8 @@ file_ownership = []
 
 [workflow]
 produces = "security-findings"
+
+[workflow.level_adaptation]
+beginner = "explain domain-specific decisions, show alternative approaches considered"
+intermediate = "brief rationale for non-obvious choices"
+advanced = "terse output, no explanations unless asked"

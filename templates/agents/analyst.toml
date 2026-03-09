@@ -27,3 +27,8 @@ hard_stops = ["{{hard_stops}}"]
 commit_style = "atomic"
 pre_commit = ["{{pre_commit_commands}}"]
 produces = "SUMMARY.md"
+
+[workflow.level_adaptation]
+beginner = "explain what each generated artifact does, show before/after"
+intermediate = "standard output with brief context"
+advanced = "silent unless errors"

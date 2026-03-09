@@ -25,6 +25,11 @@ file_ownership = [".dominion/", ".claude/agents/", ".claude/settings.json", "AGE
 [workflow]
 produces = "generated artifacts"
 
+[workflow.level_adaptation]
+beginner = "explain what each generated artifact does, show before/after"
+intermediate = "standard output with brief context"
+advanced = "silent unless errors"
+
 [generation]
 # Controls how .md files are rendered from .toml
 rigid_sections = ["startup-sequence", "tool-routing", "governance", "workflow", "frontmatter"]
