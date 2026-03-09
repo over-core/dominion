@@ -12,7 +12,7 @@ minimum_commands = [
     "report create", "report finalize",
     "backlog add", "backlog list", "backlog suggest",
     "rollback", "history",
-    "improve list", "improve show", "metrics show", "metrics trends",
+    "improve list", "improve show", "improve update", "metrics show", "metrics trends",
     "auto readiness", "auto decisions",
     "zone check",
     "profile show", "profile set", "claim status",
@@ -742,6 +742,25 @@ writes = []
 behavior = """
 Read improvements.toml. Find the proposal with matching id.
 Display: id, phase, type, title, evidence (list), reason, status, applied_at, applied_by.
+If not found: "Proposal {id} not found."
+"""
+
+[[commands]]
+name = "improve update"
+description = "Update a proposal's status and apply metadata"
+args = [
+    { name = "id", description = "Proposal ID (e.g., P1)", required = true },
+    { name = "--status", description = "New status (accepted/rejected/rolled-back)", optional = true },
+    { name = "--applied-at", description = "Commit hash where applied", optional = true },
+    { name = "--applied-by", description = "Apply method (direct/pipeline/structural)", optional = true },
+]
+reads = [".dominion/improvements.toml"]
+writes = [".dominion/improvements.toml"]
+behavior = """
+Find proposal by id. Update provided fields.
+Validate status is one of: pending, accepted, rejected, rolled-back.
+Validate applied_by is one of: direct, pipeline, structural.
+Print: "Proposal {id} updated: {changed fields}."
 If not found: "Proposal {id} not found."
 """
 
