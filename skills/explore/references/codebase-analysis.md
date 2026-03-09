@@ -48,6 +48,21 @@ For each area the phase will modify:
 
 Record high-risk findings with severity "high".
 
+## Opportunity Identification
+
+While analyzing the codebase, note improvement opportunities that are outside the current phase scope but valuable:
+
+1. **Simplification**: complex patterns that could be simplified, redundant abstractions
+2. **Reuse**: shared logic duplicated across modules that could be extracted
+3. **Performance**: obvious performance gains (missing indexes, unnecessary allocations, N+1 queries)
+4. **Developer experience**: friction in build, test, or development workflows
+
+Each opportunity must have:
+- `id`: O1, O2, ... (sequential)
+- `title`: one-line summary
+- `benefit`: what improves if addressed
+- `effort`: low | medium | high
+
 ## Output Format
 
 Each finding must have:
