@@ -20,19 +20,19 @@ Check `.dominion/phases/{N}/research.toml` exists. If not, tell the user: "Run /
 
 ## Step 1: Task Decomposition
 
-Follow `@references/task-decomposition.md`
+Follow [task-decomposition.md](references/task-decomposition.md)
 
 ## Step 2: Wave Grouping
 
-Follow `@references/wave-grouping.md`
+Follow [wave-grouping.md](references/wave-grouping.md)
 
 ## Step 3: Acceptance Criteria
 
-Follow `@references/acceptance-criteria.md`
+Follow [acceptance-criteria.md](references/acceptance-criteria.md)
 
 ## Step 4: Write Plan
 
-Write `.dominion/phases/{N}/plan.toml` using `@templates/schemas/plan.toml` as the schema. Populate with tasks, waves, criteria, and assumption references from Steps 1-3.
+Write `.dominion/phases/{N}/plan.toml` using [plan.toml](../../templates/schemas/plan.toml) as the schema. Populate with tasks, waves, criteria, and assumption references from Steps 1-3.
 
 ## Step 5: Present Plan Summary
 
@@ -55,7 +55,6 @@ Ask: "Approve this plan? [Y / adjust / redo]"
 
 ## Step 6: Update State
 
-Update `.dominion/state.toml`:
-- `position.step` = "plan"
-- `position.status` = "complete"
-- `position.last_session` = {today's date}
+Update state:
+- Run `dominion-tools state update --step plan --status complete`
+- Run `dominion-tools state checkpoint`

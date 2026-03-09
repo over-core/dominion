@@ -48,4 +48,4 @@ If a previously-unavailable MCP becomes available mid-session:
 | sequential-thinking | No | Standard reasoning without structured thinking |
 | github | No | gh CLI for all GitHub operations |
 | gitlab | No | glab CLI for all GitLab operations |
-| echovault | No | MEMORY.md + .dominion/knowledge/ files only |
+| echovault | No | MEMORY.md auto-loaded + .dominion/knowledge/ files on demand. No cross-session memory search. Agents start each session from zero — prior decisions, bugs, and patterns are lost. |

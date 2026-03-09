@@ -7,7 +7,7 @@ purpose = "Translate research into executable plans with verified file reference
 
 [tools.mcps]
 required = ["serena", "context7"]
-optional = ["sequential-thinking"]
+optional = ["sequential-thinking", "echovault"]
 
 [tools.documentation]
 fallback = ["{{fallback_chain}}"]
@@ -24,3 +24,8 @@ file_ownership = []
 
 [workflow]
 produces = "plan.toml"
+
+[workflow.level_adaptation]
+beginner = "explain approach before acting, show command rationale, annotate complex patterns"
+intermediate = "brief rationale for non-obvious choices, standard output"
+advanced = "terse output, no explanations unless asked"

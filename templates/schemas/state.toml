@@ -1,5 +1,6 @@
 # Dominion State — Schema Template
-# Auto-maintained, tracks session position and pipeline state
+# Gitignored. Each developer maintains their own session state.
+# Auto-maintained by Attendant + session hooks.
 
 [meta]
 schema_version = 2

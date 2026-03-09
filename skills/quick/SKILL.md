@@ -30,7 +30,7 @@ Evaluate the response:
 
 ## Step 2: Quick Execution
 
-Follow `@references/quick-workflow.md`
+Follow [quick-workflow.md](references/quick-workflow.md)
 
 ## Step 3: Summary
 

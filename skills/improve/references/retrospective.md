@@ -33,9 +33,23 @@ If unreviewed decisions exist, present them BEFORE the standard retrospective:
 
 For each decision:
 - **Accept**: set `reviewed = true`, `outcome = "accepted"` in state.toml
-- **Roll back**: set `reviewed = true`, `outcome = "rolled-back"` — follow `@skills/orchestrate/references/rollback-protocol.md` to revert the relevant commits. Present the rollback result before continuing.
+- **Roll back**: set `reviewed = true`, `outcome = "rolled-back"` — follow [rollback-protocol.md](../../../templates/references/rollback-protocol.md) to revert the relevant commits. Present the rollback result before continuing.
 
-After all decisions are reviewed, proceed to role suggestions.
+After all decisions are reviewed, proceed to regular decisions review.
+
+### Regular Decisions Review
+
+Run `dominion-tools state decisions --phase {N}` to get decisions recorded during this phase.
+
+If decisions exist, present a summary:
+```
+{count} decisions recorded during Phase {N}:
+
+{For each decision:}
+  D{id} ({task}): {text} [tags: {tags}]
+```
+
+These are informational — no accept/reject needed. They provide context for the retrospective analysis below. Flag any decisions that suggest process improvements (e.g., recurring trade-offs, blocked-then-unblocked patterns).
 
 ## Role Suggestions
 
@@ -56,12 +70,33 @@ New specialized roles detected:
 ```
 
 For each accepted role:
-- Read the agent template from `@templates/agents/{role}.toml`
+- Read the agent template from [agents/{role}.toml](../../../templates/agents/{role}.toml)
 - Attendant generates the agent config: `.dominion/agents/{role}.toml` + `.claude/agents/{role}.md`
 - Run `dominion-tools agents generate` to update AGENTS.md
 
 For rejected roles:
 - Note in improvements.toml as a rejected proposal (so it's not suggested again next phase)
+
+## Preference Promotion
+
+Check if any project-specific preferences from `.dominion/style.toml` or `.dominion/dominion.toml` match across this and previous projects (if the user has worked on multiple Dominion projects).
+
+If the user explicitly states "I always want this" for any preference during the retrospective, promote it:
+
+```
+Promote "{preference}" to global preferences?
+This will apply to all future Dominion projects. [Y/n]
+```
+
+If accepted:
+- Read or create `~/.claude/.dominion/global-preferences.toml`
+- Add the preference under the appropriate section
+- Confirm: "Added to global preferences."
+
+<IMPORTANT>
+Only write to `~/.claude/.dominion/` when the user explicitly approves a promotion.
+Never infer preferences to promote — only act on explicit user statements.
+</IMPORTANT>
 
 ## Present Retrospective
 

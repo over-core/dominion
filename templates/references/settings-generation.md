@@ -22,7 +22,7 @@ Always add:
 
 ## MCP Permission Detection
 
-Reference: `@registry/registry.toml`
+Reference: [registry.toml](../../registry/registry.toml)
 
 For each MCP detected during discovery (Phase 5):
 
@@ -51,5 +51,5 @@ For MCPs rated "recommended" in registry but not installed:
 
 If serena is installed and project hasn't been activated:
 1. Call `mcp__serena__activate_project` with the project root path
-2. Note detected LSP backends from `@registry/registry.toml` [mcps.serena.lsp_config]
+2. Note detected LSP backends from [registry.toml](../../registry/registry.toml) [mcps.serena.lsp_config]
    for each detected language

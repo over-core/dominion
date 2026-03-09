@@ -7,7 +7,7 @@ purpose = "Evaluate foreign skills/agents/plugins. Audit dependencies. Validate 
 
 [tools.mcps]
 required = ["serena"]
-optional = ["sequential-thinking"]
+optional = ["sequential-thinking", "echovault"]
 
 [tools.documentation]
 fallback = ["{{fallback_chain}}"]
@@ -32,3 +32,8 @@ file_ownership = []
 
 [workflow]
 produces = "security-findings"
+
+[workflow.level_adaptation]
+beginner = "explain domain-specific decisions, show alternative approaches considered"
+intermediate = "brief rationale for non-obvious choices"
+advanced = "terse output, no explanations unless asked"

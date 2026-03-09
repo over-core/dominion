@@ -7,7 +7,7 @@ purpose = "Post-phase quality verification: code quality, architecture complianc
 
 [tools.mcps]
 required = ["serena"]
-optional = ["context7", "sequential-thinking"]
+optional = ["context7", "sequential-thinking", "echovault"]
 
 [tools.documentation]
 fallback = ["{{fallback_chain}}"]
@@ -24,3 +24,8 @@ file_ownership = []
 
 [workflow]
 produces = "review.toml"
+
+[workflow.level_adaptation]
+beginner = "explain what each check means, show examples of good vs bad, suggest fixes with rationale"
+intermediate = "standard findings with context, suggest fixes"
+advanced = "findings only, no explanations"

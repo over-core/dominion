@@ -2,7 +2,7 @@
 
 ## Step 1: Deliver CLI Spec
 
-Copy `@templates/cli-spec.toml` to `.dominion/specs/cli-spec.toml` in the target project.
+Copy [cli-spec.toml](../cli-spec.toml) to `.dominion/specs/cli-spec.toml` in the target project.
 
 ## Step 2: Determine CLI Language
 

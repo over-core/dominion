@@ -7,7 +7,7 @@ purpose = "Implement plan tasks with atomic commits, following code conventions.
 
 [tools.mcps]
 required = ["{{required_mcps}}"]
-optional = ["{{optional_mcps}}"]
+optional = ["{{optional_mcps}}", "echovault"]
 
 [tools.documentation]
 fallback = ["{{fallback_chain}}"]
@@ -27,3 +27,8 @@ hard_stops = ["{{hard_stops}}"]
 commit_style = "atomic"
 pre_commit = ["{{pre_commit_commands}}"]
 produces = "SUMMARY.md"
+
+[workflow.level_adaptation]
+beginner = "explain approach before acting, show command rationale, annotate complex patterns"
+intermediate = "brief rationale for non-obvious choices, standard output"
+advanced = "terse output, no explanations unless asked"

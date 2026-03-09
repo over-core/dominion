@@ -25,6 +25,7 @@ Provide the agent with a prompt containing:
 4. Verify command: the shell command to run for validation
 5. Upstream handoff notes: from completed upstream tasks (if any)
 6. Signal protocol: how to raise blockers/warnings
+7. Knowledge refs: relevant `.dominion/knowledge/` files from plan.toml `knowledge_refs` (if any)
 
 **All wave agents are spawned concurrently.** Do not wait for one to finish before starting the next.
 
@@ -36,13 +37,38 @@ While agents are running:
 3. If a wave-level blocker: halt all agents in the wave, present to user
 4. If a phase-level blocker: halt everything, present to user
 
+## Decision Recording
+
+When the developer makes a significant decision during task work — architectural trade-offs, deviations from plan, technology choices — record it:
+
+```bash
+dominion-tools state decision --task {task-id} --text "{description}" --tags "{comma-separated tags}"
+```
+
+Not every decision. Only those that:
+- Affect other tasks or downstream waves
+- Deviate from the plan
+- Involve trade-offs the user should know about
+
+These surface during `/dominion:improve` retrospective for review.
+
+## Deferred Items
+
+When the developer encounters work that is out of scope for the current task — a bug in unrelated code, a refactoring opportunity, a missing feature — park it:
+
+```bash
+dominion-tools state defer --text "{description}"
+```
+
+These surface during the next `/dominion:discuss` session so the user can decide whether to address them.
+
 ## Wave Completion
 
 When all agents in the wave have finished:
 
 1. **Verify summaries**: check `.dominion/phases/{N}/summaries/task-{id}.md` exists for each task
 2. **Run verify_command**: for each task with a verify_command, run it in the worktree
-3. **Update progress.toml**: mark each task as complete, failed, or blocked
+3. **Update progress**: run `dominion-tools wave status` to check and update task statuses (complete, failed, or blocked)
 
 ## Merge Protocol
 

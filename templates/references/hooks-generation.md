@@ -75,5 +75,26 @@ Implementation note: Must be non-blocking and fast. Do not prompt user. If check
 
 ## Implementation
 
-Use the hookify skill/API to create these rules. Store rule definitions
-in `.claude/hooks/` following hookify conventions.
+Check if the `hookify` plugin is installed (look for `/hookify` in available skills).
+
+**If hookify is installed (preferred):**
+
+Use `/hookify:writing-rules` to create each rule as a `.claude/hookify.{name}.local.md` file:
+
+- Rule 1 → `hookify.block-source-diving.local.md` with `event: file`, conditions on `file_path` matching library paths, `action: block`
+- Rule 2 → `hookify.warn-blocker-active.local.md` with `event: bash` + `event: file`, condition checking state.toml blocker status, `action: warn`
+- Rule 3 → `hookify.dominion-session-start.local.md` with `event: prompt`, inline `dominion-tools state resume`
+- Rule 4 → `hookify.dominion-session-end.local.md` with `event: stop`, inline `dominion-tools state checkpoint`
+
+Hookify provides declarative markdown rules with regex pattern matching, conditions, and warn/block actions. The `/hookify:writing-rules` skill documents the exact YAML frontmatter format, condition operators, and pattern syntax.
+
+**If hookify is NOT installed:**
+
+STOP. Tell the user:
+```
+Hookify plugin is required for governance hook generation.
+Install: /plugin marketplace install hookify
+Then re-run /dominion:init to generate hooks.
+```
+
+Do not attempt to write native hooks manually — without hookify's rule format and pattern matching documentation, the hooks will be malformed.

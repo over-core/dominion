@@ -7,7 +7,7 @@ purpose = "Benchmark authoring, regression detection, flame graph analysis, allo
 
 [tools.mcps]
 required = ["{{required_mcps}}"]
-optional = ["{{optional_mcps}}"]
+optional = ["{{optional_mcps}}", "echovault"]
 
 [tools.documentation]
 fallback = ["{{fallback_chain}}"]
@@ -27,3 +27,8 @@ hard_stops = ["{{hard_stops}}"]
 commit_style = "atomic"
 pre_commit = ["{{pre_commit_commands}}"]
 produces = "SUMMARY.md"
+
+[workflow.level_adaptation]
+beginner = "explain what each generated artifact does, show before/after"
+intermediate = "standard output with brief context"
+advanced = "silent unless errors"

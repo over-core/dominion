@@ -10,7 +10,7 @@ List the project root directory. Read key files:
 
 ## Phase 2: Language Detection
 
-Reference: `@data/detection/languages.toml`
+Reference: [languages.toml](../../data/detection/languages.toml)
 
 For each language entry, check if any `indicators` files exist using Glob.
 For detected languages, also check:
@@ -25,7 +25,7 @@ Record the primary language (most files or explicit build system).
 
 ## Phase 3: Framework Detection
 
-Reference: `@data/detection/frameworks.toml`
+Reference: [frameworks.toml](../../data/detection/frameworks.toml)
 
 For each framework entry matching detected languages:
 - Check `detection.cargo_dep` / `detection.pyproject_dep` / `detection.npm_dep` / `detection.go_dep` in the relevant manifest file
@@ -34,7 +34,7 @@ For each framework entry matching detected languages:
 
 ## Phase 4: Infrastructure Detection
 
-Reference: `@data/detection/infrastructure.toml`
+Reference: [infrastructure.toml](../../data/detection/infrastructure.toml)
 
 For each infrastructure entry:
 - Check `detection.files` and `detection.directories` using Glob
@@ -45,7 +45,7 @@ For each infrastructure entry:
 ## Phase 5: MCP & Tool Inventory
 
 Detect currently available MCPs by checking which `mcp__*` tools are loaded in the session.
-Cross-reference against `@registry/registry.toml`:
+Cross-reference against [registry.toml](../../registry/registry.toml):
 - Categorize each detected MCP (required / recommended / optional)
 - Identify missing required MCPs
 - Identify recommended MCPs that match the detected stack
@@ -118,6 +118,17 @@ For each full-level detected language, read 3-5 representative source files:
 
 Use this to pre-fill style.toml convention choices for the wizard.
 
+## Phase 9: User Profile Detection
+
+Check if `~/.claude/.dominion/` exists:
+- If `user-profile.toml` exists: read experience level and preferences
+- If `global-preferences.toml` exists: read cross-project preferences
+- Record existence and contents for wizard shortcutting
+
+<IMPORTANT>
+These files are outside the project directory. Only READ — never write to paths outside the project root during discovery. Profile updates happen separately.
+</IMPORTANT>
+
 ## Output Structure
 
 Organize discovery results as structured data in the conversation context:
@@ -132,3 +143,5 @@ Organize discovery results as structured data in the conversation context:
 - `project_shape`: monorepo/workspace/single-project, primary language
 - `recommended_mcps`: from registry cross-reference
 - `recommended_roles`: specialized roles to activate (from infrastructure detection)
+- `user_profile`: experience level, preferences (if exists)
+- `global_preferences`: cross-project preferences (if exists)

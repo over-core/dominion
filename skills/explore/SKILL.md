@@ -20,20 +20,20 @@ If phase is 0, tell the user: "No active phase. Run /dominion:discuss first."
 
 ## Step 1: Codebase Analysis
 
-Follow `@references/codebase-analysis.md`
+Follow [codebase-analysis.md](references/codebase-analysis.md)
 
 ## Step 2: Assumption Listing
 
-Follow `@references/assumption-listing.md`
+Follow [assumption-listing.md](references/assumption-listing.md)
 
 ## Step 3: Assumption Verification
 
-Follow `@references/assumption-verification.md`
+Follow [assumption-verification.md](references/assumption-verification.md)
 
 ## Step 3.5: Role Trigger Detection
 
 Check for new specialized role opportunities:
-1. Read `@data/detection/roles.toml` for all role triggers
+1. Read [roles.toml](../../data/detection/roles.toml) for all role triggers
 2. Read `.dominion/agents/` to get currently active roles
 3. Cross-reference: are there triggers firing for roles not yet activated?
 4. For each new trigger found: record as a role proposal in research.toml `[[role_proposals]]`
@@ -49,7 +49,7 @@ If no new triggers found: skip. This step is silent unless new roles are detecte
 
 ## Step 4: Write Research
 
-Write `.dominion/phases/{N}/research.toml` using `@templates/schemas/research.toml` as the schema. Populate with findings, opportunities, and assumptions from Steps 1-3.
+Write `.dominion/phases/{N}/research.toml` using [research.toml](../../templates/schemas/research.toml) as the schema. Populate with findings, opportunities, and assumptions from Steps 1-3.
 
 ## Step 5: Present Summary
 
@@ -70,7 +70,6 @@ Unverified assumptions:
 
 ## Step 6: Update State
 
-Update `.dominion/state.toml`:
-- `position.step` = "explore"
-- `position.status` = "complete"
-- `position.last_session` = {today's date}
+Update state:
+- Run `dominion-tools state update --step explore --status complete`
+- Run `dominion-tools state checkpoint`

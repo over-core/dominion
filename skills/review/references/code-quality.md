@@ -8,6 +8,7 @@ Read and internalize:
 1. Git diff: all changes in this phase (diff from phase start commit to current HEAD)
 2. `.dominion/phases/{N}/test-report.toml` — test results and gaps
 3. `.dominion/style.toml` — project code conventions
+4. Run `dominion-tools style check` to get automated convention violations
 
 ## Checklist
 
@@ -32,6 +33,9 @@ Read and internalize:
 - Do new public APIs have documentation?
 - Are complex algorithms commented?
 - Are configuration options documented?
+
+### Style Check Results
+- **Style check results**: include any violations from `dominion-tools style check` as findings with category "convention"
 
 ## Output
 

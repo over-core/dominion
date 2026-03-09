@@ -7,16 +7,17 @@ purpose = "Human-facing interface. Onboards developers, explains decisions, mana
 
 [tools.mcps]
 required = []
-optional = ["sequential-thinking"]
+optional = ["sequential-thinking", "echovault"]
 
 [tools.documentation]
 fallback = ["{{fallback_chain}}"]
 
 [tools.skills]
 custom = []
+structural_awareness = "@templates/references/structural-awareness.md"
 
 [tools.cli]
-commands = ["dominion-tools state resume", "dominion-tools project summary", "dominion-tools roadmap"]
+commands = ["dominion-tools state resume", "dominion-tools project summary", "dominion-tools roadmap", "dominion-tools release prepare"]
 
 [governance]
 architectural_decisions = "explain-to-human"
@@ -24,3 +25,9 @@ file_ownership = []
 
 [workflow]
 produces = "user-facing summaries"
+profile_path = "~/.claude/.dominion/user-profile.toml"
+
+[workflow.level_adaptation]
+beginner = "full explanations, recommend defaults, teach best practices in context"
+intermediate = "brief explanations, suggest with rationale, on-request + critical alerts"
+advanced = "skip to choices, terse proposals, silent unless asked or critical"

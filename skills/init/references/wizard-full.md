@@ -3,6 +3,21 @@
 Each section is independent. In customize mode, only selected sections run.
 Skipped sections use detected defaults from discovery.
 
+## Pre-Wizard: Global Preferences Check
+
+If discovery found `global-preferences.toml`:
+
+```
+Found global preferences. Applying:
+  {list key preferences, e.g., "conventional commits, squash merge, f-strings"}
+
+Skip to project-specific questions? [Y / full setup]
+```
+
+If **Y**: auto-fill Sections 3 (Code Style), 4 (Git Workflow), and 8 (Taste) from global preferences. Only ask Sections 1, 2, 5, 6, 7, 9, 10. Show pre-filled values as confirmations: "Code style: using global preferences (f-strings, google docstrings). OK? [Y / customize]"
+
+If **full setup**: run all sections normally, showing global preferences as pre-selected defaults.
+
 ## Section 1: Project Identity
 
 Ask:
@@ -53,6 +68,7 @@ Ask (present detected values as defaults):
 4. "Code review?" → all changes / major only / agents review (solo devs) (default: agents review for solo, all changes otherwise)
 5. "Release workflow?" → semver / calver / custom / none yet
 6. "Any git pet peeves?" → free text → style.toml [taste] or CLAUDE.md
+7. "Include AI co-author trailers in commits? [Y/n]" → dominion.toml [workflow.ai_co_author]
 
 Store answers in dominion.toml:
 ```toml
@@ -62,6 +78,7 @@ commit_format = "{answer}"
 merge_strategy = "{answer}"
 review_process = "{answer}"
 release_workflow = "{answer}"
+ai_co_author = {answer}
 ```
 
 ### Generated Git Artifacts
@@ -90,6 +107,9 @@ Generate a shell script that validates commit messages:
 - If free-form: skip generation
 
 Make executable: `chmod +x .githooks/commit-msg`
+
+If `ai_co_author = true`: append Co-Authored-By trailer logic to the commit-msg hook.
+If `ai_co_author = false`: do not append any trailer.
 
 #### `.dominion/templates/pull-request.md`
 
@@ -120,7 +140,7 @@ If `.github/` exists, also copy to `.github/pull_request_template.md`.
 
 ## Section 5: Specialized Roles
 
-Read `@data/detection/roles.toml` for role triggers. Cross-reference against discovery results.
+Read [roles.toml](../../../data/detection/roles.toml) for role triggers. Cross-reference against discovery results.
 
 Present detected roles:
 ```
@@ -136,12 +156,12 @@ Add or remove? [confirm / add <role> / remove <number>]
 - **remove <number>**: deactivate a detected role
 
 For each activated role:
-- Read the agent template from `@templates/agents/{role}.toml`
+- Read the agent template from [agents/{role}.toml](../../../templates/agents/{role}.toml)
 - The Attendant will generate the agent config during the generation phase
 
 If no roles detected:
 ```
-No specialized roles detected. You can add them later with /dominion:educate --agent.
+No specialized roles detected. You can add them later with /dominion:improve --agent.
 ```
 
 ## Section 6: Tools & MCPs
@@ -166,7 +186,7 @@ Ask:
    - Other (describe)
    - None
 
-Store for v0.6 `/dominion:educate`. In v0.1, just record the answer in dominion.toml.
+Store for `/dominion:improve --from`. In v0.1, just record the answer in dominion.toml.
 
 ## Section 8: Taste
 
@@ -213,3 +233,18 @@ Ask:
 1. "What's the first milestone for this project?" → roadmap.toml
 2. "Can you list the rough phases to get there?" → roadmap.toml phases
 3. "Any success criteria for the milestone?" → dominion.toml [project.success_criteria]
+
+## Section 11: Experience Level
+
+Ask:
+1. "How should Dominion communicate with you?"
+   - **Beginner** — explain everything, recommend defaults, teach best practices
+   - **Intermediate** — brief explanations, suggest with rationale (default)
+   - **Advanced** — skip to choices, terse proposals, silent unless critical
+
+Store in user profile. If `~/.claude/.dominion/user-profile.toml` doesn't exist, note the answer for profile creation after init completes.
+
+If `user-profile.toml` already exists with a level set:
+```
+Your profile says "{level}". Keep this? [Y / change]
+```

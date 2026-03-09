@@ -33,7 +33,7 @@ For each unverified assumption:
 ## Step 2: Initialize Progress
 
 If `.dominion/phases/{N}/progress.toml` does not exist:
-- Create from `@templates/schemas/progress.toml`
+- Create from [progress.toml](../../templates/schemas/progress.toml)
 - Populate phase number, wave structure, and task entries from plan.toml
 
 If progress.toml exists, resume from current state (find first incomplete wave).
@@ -42,12 +42,12 @@ If progress.toml exists, resume from current state (find first incomplete wave).
 
 For each wave (starting from the first incomplete wave):
 
-Follow `@references/task-execution.md` for the wave execution protocol:
+Follow [task-execution.md](references/task-execution.md) for the wave execution protocol:
 1. Set up worktrees for each task in the wave
 2. Spawn Developer agents in parallel
-3. Monitor for signals per `@references/signal-protocol.md`
+3. Monitor for signals per [signal-protocol.md](references/signal-protocol.md)
 4. Wait for all agents to complete
-5. Verify SUMMARY.md exists for each task (per `@references/summary-writing.md`)
+5. Verify SUMMARY.md exists for each task (per [summary-writing.md](references/summary-writing.md))
 6. Merge completed tasks
 7. Clean up worktrees
 8. Update progress.toml
@@ -66,10 +66,6 @@ Execution Complete (Phase {N}):
 
 ## Step 5: Update State
 
-Update `.dominion/state.toml`:
-- `position.step` = "execute"
-- `position.status` = "complete" (or "blocked" if blockers remain)
-- `position.wave` = 0
-- `position.current_task` = ""
-- Clear `[lock]`
-- `position.last_session` = {today's date}
+Update state:
+- Run `dominion-tools state update --step execute --status {complete|blocked}`
+- Run `dominion-tools state checkpoint`

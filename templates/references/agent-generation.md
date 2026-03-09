@@ -2,7 +2,7 @@
 
 ## Step 1: Customize Agent TOMLs
 
-For each agent template in `@templates/agents/`:
+For each agent template in [agents/](../agents/):
 
 1. Read the template
 2. Replace placeholder values (`{{...}}`) with discovery results:
@@ -44,6 +44,26 @@ description: {agent.purpose}
 2. Load optional MCP tools (if available): {for each optional MCP}
 3. Read current state: `dominion-tools state position --json`
 4. Read task assignment (if in execution): `dominion-tools plan task {task-id} --json`
+5. Load prior context (if echovault available): call `memory_context` for project-scoped decisions and patterns
+6. Search task-relevant memory (if echovault available and in execution): call `memory_search` with task title and key file names
+```
+
+**Pipeline Context** — from [agent.role], hardcoded mapping:
+```
+## Pipeline Context
+
+{Map role to pipeline position:}
+{advisor    → "You operate in steps 1 (discuss) and 7 (improve). Input: roadmap.toml, state.toml. Output: intent.md (discuss) or improvements.toml (improve). Upstream: none (discuss) or Reviewer (improve). Downstream: Researcher (discuss) or none (improve)."}
+{researcher → "You operate in step 2 (explore). Input: intent.md, codebase. Output: research.toml. Upstream: Advisor. Downstream: Architect."}
+{architect  → "You operate in step 3 (plan). Input: research.toml. Output: plan.toml. Upstream: Researcher. Downstream: Developer(s)."}
+{developer  → "You operate in step 4 (execute). Input: plan.toml task assignment. Output: code changes, SUMMARY.md. Upstream: Architect. Downstream: Tester."}
+{tester     → "You operate in step 5 (test). Input: progress.toml, code changes. Output: test-report.toml. Upstream: Developer(s). Downstream: Reviewer."}
+{reviewer   → "You operate in step 6 (review). Input: test-report.toml, code changes. Output: review.toml, metrics.toml. Upstream: Tester. Downstream: Advisor."}
+{attendant  → "You operate across all steps as infrastructure. You generate agent files, manage settings, and apply approved changes."}
+{analyst    → "You operate on-demand for metrics analysis and monitoring."}
+
+{For specialized agents (frontend-engineer, database-engineer, api-designer, cloud-engineer, devops, security-auditor, technical-writer, observability-engineer, release-manager):}
+{"You operate in step 4 (execute) as a specialized Developer variant. Input: plan.toml task assignment. Output: code changes, SUMMARY.md. Upstream: Architect. Downstream: Tester."}
 ```
 
 **Tool Routing** — from [tools.documentation] + [tools.cli]:
@@ -55,7 +75,13 @@ Follow this chain IN ORDER. Do not skip steps:
 Terminal: {fallback.action} — {fallback.message}
 
 ### CLI Commands Available
-{list from [tools.cli.commands]}
+{for each command in [tools.cli.commands]:}
+  {if command is a group name (e.g. "dominion-tools plan"):}
+    {look up all leaf commands in cli-spec.toml that start with this prefix}
+    {for each leaf command: print "- `dominion-tools {name}` — {description}"}
+  {else:}
+    {look up the command in cli-spec.toml}
+    {print "- `dominion-tools {name}` — {description}"}
 ```
 
 **Governance** — from [governance]:
@@ -65,6 +91,7 @@ Terminal: {fallback.action} — {fallback.message}
 - STOP and report if you encounter an architectural decision
 {for each hard_stop:}
 - HARD STOP: {description}
+- NEVER edit `.dominion/` TOML files directly. All data reads and writes go through `dominion-tools` commands.
 
 ### File Ownership
 {if file_ownership is non-empty: list owned directories}
@@ -77,6 +104,33 @@ Terminal: {fallback.action} — {fallback.message}
 - Commit style: {commit_style}
 - Pre-commit checks: {pre_commit commands}
 - Produces: {produces}
+```
+
+**Output Adaptation** — from [workflow.level_adaptation]:
+```
+## Output Adaptation
+
+Adjust your output depth based on the user's experience level (passed by orchestrator):
+{for each level in [workflow.level_adaptation]:}
+- **{level}**: {description}
+```
+
+**Memory** — hardcoded, applies to all agents:
+```
+## Memory Protocol
+
+Before finishing your work:
+1. If echovault is available, call `memory_save` for each significant item:
+   - Decisions made (category: "decision") — architectural choices, trade-offs, why X over Y
+   - Bugs found (category: "bug") — root cause, solution, affected files
+   - Patterns discovered (category: "pattern") — effective approaches, non-obvious behaviors
+   - Gotchas/friction (category: "learning") — things that weren't obvious from the code
+
+   Include `related_files` for file-specific knowledge. Use `tags` for searchability.
+
+2. Do NOT save: trivial changes, information obvious from reading the code, duplicates of existing memories.
+
+3. Write for a future agent with zero context — they should understand the what, why, and impact without reading the full codebase.
 ```
 
 ### Free-Form Sections (synthesized at init)

@@ -7,7 +7,7 @@ purpose = "Contract-first API design, versioning strategy, schema validation, RE
 
 [tools.mcps]
 required = ["{{required_mcps}}"]
-optional = ["{{optional_mcps}}"]
+optional = ["{{optional_mcps}}", "echovault"]
 
 [tools.documentation]
 fallback = ["{{fallback_chain}}"]
@@ -27,3 +27,8 @@ hard_stops = ["{{hard_stops}}"]
 commit_style = "atomic"
 pre_commit = ["{{pre_commit_commands}}"]
 produces = "SUMMARY.md"
+
+[workflow.level_adaptation]
+beginner = "explain domain-specific decisions, show alternative approaches considered"
+intermediate = "brief rationale for non-obvious choices"
+advanced = "terse output, no explanations unless asked"

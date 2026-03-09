@@ -22,19 +22,19 @@ Internalize external plugins into Dominion-native artifacts.
 
 ## Step 1: Read & Assess
 
-Follow `@references/inventory-assessment.md`
+Follow [inventory-assessment.md](references/inventory-assessment.md)
 
 Produces: inventory of skills/agents/hooks, security findings, benefit assessment per item.
 
 ## Step 2: Kill Gate
 
-Follow `@references/kill-gate.md`
+Follow [kill-gate.md](references/kill-gate.md)
 
 For each assessed item: pass or kill. Items that don't pass are dropped — no further processing.
 
 ## Step 3: Recreate
 
-Follow `@references/recreation.md`
+Follow [recreation.md](references/recreation.md)
 
 For each item that passed the kill gate: create Dominion-native version.
 

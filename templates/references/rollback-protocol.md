@@ -11,8 +11,7 @@ Roll back to the merge commit of a previous wave, discarding all subsequent work
 3. Present to user: "Wave {N} completed at {hash}. Discard {count} commits from waves {N+1}+? [Y/n]"
 4. If confirmed:
    - `git reset --hard {target_hash}`
-   - Update progress.toml: remove all waves after target, reset their statuses to "pending"
-   - Update state.toml: `position.wave` = {N}, `position.status` = "ready", `position.step` = "execute"
+   - Run `dominion-tools rollback --to-wave {N}` to update progress.toml and state.toml
 5. Print: "Rolled back to wave {N}. Ready to re-execute from wave {N+1}."
 
 ## Task Rollback
@@ -25,8 +24,7 @@ Revert commits from a single completed or failed task.
 4. If confirmed:
    - For each commit in reverse order: `git revert --no-commit {hash}`
    - `git commit -m "revert: rollback task {id}"`
-   - Update progress.toml: task status = "pending", clear commits array
-   - Update state.toml: `position.current_task` = ""
+   - Run `dominion-tools rollback --task {id}` to update progress.toml and state.toml
 5. Print: "Task {id} reverted. {count} commits reversed in one revert commit."
 
 Note: Task rollback uses `git revert` (creates new commits) rather than `git reset` (rewrites history). This is safer for tasks whose changes may have been built upon.
@@ -43,7 +41,7 @@ Nuclear option — discard all work in the current phase.
 4. If confirmed:
    - `git reset --hard {started_at}`
    - Delete `.dominion/phases/{N}/` directory
-   - Update state.toml: `position.phase` = {N}, `position.step` = "idle", `position.wave` = 0, `position.status` = "ready"
+   - Run `dominion-tools rollback --to-phase {N}` to update state.toml and clean up phase artifacts
 5. Print: "Phase {N} rolled back. All artifacts removed. Ready to restart."
 
 ## Rules

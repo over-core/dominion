@@ -20,15 +20,15 @@ Check `.dominion/phases/{N}/progress.toml` exists. If not, tell the user: "Run /
 
 ## Step 1: Acceptance Validation
 
-Follow `@references/acceptance-validation.md`
+Follow [acceptance-validation.md](references/acceptance-validation.md)
 
 ## Step 2: Gap Analysis
 
-Follow `@references/gap-analysis.md`
+Follow [gap-analysis.md](references/gap-analysis.md)
 
 ## Step 3: Write Test Report
 
-Write `.dominion/phases/{N}/test-report.toml` using `@templates/schemas/test-report.toml` as the schema. Populate with criteria results and gaps from Steps 1-2.
+Write `.dominion/phases/{N}/test-report.toml` using [test-report.toml](../../templates/schemas/test-report.toml) as the schema. Populate with criteria results and gaps from Steps 1-2.
 
 ## Step 4: Present Report
 
@@ -48,7 +48,6 @@ Gaps ({count}):
 
 ## Step 5: Update State
 
-Update `.dominion/state.toml`:
-- `position.step` = "test"
-- `position.status` = "complete"
-- `position.last_session` = {today's date}
+Update state:
+- Run `dominion-tools state update --step test --status complete`
+- Run `dominion-tools state checkpoint`

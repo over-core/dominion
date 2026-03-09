@@ -19,7 +19,7 @@ Read the original skill/agent carefully. Identify:
 ### 2. Design
 
 Design the Dominion-native version:
-- If recreating as a **skill**: follow Dominion skill conventions (directive prose, `@references/` for sub-steps, valid YAML frontmatter)
+- If recreating as a **skill**: follow Dominion skill conventions (directive prose, markdown links for sub-steps, valid YAML frontmatter)
 - If recreating as an **agent**: create TOML config following existing agent template patterns, with appropriate model, tools, governance, and file ownership
 - If recreating as **knowledge**: structure as `.dominion/knowledge/` files with index entries
 

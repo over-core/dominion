@@ -33,15 +33,15 @@ Dominion init will:
 
 ## Step 1: Discovery
 
-Follow `@references/discovery.md` to analyze the project.
+Follow [discovery.md](../../templates/references/discovery.md) to analyze the project.
 
 Output: structured discovery results in conversation context.
 
 ## Step 2: Wizard
 
 Based on discovery results, run the wizard:
-- Default: `@references/wizard-quick.md`
-- If user chooses "full setup": `@references/wizard-full.md`
+- Default: [wizard-quick.md](references/wizard-quick.md)
+- If user chooses "full setup": [wizard-full.md](references/wizard-full.md)
 - If user chooses "customize": selected sections from wizard-full.md
 
 Output: user-approved configuration choices.
@@ -59,43 +59,43 @@ mkdir -p .dominion/phases
 ```
 
 Generate these files from discovery results + wizard answers:
-- `.dominion/dominion.toml` — from `@templates/schemas/dominion.toml`, filled with project data
-- `.dominion/style.toml` — from `@templates/schemas/style.toml`, filled with convention choices
-- `.dominion/roadmap.toml` — from `@templates/schemas/roadmap.toml`, filled with user's roadmap
+- `.dominion/dominion.toml` — from [dominion.toml](../../templates/schemas/dominion.toml), filled with project data
+- `.dominion/style.toml` — from [style.toml](../../templates/schemas/style.toml), filled with convention choices
+- `.dominion/roadmap.toml` — from [roadmap.toml](../../templates/schemas/roadmap.toml), filled with user's roadmap
 - `.dominion/knowledge/index.toml` — minimal initial index (empty hot cache)
 
 ## Step 4: Generate Agents
 
-Follow `@references/agent-generation.md`:
+Follow [agent-generation.md](../../templates/references/agent-generation.md):
 1. Customize agent TOMLs from templates → write to `.dominion/agents/`
 2. Render agent .md files → write to `.claude/agents/`
 
 ## Step 5: Generate AGENTS.md
 
-Follow `@references/agents-md-generation.md`:
+Follow [agents-md-generation.md](../../templates/references/agents-md-generation.md):
 - Read all `.dominion/agents/*.toml`
 - Generate `AGENTS.md` at project root
 
 ## Step 6: Generate settings.json
 
-Follow `@references/settings-generation.md`:
+Follow [settings-generation.md](../../templates/references/settings-generation.md):
 - Extend `.claude/settings.json` with Dominion permissions
 - Configure serena project activation with detected LSPs
 
 ## Step 7: Generate Hooks
 
-Follow `@references/hooks-generation.md`:
+Follow [hooks-generation.md](../../templates/references/hooks-generation.md):
 - Create hookify governance rules for source-diving prevention
 
 ## Step 8: Generate CLAUDE.md
 
-Follow `@references/claude-md-generation.md`:
+Follow [claude-md-generation.md](references/claude-md-generation.md):
 - Phase 1: Draft synthesis (ultrathink)
 - Phase 2: Section-by-section walkthrough with user
 
 ## Step 9: CLI Proving Ground
 
-Follow `@references/cli-spec-delivery.md`:
+Follow [cli-spec-delivery.md](../../templates/references/cli-spec-delivery.md):
 1. Copy cli-spec.toml to `.dominion/specs/`
 2. Spawn Developer agent to implement dominion-tools
 3. Spawn Tester agent to validate
@@ -131,12 +131,27 @@ If validate passes, update state.toml: `validate_passed = true`
 If `.gitignore` exists, append:
 ```
 # Dominion
+.dominion/state.toml
 .worktrees/
 ```
 
 If `.gitignore` doesn't exist, create it with the above content.
 
-## Step 13: Summary
+## Step 13: Generate DOMINION.md
+
+Generate `DOMINION.md` at project root from [dominion-md.md](../../templates/dominion-md.md):
+1. Read `dominion.toml` — extract project info, direction, workflow config
+2. Read `roadmap.toml` — extract milestone and phase summary
+3. Read all `.dominion/agents/*.toml` — build agent roster table
+4. Fill template placeholders
+5. Write to `DOMINION.md` at project root
+
+The Attendant maintains this file. It is regenerated when:
+- Agent roster changes (`dominion-tools agents generate`)
+- Improve step applies structural changes
+- Roadmap phases are added or completed
+
+## Step 14: Summary
 
 Present to the user:
 ```
@@ -148,6 +163,7 @@ Generated:
   .claude/settings.json  MCP permissions (extended)
   CLAUDE.md           Project instructions (you own this now)
   AGENTS.md           Agent roster (auto-generated)
+  DOMINION.md           Project overview and Dominion cheatsheet
   dominion-tools/     CLI tool ({language}, {N} commands)
 
 Validation: {PASS/FAIL with details}

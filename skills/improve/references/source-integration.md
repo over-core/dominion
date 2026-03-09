@@ -1,6 +1,6 @@
 # Source Integration
 
-Extract domain knowledge from external sources for `/dominion:educate --from`.
+Extract domain knowledge from external sources for `/dominion:improve --from`.
 
 ## Source Types
 
@@ -42,4 +42,4 @@ After extracting from any source:
 1. Cross-reference extracted terms against the codebase (using Serena)
 2. Identify conflicts between source knowledge and existing `.dominion/knowledge/` files
 3. Present a summary: "Extracted {N} concepts, {N} constraints, {N} patterns from {source}"
-4. Proceed to DKCP Phase 5 (Artifact Grounding) to anchor in code
+4. Proceed to ad-hoc pipeline Step 2 (Investigate) with extracted knowledge as input

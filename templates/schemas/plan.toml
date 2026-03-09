@@ -14,6 +14,7 @@ depends_on = []                     # task ids
 agent = "Developer"
 file_ownership = []                 # directories/files this task may modify
 token_estimate = 0                  # estimated tokens for task, 0 = not estimated
+knowledge_refs = []                 # knowledge file names relevant to this task (from .dominion/knowledge/)
 
 [tasks.acceptance]
 criteria = []                       # list of verifiable done conditions
