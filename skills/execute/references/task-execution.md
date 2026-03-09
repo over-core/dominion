@@ -36,6 +36,31 @@ While agents are running:
 3. If a wave-level blocker: halt all agents in the wave, present to user
 4. If a phase-level blocker: halt everything, present to user
 
+## Decision Recording
+
+When the developer makes a significant decision during task work — architectural trade-offs, deviations from plan, technology choices — record it:
+
+```bash
+dominion-tools state decision --task {task-id} --text "{description}" --tags "{comma-separated tags}"
+```
+
+Not every decision. Only those that:
+- Affect other tasks or downstream waves
+- Deviate from the plan
+- Involve trade-offs the user should know about
+
+These surface during `/dominion:improve` retrospective for review.
+
+## Deferred Items
+
+When the developer encounters work that is out of scope for the current task — a bug in unrelated code, a refactoring opportunity, a missing feature — park it:
+
+```bash
+dominion-tools state defer --text "{description}"
+```
+
+These surface during the next `/dominion:discuss` session so the user can decide whether to address them.
+
 ## Wave Completion
 
 When all agents in the wave have finished:
