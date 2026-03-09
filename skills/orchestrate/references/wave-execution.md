@@ -15,12 +15,12 @@ Orchestrator-level wave management during the execute step.
 For each wave:
 
 ### 1. Setup
-- Update state.toml: `position.wave` = {wave number}, `position.status` = "active"
+- Run `dominion-tools state update --wave {wave number} --status active`
 - Create worktrees for each task in the wave:
   ```bash
   git worktree add .worktrees/dominion-{task-id} -b dominion/{task-id}
   ```
-- Update progress.toml: wave status = "in-progress", record started_at commit hash
+- Run `dominion-tools wave create {wave number}` to initialize wave tracking in progress.toml
 
 ### 2. Spawn Agents
 - For each task in the wave, spawn a Developer agent:
@@ -50,7 +50,7 @@ For each wave:
 ### 6. Cleanup
 - Remove worktrees: `git worktree remove .worktrees/dominion-{task-id}`
 - Delete branches: `git branch -d dominion/{task-id}`
-- Update progress.toml: wave status = "complete", record completed_at
+- Run `dominion-tools wave merge` to update progress.toml wave status
 
 ## Failure Handling
 
