@@ -46,6 +46,24 @@ description: {agent.purpose}
 4. Read task assignment (if in execution): `dominion-tools plan task {task-id} --json`
 ```
 
+**Pipeline Context** — from [agent.role], hardcoded mapping:
+```
+## Pipeline Context
+
+{Map role to pipeline position:}
+{advisor    → "You operate in steps 1 (discuss) and 7 (improve). Input: roadmap.toml, state.toml. Output: intent.md (discuss) or improvements.toml (improve). Upstream: none (discuss) or Reviewer (improve). Downstream: Researcher (discuss) or none (improve)."}
+{researcher → "You operate in step 2 (explore). Input: intent.md, codebase. Output: research.toml. Upstream: Advisor. Downstream: Architect."}
+{architect  → "You operate in step 3 (plan). Input: research.toml. Output: plan.toml. Upstream: Researcher. Downstream: Developer(s)."}
+{developer  → "You operate in step 4 (execute). Input: plan.toml task assignment. Output: code changes, SUMMARY.md. Upstream: Architect. Downstream: Tester."}
+{tester     → "You operate in step 5 (test). Input: progress.toml, code changes. Output: test-report.toml. Upstream: Developer(s). Downstream: Reviewer."}
+{reviewer   → "You operate in step 6 (review). Input: test-report.toml, code changes. Output: review.toml, metrics.toml. Upstream: Tester. Downstream: Advisor."}
+{attendant  → "You operate across all steps as infrastructure. You generate agent files, manage settings, and apply approved changes."}
+{analyst    → "You operate on-demand for metrics analysis and monitoring."}
+
+{For specialized agents (frontend-engineer, database-engineer, api-designer, cloud-engineer, devops, security-auditor, technical-writer, observability-engineer, release-manager):}
+{"You operate in step 4 (execute) as a specialized Developer variant. Input: plan.toml task assignment. Output: code changes, SUMMARY.md. Upstream: Architect. Downstream: Tester."}
+```
+
 **Tool Routing** — from [tools.documentation] + [tools.cli]:
 ```
 ## Tool Routing
