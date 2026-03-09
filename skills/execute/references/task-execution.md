@@ -42,7 +42,7 @@ When all agents in the wave have finished:
 
 1. **Verify summaries**: check `.dominion/phases/{N}/summaries/task-{id}.md` exists for each task
 2. **Run verify_command**: for each task with a verify_command, run it in the worktree
-3. **Update progress.toml**: mark each task as complete, failed, or blocked
+3. **Update progress**: run `dominion-tools wave status` to check and update task statuses (complete, failed, or blocked)
 
 ## Merge Protocol
 

@@ -28,7 +28,7 @@ Wave balancing is secondary to correctness:
 
 ## Output
 
-Update each task's `wave` field. Report the wave structure:
+Run `dominion-tools plan index` to assign wave fields. Report the wave structure:
 ```
 Wave 1: {task ids}
 Wave 2: {task ids}
