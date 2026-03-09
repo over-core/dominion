@@ -16,7 +16,7 @@ No Dominion setup found. Run /dominion:init first.
 
 ## Run Checks
 
-Follow `@references/checks.md` — execute each check in order.
+Follow [checks.md](references/checks.md) — execute each check in order.
 
 ## Report
 

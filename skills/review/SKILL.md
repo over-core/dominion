@@ -20,27 +20,27 @@ Check `.dominion/phases/{N}/test-report.toml` exists. If not, tell the user: "Ru
 
 ## Step 1: Code Quality Review
 
-Follow `@references/code-quality.md`
+Follow [code-quality.md](references/code-quality.md)
 
 ## Step 2: Architecture Check
 
-Follow `@references/architecture-check.md`
+Follow [architecture-check.md](references/architecture-check.md)
 
 ## Step 3: Cross-Task Review
 
-Follow `@references/cross-task-review.md`
+Follow [cross-task-review.md](references/cross-task-review.md)
 
 ## Step 4: Improvement Proposals
 
-Follow `@references/improvement-proposals.md`
+Follow [improvement-proposals.md](references/improvement-proposals.md)
 
 ## Step 5: Metrics Collection
 
-Follow `@references/metrics-collection.md`
+Follow [metrics-collection.md](references/metrics-collection.md)
 
 ## Step 6: Write Review
 
-Write `.dominion/phases/{N}/review.toml` using `@templates/schemas/review.toml` as the schema. Populate with findings from Steps 1-3 and proposals from Step 4.
+Write `.dominion/phases/{N}/review.toml` using [review.toml](../../templates/schemas/review.toml) as the schema. Populate with findings from Steps 1-3 and proposals from Step 4.
 
 ## Step 7: Present Review
 

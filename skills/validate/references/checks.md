@@ -140,7 +140,7 @@ Fail: invalid workflow values
 
 ## Check 15: MCP Permission Coverage
 
-- Read `registry/registry.toml` (shipped with Dominion, use `@registry/registry.toml`)
+- Read `registry/registry.toml` (shipped with Dominion, use [registry.toml](../../../registry/registry.toml))
 - Read `.claude/settings.json`
 - For each MCP detected as installed:
   - If MCP has `safe_read_tools` in registry: verify all tools are in settings.json `permissions.allow`
@@ -253,8 +253,8 @@ Fail: missing path or invalid policy value
 ## Check 24: Specialized Role Agent Files
 
 - For each `.dominion/agents/*.toml` file:
-  - If the role matches a name in `@data/detection/roles.toml`:
-    - Verify the agent template exists in `@templates/agents/{role}.toml`
+  - If the role matches a name in [roles.toml](../../../data/detection/roles.toml):
+    - Verify the agent template exists in [agents/{role}.toml](../../../templates/agents/{role}.toml)
     - Verify the agent has a matching `.claude/agents/{role}.md`
 
 Pass: all specialized role agents reference valid templates and have .md files
@@ -263,7 +263,7 @@ Fail: agent references non-existent template or missing .md file
 
 ## Check 25: Domain Taxonomy Integrity
 
-- Verify `@data/taxonomy/domains.toml` parses as valid TOML
+- Verify [domains.toml](../../../data/taxonomy/domains.toml) parses as valid TOML
 - Verify each `[[domains]]` entry has: name, subdomains (array), follow_ups (array)
 - Verify each `[[subdomain_details]]` entry has: parent, name, follow_ups (array)
 - Verify subdomain_details `parent` values reference existing domain names

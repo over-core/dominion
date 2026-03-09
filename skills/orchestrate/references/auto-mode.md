@@ -20,7 +20,7 @@ Instructions for running the pipeline unattended via `/dominion:orchestrate --au
 
 ## Step Dispatch — Auto Mode
 
-Follow the same dispatch map as `@references/step-dispatch.md` with these overrides:
+Follow the same dispatch map as [step-dispatch.md](step-dispatch.md) with these overrides:
 
 ### discuss step
 Skip interactive discussion. Read `roadmap.toml` for the current phase's goals and title. Use these as the intent — no Advisor conversation. If `intent.md` already exists from a previous interactive run, use it as-is.
@@ -48,7 +48,7 @@ When a hard stop fires:
 1. Log the halt in state.toml: set `position.status = "blocked"`, populate `[blocker]`
 2. Checkpoint state via `dominion-tools state checkpoint`
 3. Output: "Auto mode halted: {reason}. Waiting for human input."
-4. The next session resume will present the blocker per `@references/resume-logic.md`
+4. The next session resume will present the blocker per [resume-logic.md](resume-logic.md)
 
 ## Circuit Breaker Enforcement
 

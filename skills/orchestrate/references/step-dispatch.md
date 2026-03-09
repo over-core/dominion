@@ -148,4 +148,4 @@ Auto mode halts (becomes a control point) only for:
 
 On halt: run `dominion-tools state update --status blocked`, then `dominion-tools state checkpoint`, wait for human.
 
-See `@references/auto-mode.md` for full protocol.
+See [auto-mode.md](auto-mode.md) for full protocol.

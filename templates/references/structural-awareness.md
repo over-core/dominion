@@ -35,7 +35,7 @@ A repeatable procedure or workflow invoked as a `/dominion:*` command.
 **To create:**
 1. Write `.dominion/skills/{name}.md` with frontmatter (`name`, `description`)
 2. Write directive instructions (what the LLM should do, not explanations)
-3. Use `@references/filename.md` for sub-steps
+3. Use markdown links for sub-steps: [filename.md](references/filename.md)
 4. Run `dominion-tools doc generate` to regenerate DOMINION.md
 
 **When to create vs use knowledge:**
@@ -91,14 +91,14 @@ Project-specific configuration in TOML.
 **To create:**
 1. Add section to `.dominion/dominion.toml`
 2. Add validation check in `dominion-tools validate`
-3. Update schema template in `@templates/schemas/dominion.toml` if it's a reusable pattern
+3. Update schema template in [dominion.toml](../schemas/dominion.toml) if it's a reusable pattern
 
 ## Wiring Checklist
 
 When creating any new building block, verify:
 
 - [ ] TOML files parse: `python3 -c "import tomllib; tomllib.load(open('file.toml','rb'))"`
-- [ ] References resolve: all `@path/to/file` references point to existing files
+- [ ] References resolve: all markdown link references point to existing files
 - [ ] AGENTS.md updated: if agents changed, run `dominion-tools agents generate`
 - [ ] DOMINION.md updated: if skills, agents, or config changed, run `dominion-tools doc generate`
 - [ ] settings.json updated: if new MCP permissions needed

@@ -140,7 +140,7 @@ If `.github/` exists, also copy to `.github/pull_request_template.md`.
 
 ## Section 5: Specialized Roles
 
-Read `@data/detection/roles.toml` for role triggers. Cross-reference against discovery results.
+Read [roles.toml](../../../data/detection/roles.toml) for role triggers. Cross-reference against discovery results.
 
 Present detected roles:
 ```
@@ -156,7 +156,7 @@ Add or remove? [confirm / add <role> / remove <number>]
 - **remove <number>**: deactivate a detected role
 
 For each activated role:
-- Read the agent template from `@templates/agents/{role}.toml`
+- Read the agent template from [agents/{role}.toml](../../../templates/agents/{role}.toml)
 - The Attendant will generate the agent config during the generation phase
 
 If no roles detected:

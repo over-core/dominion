@@ -33,7 +33,7 @@ Keep entries concise — one line per item. These are reference material, not pr
 
 ## Step 3: Update Knowledge Index
 
-Read `.dominion/knowledge/index.toml` (create from `@templates/schemas/knowledge-index.toml` if not exists).
+Read `.dominion/knowledge/index.toml` (create from [knowledge-index.toml](../../../templates/schemas/knowledge-index.toml) if not exists).
 
 For each new or updated knowledge file:
 1. If file already has an index entry: update the `summary` field with current content

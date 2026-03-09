@@ -36,27 +36,27 @@ Exception: if `--agent`, `--skill`, or `--from` flags are present, always use **
 
 ### Pre-check
 
-1. If `.dominion/improvements.toml` does not exist, create from `@templates/schemas/improvements.toml`
+1. If `.dominion/improvements.toml` does not exist, create from [improvements.toml](../../templates/schemas/improvements.toml)
 
 ### Step 1: Phase Retrospective
 
-Follow `@references/retrospective.md`
+Follow [retrospective.md](references/retrospective.md)
 
 ### Step 2: Proposal Review
 
-Follow `@references/proposal-review.md`
+Follow [proposal-review.md](references/proposal-review.md)
 
 ### Step 3: Apply Accepted Proposals
 
-Follow `@references/proposal-apply.md`
+Follow [proposal-apply.md](references/proposal-apply.md)
 
 For structural proposals (new agents, new CLI commands, new skills):
-- Read `@templates/references/structural-awareness.md` for creation steps
+- Read [structural-awareness.md](../../templates/references/structural-awareness.md) for creation steps
 - Run Reviewer criticism before applying (same as ad-hoc Step 4)
 
 ### Step 4: Knowledge Management
 
-Follow `@references/knowledge-management.md`
+Follow [knowledge-management.md](references/knowledge-management.md)
 
 ### Step 5: Update State and Announce
 
@@ -80,7 +80,7 @@ Next: /dominion:orchestrate to start the next phase.
 
 ## Ad-Hoc Mode
 
-Follow `@references/ad-hoc-pipeline.md` — the 6-step pipeline:
+Follow [ad-hoc-pipeline.md](references/ad-hoc-pipeline.md) — the 6-step pipeline:
 1. Advisor captures intent
 2. Researcher investigates overlap
 3. Advisor designs proposal

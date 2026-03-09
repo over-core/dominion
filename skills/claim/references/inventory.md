@@ -44,7 +44,7 @@ Check each of these and record: exists (yes/no), size, last modified.
 
 11. Detect currently available MCPs by checking which `mcp__*` tools are loaded
 12. Read `.claude/settings.json` for configured MCP permissions
-13. Cross-reference against `@registry/registry.toml`
+13. Cross-reference against [registry.toml](../../../registry/registry.toml)
 
 ### Project Analysis
 

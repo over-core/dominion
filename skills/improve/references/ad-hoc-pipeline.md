@@ -6,24 +6,24 @@
 
 If `--agent` flag: intent is "create a new agent." Skip to Step 2 with agent output type pre-selected.
 If `--skill` flag: intent is "create a new skill." Skip to Step 2 with skill output type pre-selected.
-If `--from <source>` flag: follow `@references/source-integration.md` to extract knowledge, then continue from Step 2.
+If `--from <source>` flag: follow [source-integration.md](source-integration.md) to extract knowledge, then continue from Step 2.
 
 If no flags:
 1. Ask: "What do you want to improve or create?"
 2. Listen to user's plain language description
-3. Read `@templates/references/structural-awareness.md` — understand available building blocks
+3. Read [structural-awareness.md](../../../templates/references/structural-awareness.md) — understand available building blocks
 4. Classify the request: is this an agent, skill, knowledge, CLI command, hook, or config change?
 
 ## Step 2: Investigate (Researcher)
 
-1. Read `@templates/references/structural-awareness.md`
+1. Read [structural-awareness.md](../../../templates/references/structural-awareness.md)
 2. Read existing artifacts that might overlap:
    - For agent requests: read all `.dominion/agents/*.toml` — check for role overlap
    - For skill requests: check existing `.dominion/skills/` — check for procedure overlap
    - For knowledge: check `.dominion/knowledge/index.toml` — check for topic overlap
    - For CLI commands: read `.dominion/specs/cli-spec.toml` — check for command overlap
    - For hooks: check `.claude/hooks/` — check for rule overlap
-3. Follow `@references/overlap-check.md` for overlap detection logic
+3. Follow [overlap-check.md](overlap-check.md) for overlap detection logic
 
 If significant overlap found:
 ```
@@ -49,7 +49,7 @@ Proceed with {agent/skill} anyway? [Y / switch to {alternative}]
 ## Step 3: Design Proposal (Advisor)
 
 If interactive interview needed (no `--from` source and creating an agent or skill):
-1. Follow `@references/dkcp-protocol.md` — the 7-phase domain knowledge capture
+1. Follow [dkcp-protocol.md](dkcp-protocol.md) — the 7-phase domain knowledge capture
 2. Structure captured knowledge into the proposed artifact
 
 If request is straightforward (CLI command, hook, config):
@@ -103,7 +103,7 @@ Approve? [Y / modify / cancel]
 
 ## Step 6: Create Artifacts (Attendant)
 
-For each output type, follow the creation steps from `@templates/references/structural-awareness.md`:
+For each output type, follow the creation steps from [structural-awareness.md](../../../templates/references/structural-awareness.md):
 
 ### Agent
 1. Write `.dominion/agents/{role}.toml`

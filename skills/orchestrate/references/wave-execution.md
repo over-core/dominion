@@ -5,7 +5,7 @@ Orchestrator-level wave management during the execute step.
 ## Pre-Execution
 
 1. Read `.dominion/phases/{N}/plan.toml` — get task list and wave structure
-2. Read or create `.dominion/phases/{N}/progress.toml` from `@templates/schemas/progress.toml`
+2. Read or create `.dominion/phases/{N}/progress.toml` from [progress.toml](../../../templates/schemas/progress.toml)
 3. Determine starting wave:
    - If progress.toml is new: start at wave 1
    - If resuming: find first wave with status != "complete"

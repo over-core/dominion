@@ -31,31 +31,31 @@ Dominion claim will:
 
 ## Phase 1: Inventory
 
-Follow `@references/inventory.md` to scan all existing Claude Code artifacts.
+Follow [inventory.md](references/inventory.md) to scan all existing Claude Code artifacts.
 
 Output: structured inventory of what exists and what's missing.
 
 ## Phase 2: Analysis
 
-Follow `@references/analysis.md` to parse and understand each found artifact.
+Follow [analysis.md](references/analysis.md) to parse and understand each found artifact.
 
 Output: per-artifact structure analysis in conversation context.
 
 ## Phase 3: Conflict Detection
 
-Follow `@references/conflict-detection.md` to identify overlaps, conflicts, and gaps.
+Follow [conflict-detection.md](references/conflict-detection.md) to identify overlaps, conflicts, and gaps.
 
 Output: categorized list — compatible (merge), conflicting (user decides), missing (Dominion adds).
 
 ## Phase 4: Claim Plan
 
-Follow `@references/claim-plan.md` to present the merge plan.
+Follow [claim-plan.md](references/claim-plan.md) to present the merge plan.
 
 Output: user-approved plan with per-artifact decisions.
 
 ## Phase 5: Execution
 
-Follow `@references/execution.md` to apply the approved plan.
+Follow [execution.md](references/execution.md) to apply the approved plan.
 
 This phase:
 1. Creates `.dominion/` directory structure

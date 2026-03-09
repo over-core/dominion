@@ -15,7 +15,7 @@ If not found: print "Not a Dominion project. Run /dominion:init first." and stop
 
 **Step 2: Build dashboard**
 
-Follow @references/dashboard.md
+Follow [dashboard.md](references/dashboard.md)
 
 **Step 3: Present dashboard**
 

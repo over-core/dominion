@@ -16,7 +16,7 @@ mkdir -p .dominion/phases
 
 ### 2. Generate dominion.toml
 
-From `@templates/schemas/dominion.toml`, filled with:
+From [dominion.toml](../../../templates/schemas/dominion.toml), filled with:
 - Project data from discovery results
 - Direction from wizard answers
 - Claim provenance section recording what was preserved vs added
@@ -38,7 +38,7 @@ Add one `[[claim.added]]` entry for each Dominion-generated artifact.
 ### 3. Generate Agent TOMLs
 
 For each Dominion core agent (8 agents):
-- Read template from `@templates/agents/{role}.toml`
+- Read template from [agents/{role}.toml](../../../templates/agents/{role}.toml)
 - Customize with project-specific data from discovery
 - Write to `.dominion/agents/{role}.toml`
 

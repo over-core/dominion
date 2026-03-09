@@ -25,10 +25,10 @@ Before starting:
 1. Verify `.dominion/` exists
 2. Read `.dominion/state.toml` — determine current position
 3. Detect mode:
-   - If `--auto` flag passed: follow `@references/auto-mode.md` (readiness check, then unattended execution)
+   - If `--auto` flag passed: follow [auto-mode.md](references/auto-mode.md) (readiness check, then unattended execution)
    - If `--dry-run` flag passed: set dry_run = true (compatible with interactive mode only, not --auto)
    - Otherwise: follow interactive mode below
-4. Follow `@references/resume-logic.md` to determine next action
+4. Follow [resume-logic.md](references/resume-logic.md) to determine next action
 
 ## Step 1: Status Dashboard
 
@@ -50,7 +50,7 @@ If blocked, show blocker details.
 
 ## Step 2: Pipeline Execution
 
-Follow `@references/step-dispatch.md` for the dispatch protocol.
+Follow [step-dispatch.md](references/step-dispatch.md) for the dispatch protocol.
 
 For each step in the pipeline:
 1. Dispatch to the appropriate skill
@@ -64,8 +64,8 @@ For each step in the pipeline:
 ## Step 3: Execute Step — Special Handling
 
 The execute step has additional orchestration:
-- Follow `@references/wave-execution.md` for worktree lifecycle management
-- Between waves, follow `@references/inter-wave.md` for knowledge transfer
+- Follow [wave-execution.md](references/wave-execution.md) for worktree lifecycle management
+- Between waves, follow [inter-wave.md](references/inter-wave.md) for knowledge transfer
 
 ## Step 4: Phase Completion
 

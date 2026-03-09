@@ -32,7 +32,7 @@ If this is not phase 1, read the previous phase's review.toml (if it exists) and
 
 ## Step 2: Intent Capture
 
-Follow `@references/intent-capture.md`
+Follow [intent-capture.md](references/intent-capture.md)
 
 ## Step 3: Update State
 

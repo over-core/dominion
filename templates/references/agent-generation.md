@@ -2,7 +2,7 @@
 
 ## Step 1: Customize Agent TOMLs
 
-For each agent template in `@templates/agents/`:
+For each agent template in [agents/](../agents/):
 
 1. Read the template
 2. Replace placeholder values (`{{...}}`) with discovery results:

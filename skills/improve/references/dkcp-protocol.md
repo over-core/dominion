@@ -7,7 +7,7 @@
 **Agent:** Researcher
 **Thinking:** Normal
 
-1. Read `@data/taxonomy/domains.toml`
+1. Read [domains.toml](../../../data/taxonomy/domains.toml)
 2. Ask: "What domain does this project operate in?"
 3. Match the answer against the taxonomy
 4. If match found: use the domain's `follow_ups` to ask targeted questions about subdomains

@@ -10,7 +10,7 @@ List the project root directory. Read key files:
 
 ## Phase 2: Language Detection
 
-Reference: `@data/detection/languages.toml`
+Reference: [languages.toml](../../data/detection/languages.toml)
 
 For each language entry, check if any `indicators` files exist using Glob.
 For detected languages, also check:
@@ -25,7 +25,7 @@ Record the primary language (most files or explicit build system).
 
 ## Phase 3: Framework Detection
 
-Reference: `@data/detection/frameworks.toml`
+Reference: [frameworks.toml](../../data/detection/frameworks.toml)
 
 For each framework entry matching detected languages:
 - Check `detection.cargo_dep` / `detection.pyproject_dep` / `detection.npm_dep` / `detection.go_dep` in the relevant manifest file
@@ -34,7 +34,7 @@ For each framework entry matching detected languages:
 
 ## Phase 4: Infrastructure Detection
 
-Reference: `@data/detection/infrastructure.toml`
+Reference: [infrastructure.toml](../../data/detection/infrastructure.toml)
 
 For each infrastructure entry:
 - Check `detection.files` and `detection.directories` using Glob
@@ -45,7 +45,7 @@ For each infrastructure entry:
 ## Phase 5: MCP & Tool Inventory
 
 Detect currently available MCPs by checking which `mcp__*` tools are loaded in the session.
-Cross-reference against `@registry/registry.toml`:
+Cross-reference against [registry.toml](../../registry/registry.toml):
 - Categorize each detected MCP (required / recommended / optional)
 - Identify missing required MCPs
 - Identify recommended MCPs that match the detected stack

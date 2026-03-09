@@ -40,8 +40,8 @@ Output: structured discovery results in conversation context.
 ## Step 2: Wizard
 
 Based on discovery results, run the wizard:
-- Default: `@references/wizard-quick.md`
-- If user chooses "full setup": `@references/wizard-full.md`
+- Default: [wizard-quick.md](references/wizard-quick.md)
+- If user chooses "full setup": [wizard-full.md](references/wizard-full.md)
 - If user chooses "customize": selected sections from wizard-full.md
 
 Output: user-approved configuration choices.
@@ -59,9 +59,9 @@ mkdir -p .dominion/phases
 ```
 
 Generate these files from discovery results + wizard answers:
-- `.dominion/dominion.toml` — from `@templates/schemas/dominion.toml`, filled with project data
-- `.dominion/style.toml` — from `@templates/schemas/style.toml`, filled with convention choices
-- `.dominion/roadmap.toml` — from `@templates/schemas/roadmap.toml`, filled with user's roadmap
+- `.dominion/dominion.toml` — from [dominion.toml](../../templates/schemas/dominion.toml), filled with project data
+- `.dominion/style.toml` — from [style.toml](../../templates/schemas/style.toml), filled with convention choices
+- `.dominion/roadmap.toml` — from [roadmap.toml](../../templates/schemas/roadmap.toml), filled with user's roadmap
 - `.dominion/knowledge/index.toml` — minimal initial index (empty hot cache)
 
 ## Step 4: Generate Agents
@@ -89,7 +89,7 @@ Follow [hooks-generation.md](../../templates/references/hooks-generation.md):
 
 ## Step 8: Generate CLAUDE.md
 
-Follow `@references/claude-md-generation.md`:
+Follow [claude-md-generation.md](references/claude-md-generation.md):
 - Phase 1: Draft synthesis (ultrathink)
 - Phase 2: Section-by-section walkthrough with user
 
@@ -139,7 +139,7 @@ If `.gitignore` doesn't exist, create it with the above content.
 
 ## Step 13: Generate DOMINION.md
 
-Generate `DOMINION.md` at project root from `@templates/dominion-md.md`:
+Generate `DOMINION.md` at project root from [dominion-md.md](../../templates/dominion-md.md):
 1. Read `dominion.toml` — extract project info, direction, workflow config
 2. Read `roadmap.toml` — extract milestone and phase summary
 3. Read all `.dominion/agents/*.toml` — build agent roster table

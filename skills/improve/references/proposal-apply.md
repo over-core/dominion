@@ -47,8 +47,8 @@ These create new Dominion building blocks — require the full ad-hoc pipeline w
 - **New config section**: add to dominion.toml
 
 For each structural proposal:
-1. Read `@templates/references/structural-awareness.md`
-2. Researcher checks overlap (`@references/overlap-check.md`)
+1. Read [structural-awareness.md](../../../templates/references/structural-awareness.md)
+2. Researcher checks overlap ([overlap-check.md](overlap-check.md))
 3. Reviewer criticizes the proposal
 4. If approved: Attendant creates artifacts
 5. Commit: `git commit -m "improve: add {type} {name}"`

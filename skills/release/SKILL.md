@@ -22,13 +22,13 @@ If `.dominion/agents/release-manager.toml` does not exist:
 
 1. Read `.dominion/dominion.toml` — verify project is initialized
 2. Check for `.dominion/specs/release-spec.toml`
-   - If missing or empty: follow `@references/bootstrap.md` to generate it
+   - If missing or empty: follow [bootstrap.md](references/bootstrap.md) to generate it
    - If present: read and validate spec
 3. Create `.dominion/release/` directory if it doesn't exist
 
 ## Step 1: Prepare Release
 
-Follow `@references/prepare.md`:
+Follow [prepare.md](references/prepare.md):
 1. Release Manager reads commit history since last tag
 2. Release Manager generates changelog draft
 3. Advisor writes PR synopsis
@@ -52,7 +52,7 @@ Review and edit? [approve / edit / cancel]
 
 ## Step 3: Publish (only with `--publish`)
 
-Follow `@references/publish.md`:
+Follow [publish.md](references/publish.md):
 1. Bump version per release-spec
 2. Build artifacts
 3. Publish to registries

@@ -33,11 +33,11 @@ Read:
 
 ## Write Metrics
 
-Write `.dominion/phases/{N}/metrics.toml` using `@templates/schemas/metrics.toml` as the schema.
+Write `.dominion/phases/{N}/metrics.toml` using [metrics.toml](../../../templates/schemas/metrics.toml) as the schema.
 
 ## Update History
 
-Read `.dominion/metrics-history.toml` (create from `@templates/schemas/metrics-history.toml` if not exists).
+Read `.dominion/metrics-history.toml` (create from [metrics-history.toml](../../../templates/schemas/metrics-history.toml) if not exists).
 Append a new `[[phases]]` entry with summarized metrics:
 - `number`: phase number
 - `tests_added`: from quality metrics
