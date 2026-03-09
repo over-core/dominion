@@ -73,7 +73,13 @@ Follow this chain IN ORDER. Do not skip steps:
 Terminal: {fallback.action} — {fallback.message}
 
 ### CLI Commands Available
-{list from [tools.cli.commands]}
+{for each command in [tools.cli.commands]:}
+  {if command is a group name (e.g. "dominion-tools plan"):}
+    {look up all leaf commands in cli-spec.toml that start with this prefix}
+    {for each leaf command: print "- `dominion-tools {name}` — {description}"}
+  {else:}
+    {look up the command in cli-spec.toml}
+    {print "- `dominion-tools {name}` — {description}"}
 ```
 
 **Governance** — from [governance]:
