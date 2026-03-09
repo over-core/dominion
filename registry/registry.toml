@@ -131,9 +131,11 @@ recommended_skills = ["brainstorming", "writing-plans", "systematic-debugging"]
 
 [plugins.hookify]
 category = "governance"
-rating = 4.5
+rating = 4.8
 compatible_with_dominion = true
-notes = "Required for Dominion governance enforcement. Source-diving prevention, convention checks"
+required = true
+install_command = "/plugin marketplace install hookify"
+notes = "Required for hook creation. Provides declarative rule format with pattern matching via /hookify:writing-rules. Without it, Dominion cannot generate governance hooks during init or create hooks via /dominion:improve."
 
 [plugins.skill-creator]
 category = "development"

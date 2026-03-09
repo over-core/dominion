@@ -13,7 +13,7 @@ These are applied directly by the Attendant — no plan/execute cycle:
 - **TOML updates**: style.toml additions, agent TOML instruction changes, dominion.toml updates
 - **Agent instruction refinement**: update agent TOML `[tools.skills]` or behavioral sections, then run `dominion-tools agents generate` to regenerate .md files
 - **Style drift correction**: update style.toml conventions, regenerate affected CLAUDE.md sections
-- **New hookify rules**: create hookify rule in `.claude/hooks/`
+- **New hook rules**: invoke `/hookify:writing-rules` to create hookify rule. Requires hookify plugin.
 - **Documentation chain updates**: update dominion.toml `[documentation]` section
 
 For each direct-apply proposal:
@@ -43,7 +43,7 @@ These create new Dominion building blocks — require the full ad-hoc pipeline w
 - **New agent**: follow ad-hoc pipeline Steps 2-6 (investigate, design, criticize, present, create)
 - **New skill**: follow ad-hoc pipeline Steps 2-6
 - **New CLI command**: add to cli-spec.toml, Developer implements
-- **New hook rule**: write hookify rule
+- **New hook rule**: invoke `/hookify:writing-rules` for correct rule authoring. Requires hookify plugin.
 - **New config section**: add to dominion.toml
 
 For each structural proposal:

@@ -118,12 +118,14 @@ Fail: workflow configured but hooks missing or not executable
 
 ## Check 13: Session Lifecycle Hooks
 
-- Verify `.claude/hooks/` contains session start and session end hook rules
-- Verify session start hook references `dominion-tools state resume`
-- Verify session end hook references `dominion-tools state checkpoint`
+- Verify governance hooks exist — check EITHER:
+  - Hookify rules: `.claude/hookify.dominion-session-start.local.md` and `.claude/hookify.dominion-session-end.local.md` exist
+  - OR native hooks: `.claude/settings.json` contains `"hooks"` config with `SessionStart` and `Stop` entries
+- Session start hook should reference `dominion-tools state resume`
+- Session end hook should reference `dominion-tools state checkpoint`
 
 Pass: both session hooks present and reference correct commands
-Warn: no `.claude/hooks/` directory (hooks not generated yet)
+Warn: no governance hooks found (neither hookify rules nor native hooks configured)
 Fail: partial hooks (one present, one missing)
 
 ## Check 14: Workflow Configuration

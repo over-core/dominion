@@ -22,7 +22,7 @@ If no flags:
    - For skill requests: check existing `.dominion/skills/` — check for procedure overlap
    - For knowledge: check `.dominion/knowledge/index.toml` — check for topic overlap
    - For CLI commands: read `.dominion/specs/cli-spec.toml` — check for command overlap
-   - For hooks: check `.claude/hooks/` — check for rule overlap
+   - For hooks: check for existing hookify rules (`.claude/hookify.*.local.md`) and native hooks in `.claude/settings.json` `"hooks"` config — check for event/pattern overlap
 3. Follow [overlap-check.md](overlap-check.md) for overlap detection logic
 
 If significant overlap found:
@@ -127,8 +127,34 @@ For each output type, follow the creation steps from [structural-awareness.md](.
 3. Validate: `dominion-tools {command} --help`
 
 ### Hook Rule
-1. Write hookify rule to `.claude/hooks/`
-2. Test the rule
+
+Check if the `hookify` plugin is installed (look for `/hookify` in available skills).
+
+**If hookify is installed (preferred):**
+
+Hand off to hookify with the architecture context from Steps 1-5:
+
+```
+The Dominion improve pipeline has approved a new hook rule:
+- Purpose: {purpose}
+- Trigger: {what should fire this rule — tool calls, file edits, session events}
+- Action: {warn or block}
+- Pattern: {what to match}
+
+Use /hookify:writing-rules to create a properly formatted hookify rule file.
+```
+
+After hookify creates the rule, verify it fires correctly by testing the trigger condition.
+
+**If hookify is NOT installed:**
+
+STOP. Tell the user:
+```
+Hookify plugin is required for hook creation.
+Install: /plugin marketplace install hookify
+```
+
+Do not attempt to write hooks manually without hookify's authoring documentation.
 
 ### Config Section
 1. Add section to `.dominion/dominion.toml`

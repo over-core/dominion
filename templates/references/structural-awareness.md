@@ -75,11 +75,13 @@ A command available via `dominion-tools`.
 A behavioral guard that runs on specific triggers (pre-commit, tool calls, etc.).
 
 **Composed of:**
-- Rule in `.claude/hooks/` — hookify format
+- Hookify rule: `.claude/hookify.{name}.local.md` — declarative markdown with YAML frontmatter (preferred, requires hookify plugin)
+- OR native hook: config in `.claude/settings.json` under `"hooks"` key, optional script in `.claude/hooks/`
 
 **To create:**
-1. Write hookify rule with trigger, pattern, and action
-2. Test the rule fires correctly
+1. Define architecture: what behavior to guard, trigger event, warn vs block action (Dominion pipeline Steps 1-5)
+2. Author the rule: invoke `/hookify:writing-rules` for correct hookify rule syntax (requires hookify plugin — install with `/plugin marketplace install hookify`)
+3. Test the rule fires correctly
 
 ### Config Section
 

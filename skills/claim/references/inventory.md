@@ -23,8 +23,8 @@ Check each of these and record: exists (yes/no), size, last modified.
 
 ### Hooks
 
-6. Glob `.claude/hooks/*.md` or check `.claude/hooks/` directory
-   - List all hook files
+6. Check for hookify rules: Glob `.claude/hookify.*.local.md`. Also read `.claude/settings.json` for native `"hooks"` config. Check `.claude/hooks/` for hook scripts.
+   - List all hook files/rules
    - Record trigger events and rule descriptions
 
 ### Git Hooks
