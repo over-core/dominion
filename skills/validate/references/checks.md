@@ -345,3 +345,26 @@ Fail: estimates section exists but has invalid data
 Pass: ai_co_author config valid
 Warn: no [workflow] section or ai_co_author field missing (pre-v0.8 project)
 Fail: ai_co_author is not a boolean value
+
+## Check 33: roadmap.toml Schema Validation
+
+- If `.dominion/roadmap.toml` exists:
+  - Verify `[meta]` section has `schema_version`
+  - Verify at least one `[[phases]]` entry exists
+  - Each phase has: `id` (integer), `title` (non-empty string), `objectives` (non-empty array), `success_criteria` (non-empty array)
+  - Verify phase IDs are sequential starting from 1
+
+Pass: roadmap.toml structure valid
+Warn: no roadmap.toml (init may not have been run)
+Fail: roadmap.toml exists but has invalid structure — list specific violations
+
+## Check 34: style.toml Schema Validation
+
+- If `.dominion/style.toml` exists:
+  - Verify `[meta]` section has `schema_version`
+  - Verify at least one convention section exists (e.g., `[naming]`, `[formatting]`, `[patterns]`)
+  - Each convention entry has non-empty values
+
+Pass: style.toml structure valid
+Warn: no style.toml (project may not have style conventions configured)
+Fail: style.toml exists but has invalid structure — list specific violations
