@@ -25,7 +25,7 @@ If it exists, read `experience_level` and pass it to the dispatched agent as con
 
 This affects presentation, not behavior. All agents perform the same work regardless of level.
 
-Increment `[sessions].count` in the user profile at the start of each orchestrate session.
+Run `dominion-tools profile tick` at the start of each orchestrate session.
 
 ## Transition Rules
 

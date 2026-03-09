@@ -16,7 +16,7 @@ Instructions for running the pipeline unattended via `/dominion:orchestrate --au
    Starting Phase {N}. Will halt only on governance hard stops.
    Proceed? [Y/n]
    ```
-4. On confirmation: set `autonomy.mode = "auto"` in dominion.toml (runtime, revert on exit)
+4. On confirmation: run `dominion-tools auto start`
 
 ## Step Dispatch — Auto Mode
 
@@ -45,7 +45,7 @@ These halt auto mode and wait for human input regardless:
 - Critical halts (any agent raises a critical-level blocker)
 
 When a hard stop fires:
-1. Log the halt in state.toml: set `position.status = "blocked"`, populate `[blocker]`
+1. Run `dominion-tools signal blocker --level critical --task {task} --reason "{reason}"` to log the halt
 2. Checkpoint state via `dominion-tools state checkpoint`
 3. Output: "Auto mode halted: {reason}. Waiting for human input."
 4. The next session resume will present the blocker per [resume-logic.md](resume-logic.md)
@@ -62,21 +62,9 @@ Read `dominion.toml [autonomy.circuit_breakers]` before each task dispatch:
 
 ## Autonomous Decision Logging
 
-When any decision is made without human input, append to state.toml `[[autonomous_decisions]]`:
+When any decision is made without human input:
 
-```toml
-[[autonomous_decisions]]
-id = {next sequential id}
-timestamp = "{ISO 8601}"
-phase = {current phase}
-task = "{task id}"
-type = "{replan | skip | retry | split | reorder}"
-description = "{what was decided}"
-reason = "{why — error context, breaker trigger}"
-session_id = "{current session id from lock}"
-reviewed = false
-outcome = ""
-```
+Run `dominion-tools auto log --task {task} --type {type} --description "{description}" --reason "{reason}"`
 
 Decision types:
 - **replan**: Architect changed the plan for a failed task
@@ -102,7 +90,7 @@ If the Architect needs to violate a constraint, this becomes a governance hard s
 
 When auto mode completes (all steps done) or is halted:
 1. Run `dominion-tools state checkpoint`
-2. Reset `autonomy.mode` to "interactive" in dominion.toml
+2. Run `dominion-tools auto stop`
 3. Output summary:
    ```
    Auto session complete.
