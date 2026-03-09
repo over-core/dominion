@@ -13,9 +13,9 @@ minimum_commands = [
     "backlog add", "backlog list", "backlog suggest",
     "rollback", "history",
     "improve list", "improve show", "improve update", "metrics show", "metrics trends",
-    "auto readiness", "auto decisions",
+    "auto readiness", "auto decisions", "auto start", "auto stop", "auto log",
     "zone check",
-    "profile show", "profile set", "claim status",
+    "profile show", "profile set", "profile tick", "claim status",
     "release prepare", "release publish", "release status",
     "doc generate", "doc show",
     "roadmap show", "roadmap phases", "style check",
@@ -908,6 +908,54 @@ If --reviewed=false: show only unreviewed decisions.
 If no decisions: "No autonomous decisions recorded."
 """
 
+[[commands]]
+name = "auto start"
+description = "Enter auto mode for the current session"
+args = []
+reads = [".dominion/dominion.toml"]
+writes = [".dominion/dominion.toml"]
+behavior = """
+Set [autonomy].mode = "auto" in dominion.toml.
+Print: "Auto mode enabled. Will revert on session end or auto stop."
+"""
+
+[[commands]]
+name = "auto stop"
+description = "Exit auto mode and return to interactive"
+args = []
+reads = [".dominion/dominion.toml"]
+writes = [".dominion/dominion.toml"]
+behavior = """
+Set [autonomy].mode = "interactive" in dominion.toml.
+Print: "Auto mode disabled. Returning to interactive mode."
+"""
+
+[[commands]]
+name = "auto log"
+description = "Record an autonomous decision made without human input"
+args = [
+    { name = "--task", description = "Task ID that triggered the decision", required = true },
+    { name = "--type", description = "Decision type: replan | skip | retry | split | reorder", required = true },
+    { name = "--description", description = "What was decided", required = true },
+    { name = "--reason", description = "Why — error context, breaker trigger", required = true },
+]
+reads = [".dominion/state.toml"]
+writes = [".dominion/state.toml"]
+behavior = """
+Append to [[autonomous_decisions]] in state.toml:
+  id = next sequential id
+  timestamp = current ISO 8601
+  phase = current position.phase
+  task = --task
+  type = --type (validate: one of replan, skip, retry, split, reorder)
+  description = --description
+  reason = --reason
+  session_id = current lock.session_id
+  reviewed = false
+  outcome = ""
+Print: "Autonomous decision AD{id} logged: {type} for task {task}."
+"""
+
 # === Direction ===
 
 [[commands]]
@@ -978,6 +1026,20 @@ If key is "experience_level": validate value is beginner|intermediate|advanced.
 Otherwise: set [user.preferences].{key} = {value}.
 
 Output: "Set {key} = {value}"
+"""
+
+[[commands]]
+name = "profile tick"
+description = "Increment session count in user profile"
+args = []
+reads = ["~/.claude/.dominion/user-profile.toml"]
+writes = ["~/.claude/.dominion/user-profile.toml"]
+behavior = """
+Read user-profile.toml. Increment [sessions].count by 1.
+Update [sessions].last_session to current ISO 8601 timestamp.
+If [sessions].first_session is empty, set it to current timestamp.
+Print: "Session {count} recorded."
+If profile does not exist: silently skip (user has not initialized profile).
 """
 
 # === Claim ===
