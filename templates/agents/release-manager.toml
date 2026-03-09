@@ -7,7 +7,7 @@ purpose = "Changelog generation from commits, semantic version bumps, release no
 
 [tools.mcps]
 required = ["{{required_mcps}}"]
-optional = ["{{optional_mcps}}"]
+optional = ["{{optional_mcps}}", "echovault"]
 
 [tools.documentation]
 fallback = ["{{fallback_chain}}"]

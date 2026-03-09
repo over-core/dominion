@@ -7,7 +7,7 @@ purpose = "API documentation, ADRs, architecture diagrams (Mermaid/D2), changelo
 
 [tools.mcps]
 required = ["{{required_mcps}}"]
-optional = ["{{optional_mcps}}"]
+optional = ["{{optional_mcps}}", "echovault"]
 
 [tools.documentation]
 fallback = ["{{fallback_chain}}"]

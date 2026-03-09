@@ -7,7 +7,7 @@ purpose = "Schema design and normalization, query optimization, migration author
 
 [tools.mcps]
 required = ["{{required_mcps}}"]
-optional = ["{{optional_mcps}}"]
+optional = ["{{optional_mcps}}", "echovault"]
 
 [tools.documentation]
 fallback = ["{{fallback_chain}}"]

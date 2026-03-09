@@ -7,7 +7,7 @@ purpose = "Benchmark authoring, regression detection, flame graph analysis, allo
 
 [tools.mcps]
 required = ["{{required_mcps}}"]
-optional = ["{{optional_mcps}}"]
+optional = ["{{optional_mcps}}", "echovault"]
 
 [tools.documentation]
 fallback = ["{{fallback_chain}}"]

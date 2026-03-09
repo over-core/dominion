@@ -7,7 +7,7 @@ purpose = "Deep codebase and ecosystem analysis. Produces structured findings, r
 
 [tools.mcps]
 required = ["serena", "context7"]
-optional = ["sequential-thinking"]
+optional = ["sequential-thinking", "echovault"]
 
 [tools.documentation]
 fallback = ["{{fallback_chain}}"]

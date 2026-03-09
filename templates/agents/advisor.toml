@@ -7,7 +7,7 @@ purpose = "Human-facing interface. Onboards developers, explains decisions, mana
 
 [tools.mcps]
 required = []
-optional = ["sequential-thinking"]
+optional = ["sequential-thinking", "echovault"]
 
 [tools.documentation]
 fallback = ["{{fallback_chain}}"]

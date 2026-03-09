@@ -44,6 +44,8 @@ description: {agent.purpose}
 2. Load optional MCP tools (if available): {for each optional MCP}
 3. Read current state: `dominion-tools state position --json`
 4. Read task assignment (if in execution): `dominion-tools plan task {task-id} --json`
+5. Load prior context (if echovault available): call `memory_context` for project-scoped decisions and patterns
+6. Search task-relevant memory (if echovault available and in execution): call `memory_search` with task title and key file names
 ```
 
 **Pipeline Context** — from [agent.role], hardcoded mapping:
@@ -111,6 +113,24 @@ Terminal: {fallback.action} — {fallback.message}
 Adjust your output depth based on the user's experience level (passed by orchestrator):
 {for each level in [workflow.level_adaptation]:}
 - **{level}**: {description}
+```
+
+**Memory** — hardcoded, applies to all agents:
+```
+## Memory Protocol
+
+Before finishing your work:
+1. If echovault is available, call `memory_save` for each significant item:
+   - Decisions made (category: "decision") — architectural choices, trade-offs, why X over Y
+   - Bugs found (category: "bug") — root cause, solution, affected files
+   - Patterns discovered (category: "pattern") — effective approaches, non-obvious behaviors
+   - Gotchas/friction (category: "learning") — things that weren't obvious from the code
+
+   Include `related_files` for file-specific knowledge. Use `tags` for searchability.
+
+2. Do NOT save: trivial changes, information obvious from reading the code, duplicates of existing memories.
+
+3. Write for a future agent with zero context — they should understand the what, why, and impact without reading the full codebase.
 ```
 
 ### Free-Form Sections (synthesized at init)

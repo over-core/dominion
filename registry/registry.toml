@@ -105,16 +105,15 @@ safe_read_tools = []
 # Note: gitlab MCP tool names vary by installation — cannot hardcode
 
 [mcps.echovault]
-tier = "optional"
+tier = "required"
 critical = false
 category = "memory"
-rating = 4.2
-platforms = ["linux"]
-platform_issues = { macos = "Not available natively — Docker workaround possible", windows = "Not available" }
-agent_affinity = ["Researcher", "Advisor", "Attendant"]
-install_command = "See https://github.com/echovault/echovault-mcp"
-notes = "Structured key-value memory. Complements MEMORY.md hot cache with searchable storage"
-missing_consequence = "MEMORY.md + .dominion/knowledge/ still work. No structured cross-session memory"
+rating = 4.8
+platforms = ["linux", "macos"]
+agent_affinity = ["all"]
+install_command = "pip install git+https://github.com/mraza007/echovault.git && memory init && memory setup claude-code"
+notes = "Cross-agent persistent memory. All agents save decisions/bugs/patterns during work, search prior context before acting. Returns ~50-token summaries — minimal context window cost vs reading full knowledge files."
+missing_consequence = "Agents lose cross-session memory. Each session starts from zero. Developer agents in waves cannot access gotchas from prior waves or phases."
 safe_read_tools = [
     "mcp__echovault__memory_search",
     "mcp__echovault__memory_context",

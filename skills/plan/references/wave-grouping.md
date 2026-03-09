@@ -26,6 +26,10 @@ Wave balancing is secondary to correctness:
 - Never introduce file ownership conflicts for balance
 - If a wave has only one task and the task has no conflicts with the next wave, it is fine — do not merge waves
 
+## Knowledge Refs
+
+For each task, check `.dominion/knowledge/index.toml` for entries whose tags or topics relate to the task's file ownership or domain. Populate `knowledge_refs` with relevant file names. This gives Developer agents targeted knowledge without reading the full knowledge base.
+
 ## Output
 
 Run `dominion-tools plan index` to assign wave fields. Report the wave structure:

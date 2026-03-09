@@ -7,7 +7,7 @@ purpose = "System maintenance. Generates agent .md from TOML, manages AGENTS.md 
 
 [tools.mcps]
 required = []
-optional = []
+optional = ["echovault"]
 
 [tools.documentation]
 fallback = ["{{fallback_chain}}"]

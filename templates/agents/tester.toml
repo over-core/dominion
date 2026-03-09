@@ -7,7 +7,7 @@ purpose = "Write and maintain tests. Validate acceptance criteria. Identify test
 
 [tools.mcps]
 required = ["serena", "context7"]
-optional = []
+optional = ["echovault"]
 
 [tools.documentation]
 fallback = ["{{fallback_chain}}"]

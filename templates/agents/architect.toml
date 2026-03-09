@@ -7,7 +7,7 @@ purpose = "Translate research into executable plans with verified file reference
 
 [tools.mcps]
 required = ["serena", "context7"]
-optional = ["sequential-thinking"]
+optional = ["sequential-thinking", "echovault"]
 
 [tools.documentation]
 fallback = ["{{fallback_chain}}"]

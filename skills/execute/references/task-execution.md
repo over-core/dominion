@@ -25,6 +25,7 @@ Provide the agent with a prompt containing:
 4. Verify command: the shell command to run for validation
 5. Upstream handoff notes: from completed upstream tasks (if any)
 6. Signal protocol: how to raise blockers/warnings
+7. Knowledge refs: relevant `.dominion/knowledge/` files from plan.toml `knowledge_refs` (if any)
 
 **All wave agents are spawned concurrently.** Do not wait for one to finish before starting the next.
 

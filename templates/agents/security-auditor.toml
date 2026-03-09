@@ -7,7 +7,7 @@ purpose = "Evaluate foreign skills/agents/plugins. Audit dependencies. Validate 
 
 [tools.mcps]
 required = ["serena"]
-optional = ["sequential-thinking"]
+optional = ["sequential-thinking", "echovault"]
 
 [tools.documentation]
 fallback = ["{{fallback_chain}}"]
