@@ -1,7 +1,7 @@
 [meta]
 spec_version = "0.8"
 minimum_commands = [
-    "validate", "state resume", "state position", "state update", "state decisions", "state blockers", "state checkpoint", "state decision",
+    "validate", "state resume", "state position", "state update", "state decisions", "state blockers", "state checkpoint", "state decision", "state defer",
     "agents list", "agents show", "agents generate",
     "knowledge sync", "project summary",
     "signal blocker", "signal warning", "signal list", "signal resolve",
@@ -166,6 +166,19 @@ Set phase from current position.phase.
 Set agent from current session context.
 Parse --tags as comma-separated list into tags array.
 Print: "Decision D{id} recorded for task {task}."
+"""
+
+[[commands]]
+name = "state defer"
+description = "Park an out-of-scope item for later discussion"
+args = [
+    { name = "--text", description = "Description of the deferred item", required = true },
+]
+reads = [".dominion/state.toml"]
+writes = [".dominion/state.toml"]
+behavior = """
+Append --text value to [outstanding].deferred array in state.toml.
+Print: "Deferred: {text}. Will surface in next /dominion:discuss."
 """
 
 # === Agents ===
