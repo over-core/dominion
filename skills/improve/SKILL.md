@@ -86,4 +86,4 @@ Follow [ad-hoc-pipeline.md](references/ad-hoc-pipeline.md) — the 6-step pipeli
 3. Advisor designs proposal
 4. Reviewer criticizes
 5. Advisor presents final proposal
-6. Attendant creates artifacts
+6. Secretary creates artifacts

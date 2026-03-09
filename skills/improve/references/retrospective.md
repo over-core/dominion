@@ -71,7 +71,7 @@ New specialized roles detected:
 
 For each accepted role:
 - Read the agent template from [agents/{role}.toml](../../../templates/agents/{role}.toml)
-- Attendant generates the agent config: `.dominion/agents/{role}.toml` + `.claude/agents/{role}.md`
+- Secretary generates the agent config: `.dominion/agents/{role}.toml` + `.claude/agents/{role}.md`
 - Run `dominion-tools agents generate` to update AGENTS.md
 
 For rejected roles:

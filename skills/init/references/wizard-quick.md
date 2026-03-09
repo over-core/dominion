@@ -26,7 +26,7 @@ Cross-reference [registry.toml](../../../registry/registry.toml) against detecte
 
 ```
 Recommended setup:
-  Agents:   8 core (Researcher, Architect, Developer, Tester, Reviewer, Advisor, Security Auditor, Attendant)
+  Agents:   8 core (Researcher, Architect, Developer, Tester, Reviewer, Advisor, Security Auditor, Secretary)
   MCPs:     [installed required + recommended]
   Git:      [detected or default: conventional commits, squash merge]
   Style:    [detected formatters + linters per language]

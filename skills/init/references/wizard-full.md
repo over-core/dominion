@@ -157,7 +157,7 @@ Add or remove? [confirm / add <role> / remove <number>]
 
 For each activated role:
 - Read the agent template from [agents/{role}.toml](../../../templates/agents/{role}.toml)
-- The Attendant will generate the agent config during the generation phase
+- The Secretary will generate the agent config during the generation phase
 
 If no roles detected:
 ```

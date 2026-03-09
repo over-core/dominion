@@ -46,7 +46,7 @@ Dependencies should be minimal — prefer independent tasks that can run in para
 
 Default agent is "Developer". Override only when the task clearly requires a different role:
 - Research-heavy tasks → "Researcher"
-- Configuration/generation tasks → "Attendant"
+- Configuration/generation tasks → "Secretary"
 
 ## Output
 

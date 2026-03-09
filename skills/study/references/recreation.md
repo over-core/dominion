@@ -32,7 +32,7 @@ The recreation must:
 
 Write the Dominion-native artifact:
 - Skills: write to `.dominion/skills/{name}.md`
-- Agents: write TOML to `.dominion/agents/{role}.toml`, Attendant generates `.claude/agents/{role}.md`
+- Agents: write TOML to `.dominion/agents/{role}.toml`, Secretary generates `.claude/agents/{role}.md`
 - Knowledge: write to `.dominion/knowledge/{topic}.md`, update index.toml
 
 ### 4. Verify

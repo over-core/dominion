@@ -101,7 +101,7 @@ Approve? [Y / modify / cancel]
 - **modify**: user adjusts, re-present
 - **cancel**: exit
 
-## Step 6: Create Artifacts (Attendant)
+## Step 6: Create Artifacts (Secretary)
 
 For each output type, follow the creation steps from [structural-awareness.md](../../../templates/references/structural-awareness.md):
 
@@ -135,7 +135,7 @@ Use this context to write the SKILL.md. Follow Dominion's skill writing conventi
 After writing, run the eval loop: create test cases, spawn with/without-skill runs, grade, iterate with user feedback, then optimize the description for triggering accuracy.
 ```
 
-After skill-creator completes, the Attendant places the validated files:
+After skill-creator completes, the Secretary places the validated files:
 1. Move skill files to `.dominion/skills/{name}.md` (and `references/` if created)
 2. Run `dominion-tools doc generate` to regenerate DOMINION.md
 3. Update `.claude/settings.json` if the skill needs permissions

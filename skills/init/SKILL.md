@@ -146,7 +146,7 @@ Generate `DOMINION.md` at project root from [dominion-md.md](../../templates/dom
 4. Fill template placeholders
 5. Write to `DOMINION.md` at project root
 
-The Attendant maintains this file. It is regenerated when:
+The Secretary maintains this file. It is regenerated when:
 - Agent roster changes (`dominion-tools agents generate`)
 - Improve step applies structural changes
 - Roadmap phases are added or completed

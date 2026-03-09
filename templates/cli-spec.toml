@@ -230,7 +230,7 @@ Read all .toml files in .dominion/agents/. Format as table:
   Reviewer          opus     Post-phase quality verification
   Advisor           opus     Human-facing interface, onboarding
   Security Auditor  opus     Security review, dependency audit
-  Attendant         sonnet   System maintenance, artifact generation
+  Secretary         sonnet   System maintenance, artifact generation
 
 With --available: also list specialized roles from a hardcoded list,
 marking which are active vs available.

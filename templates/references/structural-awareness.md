@@ -10,7 +10,7 @@ An autonomous role with defined capabilities, tool access, and governance rules.
 
 **Composed of:**
 - `.dominion/agents/{role}.toml` — configuration (model, tools, governance, workflow)
-- `.claude/agents/{role}.md` — generated instructions (from TOML by Attendant)
+- `.claude/agents/{role}.md` — generated instructions (from TOML by Secretary)
 - Entry in `AGENTS.md` — auto-generated roster
 - Permissions in `.claude/settings.json` — MCP and tool access
 

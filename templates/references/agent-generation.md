@@ -59,7 +59,7 @@ description: {agent.purpose}
 {developer  → "You operate in step 4 (execute). Input: plan.toml task assignment. Output: code changes, SUMMARY.md. Upstream: Architect. Downstream: Tester."}
 {tester     → "You operate in step 5 (test). Input: progress.toml, code changes. Output: test-report.toml. Upstream: Developer(s). Downstream: Reviewer."}
 {reviewer   → "You operate in step 6 (review). Input: test-report.toml, code changes. Output: review.toml, metrics.toml. Upstream: Tester. Downstream: Advisor."}
-{attendant  → "You operate across all steps as infrastructure. You generate agent files, manage settings, and apply approved changes."}
+{secretary  → "You operate across all steps as infrastructure. You generate agent files, manage settings, and apply approved changes."}
 {analyst    → "You operate on-demand for metrics analysis and monitoring."}
 
 {For specialized agents (frontend-engineer, database-engineer, api-designer, cloud-engineer, devops, security-auditor, technical-writer, observability-engineer, release-manager):}

@@ -8,7 +8,7 @@ Categorize each accepted proposal:
 
 ### Config-Only Changes (Direct Apply)
 
-These are applied directly by the Attendant — no plan/execute cycle:
+These are applied directly by the Secretary — no plan/execute cycle:
 
 - **TOML updates**: style.toml additions, agent TOML instruction changes, dominion.toml updates
 - **Agent instruction refinement**: update agent TOML `[tools.skills]` or behavioral sections, then run `dominion-tools agents generate` to regenerate .md files
@@ -50,7 +50,7 @@ For each structural proposal:
 1. Read [structural-awareness.md](../../../templates/references/structural-awareness.md)
 2. Researcher checks overlap ([overlap-check.md](overlap-check.md))
 3. Reviewer criticizes the proposal
-4. If approved: Attendant creates artifacts
+4. If approved: Secretary creates artifacts
 5. Commit: `git commit -m "improve: add {type} {name}"`
 6. Run `dominion-tools improve update {id} --status accepted --applied-by structural`
 

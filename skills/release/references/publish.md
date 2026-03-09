@@ -2,7 +2,7 @@
 
 Execute the full release ceremony after drafts are approved.
 
-**Agent:** Attendant
+**Agent:** Secretary
 
 ## Pre-publish Checks
 
