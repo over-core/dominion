@@ -52,7 +52,7 @@ For existing agents that don't map to Dominion roles:
 
 ### 4. Generate Agent .md Files
 
-Follow `@skills/init/references/agent-generation.md`:
+Follow [agent-generation.md](../../../templates/references/agent-generation.md):
 - Render agent .md files from TOML configs
 - For claimed agents: merge existing .md content into freeform sections
 
@@ -68,14 +68,14 @@ Present the merged CLAUDE.md as a diff for final approval before writing.
 
 ### 6. Update settings.json
 
-Follow `@skills/init/references/settings-generation.md`:
+Follow [settings-generation.md](../../../templates/references/settings-generation.md):
 - Read existing settings.json
 - Add Dominion MCP permissions (extend, never remove existing)
 - Add Dominion CLI tool permission: `Bash(dominion-tools *)`
 
 ### 7. Add Lifecycle Hooks
 
-Follow `@skills/init/references/hooks-generation.md`:
+Follow [hooks-generation.md](../../../templates/references/hooks-generation.md):
 - Add Dominion hooks alongside existing hooks
 - Do not modify or remove existing hookify rules
 
@@ -86,11 +86,11 @@ Follow `@skills/init/references/hooks-generation.md`:
 - `.dominion/state.toml` — initial state (same as init Step 10)
 - `.dominion/knowledge/index.toml` — minimal initial index
 - `.dominion/specs/cli-spec.toml` — copy from plugin templates
-- `AGENTS.md` — follow `@skills/init/references/agents-md-generation.md`
+- `AGENTS.md` — follow [agents-md-generation.md](../../../templates/references/agents-md-generation.md)
 
 ### 9. CLI Proving Ground
 
-Follow `@skills/init/references/cli-spec-delivery.md`:
+Follow [cli-spec-delivery.md](../../../templates/references/cli-spec-delivery.md):
 - If existing CLI tool detected: register it and extend with Dominion commands
 - If no existing CLI: spawn Developer + Tester as in normal init
 

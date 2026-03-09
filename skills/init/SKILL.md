@@ -33,7 +33,7 @@ Dominion init will:
 
 ## Step 1: Discovery
 
-Follow `@references/discovery.md` to analyze the project.
+Follow [discovery.md](../../templates/references/discovery.md) to analyze the project.
 
 Output: structured discovery results in conversation context.
 
@@ -66,25 +66,25 @@ Generate these files from discovery results + wizard answers:
 
 ## Step 4: Generate Agents
 
-Follow `@references/agent-generation.md`:
+Follow [agent-generation.md](../../templates/references/agent-generation.md):
 1. Customize agent TOMLs from templates → write to `.dominion/agents/`
 2. Render agent .md files → write to `.claude/agents/`
 
 ## Step 5: Generate AGENTS.md
 
-Follow `@references/agents-md-generation.md`:
+Follow [agents-md-generation.md](../../templates/references/agents-md-generation.md):
 - Read all `.dominion/agents/*.toml`
 - Generate `AGENTS.md` at project root
 
 ## Step 6: Generate settings.json
 
-Follow `@references/settings-generation.md`:
+Follow [settings-generation.md](../../templates/references/settings-generation.md):
 - Extend `.claude/settings.json` with Dominion permissions
 - Configure serena project activation with detected LSPs
 
 ## Step 7: Generate Hooks
 
-Follow `@references/hooks-generation.md`:
+Follow [hooks-generation.md](../../templates/references/hooks-generation.md):
 - Create hookify governance rules for source-diving prevention
 
 ## Step 8: Generate CLAUDE.md
@@ -95,7 +95,7 @@ Follow `@references/claude-md-generation.md`:
 
 ## Step 9: CLI Proving Ground
 
-Follow `@references/cli-spec-delivery.md`:
+Follow [cli-spec-delivery.md](../../templates/references/cli-spec-delivery.md):
 1. Copy cli-spec.toml to `.dominion/specs/`
 2. Spawn Developer agent to implement dominion-tools
 3. Spawn Tester agent to validate

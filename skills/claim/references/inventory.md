@@ -48,7 +48,7 @@ Check each of these and record: exists (yes/no), size, last modified.
 
 ### Project Analysis
 
-14. Run the same project analysis as init discovery (`@skills/init/references/discovery.md` Phases 1-8)
+14. Run the same project analysis as init discovery ([discovery.md](../../../templates/references/discovery.md) Phases 1-8)
     - Languages, frameworks, infrastructure, git workflow, style sampling
     - This provides the data needed for the reduced wizard
 

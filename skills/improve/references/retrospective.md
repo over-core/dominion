@@ -33,7 +33,7 @@ If unreviewed decisions exist, present them BEFORE the standard retrospective:
 
 For each decision:
 - **Accept**: set `reviewed = true`, `outcome = "accepted"` in state.toml
-- **Roll back**: set `reviewed = true`, `outcome = "rolled-back"` — follow `@skills/orchestrate/references/rollback-protocol.md` to revert the relevant commits. Present the rollback result before continuing.
+- **Roll back**: set `reviewed = true`, `outcome = "rolled-back"` — follow [rollback-protocol.md](../../../templates/references/rollback-protocol.md) to revert the relevant commits. Present the rollback result before continuing.
 
 After all decisions are reviewed, proceed to role suggestions.
 
