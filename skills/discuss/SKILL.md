@@ -28,7 +28,7 @@ Milestone: {milestone from roadmap.toml}
 
 If this is not phase 1, read the previous phase's review.toml (if it exists) and summarize:
 - High-severity findings from last review
-- Any deferred items
+- Deferred items: run `dominion-tools state deferred` — present any items to the user for triage before starting the new phase
 
 ## Step 2: Intent Capture
 
