@@ -18,6 +18,7 @@ minimum_commands = [
     "profile show", "profile set", "claim status",
     "release prepare", "release publish", "release status",
     "doc generate", "doc show",
+    "roadmap show", "roadmap phases", "style check",
 ]
 
 # === Validation ===
@@ -982,6 +983,52 @@ behavior = """
   Last tag: {tag}
   Commits since: {count}
   Registries: {list}
+"""
+
+# === Roadmap ===
+
+[[commands]]
+name = "roadmap show"
+description = "Display roadmap summary"
+args = []
+reads = [".dominion/roadmap.toml"]
+behavior = """
+Read roadmap.toml. Display project name, total phases, and a summary table:
+  Phase | Title | Status (derived from state.toml position.phase)
+If no roadmap: "No roadmap.toml found."
+"""
+
+[[commands]]
+name = "roadmap phases"
+description = "List phases with objectives and status"
+args = [
+    { name = "--phase", description = "Show details for a specific phase", optional = true },
+]
+reads = [".dominion/roadmap.toml", ".dominion/state.toml"]
+behavior = """
+Read roadmap.toml. For each phase (or the specified one):
+  Phase {N}: {title}
+    Objectives: {list}
+    Success Criteria: {list}
+    Status: complete | in-progress | upcoming
+Derive status from state.toml position.phase.
+"""
+
+# === Style ===
+
+[[commands]]
+name = "style check"
+description = "Check code against style.toml conventions"
+args = [
+    { name = "--files", description = "Specific files to check (default: all governed files)", optional = true },
+]
+reads = [".dominion/style.toml"]
+behavior = """
+Read style.toml conventions. For each convention:
+1. Use Grep/Glob to check governed files for compliance
+2. Report violations with file:line references
+If no violations: "All style checks passed."
+If no style.toml: "No style.toml found."
 """
 
 # === Documentation ===
