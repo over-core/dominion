@@ -109,12 +109,12 @@ For each output type, follow the creation steps from `@templates/references/stru
 1. Write `.dominion/agents/{role}.toml`
 2. Run `dominion-tools agents generate`
 3. Update `.claude/settings.json` with required permissions
-4. Regenerate DOMINION.md
+4. Run `dominion-tools doc generate` to regenerate DOMINION.md
 
 ### Skill
 1. Write `.dominion/skills/{name}.md` with frontmatter
 2. Write reference files if needed
-3. Regenerate DOMINION.md
+3. Run `dominion-tools doc generate` to regenerate DOMINION.md
 
 ### Knowledge
 1. Write `.dominion/knowledge/{topic}.md`

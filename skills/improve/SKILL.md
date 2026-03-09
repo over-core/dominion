@@ -67,7 +67,7 @@ Update `.dominion/state.toml`:
 
 Run `dominion-tools knowledge sync` to rebuild MEMORY.md with any new knowledge entries.
 
-Regenerate DOMINION.md if any structural changes were applied.
+If any structural changes were applied, run `dominion-tools doc generate` to regenerate DOMINION.md.
 
 Announce:
 ```

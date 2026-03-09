@@ -18,7 +18,7 @@ An autonomous role with defined capabilities, tool access, and governance rules.
 1. Write `.dominion/agents/{role}.toml` (use existing agent TOMLs as reference)
 2. Run `dominion-tools agents generate` — generates .md and updates AGENTS.md
 3. Update `.claude/settings.json` with required MCP permissions
-4. Regenerate DOMINION.md
+4. Run `dominion-tools doc generate` to regenerate DOMINION.md
 
 **When to create vs extend:**
 - Create a new agent when: ongoing specialized behavior, distinct file ownership, separate governance rules
@@ -36,7 +36,7 @@ A repeatable procedure or workflow invoked as a `/dominion:*` command.
 1. Write `.dominion/skills/{name}.md` with frontmatter (`name`, `description`)
 2. Write directive instructions (what the LLM should do, not explanations)
 3. Use `@references/filename.md` for sub-steps
-4. Regenerate DOMINION.md to include in cheatsheet
+4. Run `dominion-tools doc generate` to regenerate DOMINION.md
 
 **When to create vs use knowledge:**
 - Create a skill when: repeatable procedure, decision tree, process that fires as a command
@@ -100,7 +100,7 @@ When creating any new building block, verify:
 - [ ] TOML files parse: `python3 -c "import tomllib; tomllib.load(open('file.toml','rb'))"`
 - [ ] References resolve: all `@path/to/file` references point to existing files
 - [ ] AGENTS.md updated: if agents changed, run `dominion-tools agents generate`
-- [ ] DOMINION.md updated: if skills, agents, or config changed, regenerate
+- [ ] DOMINION.md updated: if skills, agents, or config changed, run `dominion-tools doc generate`
 - [ ] settings.json updated: if new MCP permissions needed
 - [ ] Validate passes: run `dominion-tools validate`
 
