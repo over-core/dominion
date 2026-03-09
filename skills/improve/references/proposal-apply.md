@@ -20,7 +20,7 @@ For each direct-apply proposal:
 1. Make the change
 2. Validate (TOML parses, hookify rule is well-formed)
 3. Commit: `git commit -m "improve: {proposal title}"`
-4. Update improvements.toml: set `applied_at` = commit hash, `applied_by` = "direct"
+4. Run `dominion-tools improve update {id} --status accepted --applied-at {commit hash} --applied-by direct`
 
 ### Code-Touching Changes (Mini Pipeline)
 
@@ -34,7 +34,7 @@ For each pipeline-apply proposal:
 1. Architect writes a mini-plan (1-3 tasks, inline — not a full plan.toml)
 2. Developer implements each task
 3. Commit per task: `git commit -m "improve: {proposal title} — {task description}"`
-4. Update improvements.toml: set `applied_at` = final commit hash, `applied_by` = "pipeline"
+4. Run `dominion-tools improve update {id} --status accepted --applied-at {final commit hash} --applied-by pipeline`
 
 ### Structural Changes (Ad-Hoc Pipeline)
 
@@ -52,7 +52,7 @@ For each structural proposal:
 3. Reviewer criticizes the proposal
 4. If approved: Attendant creates artifacts
 5. Commit: `git commit -m "improve: add {type} {name}"`
-6. Update improvements.toml: set `applied_by` = "structural"
+6. Run `dominion-tools improve update {id} --status accepted --applied-by structural`
 
 ## Guard Rails
 
