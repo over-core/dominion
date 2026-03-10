@@ -111,3 +111,8 @@ purpose = "Record decomposition trade-offs, agent routing rationale, wave-groupi
 name = "Token Budget Analysis"
 source = "Dominion v0.5"
 purpose = "Estimate per-task token cost. Split tasks exceeding 80% of budget. Prevents Developer agent context overload."
+
+[[methodology.methods]]
+name = "Design Independence Check (Axiomatic Design)"
+source = "Nam P. Suh, MIT"
+purpose = "During task decomposition, verify task boundaries maintain functional independence. If a task output change forces changes in non-dependent tasks, revise boundaries. Applied when innovation-engineer specialist_referral is present in findings."

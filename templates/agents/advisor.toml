@@ -171,3 +171,8 @@ purpose = "After each substantive user response, summarize understanding and con
 name = "CBAM-lite Consumption"
 source = "SEI/CMU (produced by Researcher)"
 purpose = "Read Researcher's CBAM cost-benefit analysis. Use to inform recommendations during intent capture (best effort-vs-value ratio) and proposal review (highest ROI proposals)."
+
+[[methodology.methods]]
+name = "Conflict Dissolution (TOC Evaporating Cloud)"
+source = "Eliyahu M. Goldratt, 1984"
+purpose = "When user faces a true trade-off during intent elicitation (not just a preference — both options have real costs): map as Evaporating Cloud (objective, two requirements, two prerequisites, underlying assumptions). Challenge each assumption. Complements Kepner-Tregoe: KT picks best option, Evaporating Cloud dissolves the conflict itself."

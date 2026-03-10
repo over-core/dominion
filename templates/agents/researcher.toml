@@ -199,6 +199,11 @@ role = "technical-writer"
 method = "Documentation gap analysis"
 protocol = "Stale docs, missing API docs, ADR candidates."
 
+[[methodology.specialist_protocols]]
+role = "innovation-engineer"
+method = "Contradiction identification (TRIZ)"
+protocol = "Identify conflicting quality attributes per component. Tag findings where improving one attribute worsens another. Map as TRIZ technical or physical contradiction. Tag with specialist_referral."
+
 [methodology.finding_categories]
 core = ["architecture", "dependency", "performance", "security", "testing"]
-extended = ["maintainability", "scalability", "operability", "data-integrity", "accessibility", "compliance"]
+extended = ["maintainability", "scalability", "operability", "data-integrity", "accessibility", "compliance", "innovation"]
