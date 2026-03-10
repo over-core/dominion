@@ -11,6 +11,7 @@ When proposing a new agent:
    - **Purpose**: does the proposed purpose overlap with an existing agent's `purpose` field?
    - **File ownership**: does the proposed agent want to own files already owned by another agent?
    - **Tool overlap**: does the proposed agent use the same specialized tools/MCPs?
+   - **Methodology alignment**: does the proposed agent's `[methodology.methods]` overlap with an existing agent's methods? If >50% of methods are shared, the agents are too similar — recommend extending the existing agent instead. Also check for cross-dependency conflicts with the specialist interaction model (e.g., two agents claiming the same Reviewer query domain).
 3. Score overlap: none / partial / significant
 
 ### Partial Overlap

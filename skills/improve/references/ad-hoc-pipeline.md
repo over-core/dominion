@@ -50,7 +50,9 @@ Proceed with {agent/skill} anyway? [Y / switch to {alternative}]
 
 If interactive interview needed (no `--from` source and creating an agent or skill):
 1. Follow [dkcp-protocol.md](dkcp-protocol.md) — the 7-phase domain knowledge capture
-2. Structure captured knowledge into the proposed artifact
+2. If output type is **agent**: follow [agent-methodology-design.md](../../../templates/references/agent-methodology-design.md) — design the `[methodology]` section from DKCP output (phases, methods, tool routing, research lens, cross-dependencies, self-critique)
+3. If output type is **skill**: follow [skill-quality-guide.md](../../../templates/references/skill-quality-guide.md) Part 1 — apply design guidance (structural patterns, prose style, pre-checks, state management, testing strategy)
+4. Structure captured knowledge into the proposed artifact
 
 If request is straightforward (CLI command, hook, config):
 1. Draft the proposed artifact directly from user description
@@ -73,6 +75,7 @@ Reviewer evaluates the proposal against:
 3. **Naming** — is the name clear, consistent with existing conventions?
 4. **Governance** — does this need file ownership, hard stops, escalation rules?
 5. **Completeness** — are all wiring steps accounted for?
+6. **Methodology quality** — for agents: apply self-critique checklist from [agent-methodology-design.md](../../../templates/references/agent-methodology-design.md) Step 7. For skills: apply acceptance criteria from [skill-quality-guide.md](../../../templates/references/skill-quality-guide.md) Part 2.
 
 Reviewer produces a brief assessment:
 ```
@@ -127,12 +130,16 @@ The Dominion improve pipeline has approved a new skill:
 - Reference files needed: {list from design proposal}
 - Wiring: skill will be placed at `.dominion/skills/{name}.md`
 
-Use this context to write the SKILL.md. Follow Dominion's skill writing conventions:
+Use this context to write the SKILL.md. Follow quality criteria from skill-quality-guide.md:
 - Directive prose (instructions the LLM follows, not documentation)
+- Specify tools by name, specify outputs with templates, every step produces observable artifact
 - Use markdown links for sub-steps: `[filename.md](references/filename.md)`
 - Keep SKILL.md under 500 lines; use references/ for detail
+- Pre-checks verify required state/plugins/MCPs before any logic
+- Flag parsing before context detection before main steps
+- Trigger examples: {positive examples from design proposal} should match, {negative examples} should not
 
-After writing, run the eval loop: create test cases, spawn with/without-skill runs, grade, iterate with user feedback, then optimize the description for triggering accuracy.
+After writing, run the eval loop: create test cases (use positive/negative trigger examples from above), spawn with/without-skill runs, grade, iterate with user feedback, then optimize the description for triggering accuracy.
 ```
 
 After skill-creator completes, the Secretary places the validated files:

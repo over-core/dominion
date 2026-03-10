@@ -16,9 +16,10 @@ An autonomous role with defined capabilities, tool access, and governance rules.
 
 **To create:**
 1. Write `.dominion/agents/{role}.toml` (use existing agent TOMLs as reference)
-2. Run `dominion-tools agents generate` — generates .md and updates AGENTS.md
-3. Update `.claude/settings.json` with required MCP permissions
-4. Run `dominion-tools doc generate` to regenerate DOMINION.md
+2. If adding methodology: follow [agent-methodology-design.md](agent-methodology-design.md) for `[methodology]`, `[methodology.tool_routing]`, `[methodology.methods]`, and `[research_lens]` sections
+3. Run `dominion-tools agents generate` — generates .md and updates AGENTS.md
+4. Update `.claude/settings.json` with required MCP permissions
+5. Run `dominion-tools doc generate` to regenerate DOMINION.md
 
 **When to create vs extend:**
 - Create a new agent when: ongoing specialized behavior, distinct file ownership, separate governance rules

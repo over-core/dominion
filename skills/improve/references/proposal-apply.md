@@ -40,8 +40,8 @@ For each pipeline-apply proposal:
 
 These create new Dominion building blocks — require the full ad-hoc pipeline with Reviewer criticism:
 
-- **New agent**: follow ad-hoc pipeline Steps 2-6 (investigate, design, criticize, present, create)
-- **New skill**: follow ad-hoc pipeline Steps 2-6
+- **New agent**: follow ad-hoc pipeline Steps 2-6 (investigate, design, criticize, present, create). The design step (Step 3) includes methodology design per [agent-methodology-design.md](../../../templates/references/agent-methodology-design.md) — phases, methods, tool routing, research lens, cross-dependencies.
+- **New skill**: follow ad-hoc pipeline Steps 2-6. The design step (Step 3) includes quality criteria per [skill-quality-guide.md](../../../templates/references/skill-quality-guide.md).
 - **New CLI command**: add to cli-spec.toml, Developer implements
 - **New hook rule**: invoke `/hookify:writing-rules` for correct rule authoring. Requires hookify plugin.
 - **New config section**: add to dominion.toml
