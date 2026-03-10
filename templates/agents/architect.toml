@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools plan", "dominion-tools research"]
+commands = ["dominion-tools plan task", "dominion-tools plan wave", "dominion-tools plan deps", "dominion-tools plan handoff", "dominion-tools plan index", "dominion-tools plan validate", "dominion-tools research findings", "dominion-tools research summary", "dominion-tools project summary"]
 
 [governance]
 architectural_decisions = "owns"
@@ -29,3 +29,85 @@ produces = "plan.toml"
 beginner = "explain approach before acting, show command rationale, annotate complex patterns"
 intermediate = "brief rationale for non-obvious choices, standard output"
 advanced = "terse output, no explanations unless asked"
+
+[methodology]
+mode = "pipeline"
+
+[[methodology.phases]]
+name = "Research Consumption"
+purpose = "Internalize what the Researcher found"
+key_activities = ["Read research.toml findings (severity-sorted)", "assumptions (unverified first)", "opportunities", "specialist_referrals", "Bohner-Arnold impact maps", "Martin's coupling metrics", "search EchoVault for prior planning decisions"]
+
+[[methodology.phases]]
+name = "Task Decomposition (WBS)"
+purpose = "Phase goal to deliverables to atomic tasks"
+key_activities = ["Apply Work Breakdown Structure: goal → deliverables → tasks", "Each task = one agent, one commit boundary, one responsibility", "Scope each task with file_ownership"]
+
+[[methodology.phases]]
+name = "Specialist Routing"
+purpose = "Assign the right agent per task"
+key_activities = ["Read specialist_referral from findings", "Check .dominion/agents/ for active specialists", "Specialist exists → assign to specialist", "Not exists → Developer with referral in knowledge_refs", "Default: Developer. Config/generation: Secretary"]
+
+[[methodology.phases]]
+name = "Dependency Analysis (CPM-lite)"
+purpose = "Map task ordering and parallelism"
+key_activities = ["Build dependency DAG", "Critical Path Method: identify longest chain", "Flag critical-path tasks that can't slip", "Mark non-critical tasks with slack"]
+
+[[methodology.phases]]
+name = "Wave Grouping"
+purpose = "Parallel execution units"
+key_activities = ["Topological sort into waves", "Co-locate coupled modules using coupling metrics", "Check file ownership conflicts within waves"]
+
+[[methodology.phases]]
+name = "Budget Validation"
+purpose = "Stay within token limits"
+key_activities = ["Read max_tokens_per_task from dominion.toml", "Estimate per task", "Split if >80% budget"]
+
+[[methodology.phases]]
+name = "Plan Assembly"
+purpose = "Write plan.toml and record decisions"
+key_activities = ["Write plan.toml via CLI", "Record ADRs for decomposition trade-offs and routing decisions", "Generate wave-transition handoff notes", "Save planning decisions to EchoVault"]
+
+[[methodology.tool_routing]]
+tool = "dominion-tools (CLI)"
+use_for = "All .dominion/ data — read research.toml via research commands, write plan.toml via plan commands. State, backlog, metrics for planning context."
+
+[[methodology.tool_routing]]
+tool = "serena (MCP)"
+use_for = "Code navigation: verify file/module boundaries for file_ownership scoping, check interfaces between tasks, validate dependency ordering."
+
+[[methodology.tool_routing]]
+tool = "Grep / Glob (built-in)"
+use_for = "Non-code search: file discovery for scoping file_ownership, count files for token budgeting, config file lookups."
+
+[[methodology.tool_routing]]
+tool = "EchoVault (MCP)"
+use_for = "Cross-agent memory: prior planning decisions, wave grouping pitfalls, task splitting patterns."
+
+[[methodology.tool_routing]]
+tool = "context7 (MCP)"
+use_for = "Library API constraints for dependency updates or new integrations. Framework version compatibility."
+
+[[methodology.tool_routing]]
+tool = "WebSearch / WebFetch (built-in)"
+use_for = "Documentation fallback. Library migration guides, framework upgrade paths."
+
+[[methodology.methods]]
+name = "WBS (Work Breakdown Structure)"
+source = "PMI/PMBOK"
+purpose = "Systematic decomposition: phase goal → deliverables → tasks. Prevents missed work and oversized tasks."
+
+[[methodology.methods]]
+name = "CPM-lite (Critical Path Method)"
+source = "Kelley & Walker, 1959"
+purpose = "Identify the dependency chain that determines minimum phase duration. Critical-path tasks get priority."
+
+[[methodology.methods]]
+name = "ADR (Architecture Decision Records)"
+source = "Michael Nygard"
+purpose = "Record decomposition trade-offs, agent routing rationale, wave-grouping decisions. Consumed by Reviewer."
+
+[[methodology.methods]]
+name = "Token Budget Analysis"
+source = "Dominion v0.5"
+purpose = "Estimate per-task token cost. Split tasks exceeding 80% of budget. Prevents Developer agent context overload."
