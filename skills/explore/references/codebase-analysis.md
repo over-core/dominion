@@ -2,6 +2,45 @@
 
 Researcher-driven analysis scoped to the current phase goals.
 
+## Methodology Phases
+
+Research follows a 5-phase pipeline. Execute in order:
+
+1. **Context Loading** — Never start from scratch. Read prior phase research (`dominion-tools research findings`), backlog items, EchoVault search results (`memory_search` + `memory_context`), `intent.md`, and `roadmap.toml`. Understand what is already known before exploring.
+
+2. **Architecture Mapping** — Top-down systematic exploration. Trace entry points → module boundaries → dependency graph → data flow → control flow. Primary tool: serena (`get_symbols_overview`, `find_referencing_symbols`). Record findings with category "architecture".
+
+3. **Deep Analysis** — Bottom-up targeted analysis. Check error handling, test coverage, technical debt, documentation state, complexity, and pattern consistency against `style.toml`. Record findings with appropriate categories.
+
+4. **Cross-Cutting** — Specialist-aware expansion. Check `.dominion/agents/` for active specialist roles. Read their `[research_lens]` checklists. Apply matching specialist-activated methods (e.g., if security-auditor exists, apply STRIDE threat modeling; if database-engineer exists, trace data lineage).
+
+5. **Synthesis** — Prioritize and flag. Score findings by severity x confidence x goal alignment. Assess opportunities. Map assumptions. Generate specialist referrals. Save discoveries to EchoVault via `memory_save`.
+
+## Evidence Grading
+
+Every finding and assumption requires an evidence grade:
+
+- **confirmed** — Multiple independent sources (code + tests + docs). Highest confidence. Use for findings backed by direct code inspection AND corroborating evidence.
+- **supported** — Single strong source (direct code inspection). High confidence. Most common grade for code-verified findings.
+- **inferred** — Logical deduction from observed patterns. Medium confidence. Flag for verification during planning. Must explain reasoning chain.
+- **speculative** — Hypothesis without direct evidence. Low confidence. List as assumption, NEVER as finding. Always explain what evidence would confirm or deny.
+
+## Specialist-Aware Cross-Cutting
+
+When specialist agents are active (check `.dominion/agents/` for non-core agent files):
+
+- **security-auditor**: Apply STRIDE per component. Produce threat categories, attack surface inventory.
+- **database-engineer**: Trace data flow paths, integrity constraints, migration risk.
+- **api-designer**: Surface inventory, versioning state, consumer dependency map, breaking change risk.
+- **frontend-engineer**: State flow, render dependency chains, accessibility gap inventory.
+- **devops**: Pipeline effects, infrastructure dependency changes, rollback surface.
+- **observability-engineer**: Instrumentation coverage, logging gaps, SLO-relevant paths.
+- **cloud-engineer**: Service dependency changes, IAM scope, cost/quota implications.
+- **release-manager**: Changelog candidates, semver implications, migration guide needs.
+- **technical-writer**: Stale docs, missing API docs, ADR candidates.
+
+If a specialist role is NOT active, skip its cross-cutting checklist entirely.
+
 ## Scope Determination
 
 1. Read `.dominion/phases/{N}/intent.md` for phase goals and scope boundary

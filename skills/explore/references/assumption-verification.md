@@ -21,18 +21,19 @@ Use available tools to verify each assumption:
 
 1. **Code-verifiable** — read files, check imports, inspect APIs, run non-destructive commands
    - Example: "Library X supports feature Y" → check dependency version, read docs via context7
-   - Set `status = "verified"`, `verified_by = "{method used}"`, `verified_at = "{ISO 8601}"`
+   - Set `status = "verified"`, `evidence_grade = "confirmed"` (if multiple sources) or `"supported"` (single source), `verified_by = "{method used}"`, `verified_at = "{ISO 8601}"`
 
 2. **Docs-verifiable** — check documentation, changelogs, README files
    - Use context7 `query-docs` or read local docs
-   - Set `status = "verified"`, `verified_by = "docs: {source}"`, `verified_at = "{ISO 8601}"`
+   - Set `status = "verified"`, `evidence_grade = "supported"`, `verified_by = "docs: {source}"`, `verified_at = "{ISO 8601}"`
 
 3. **Cannot verify now** — requires runtime execution, external API calls, or human judgment
    - Set `status = "unverified"`, leave `verified_by` and `verified_at` empty
+   - Set `evidence_grade` based on current confidence: `"inferred"` if logically reasonable, `"speculative"` if uncertain
    - The Architect treats these as risks during planning
 
 4. **Contradicted by evidence** — evidence found that disproves the assumption
-   - Set `status = "false"`, `verified_by = "contradicted: {evidence}"`
+   - Set `status = "false"`, `evidence_grade = "confirmed"` (the contradiction is confirmed), `verified_by = "contradicted: {evidence}"`
    - Flag prominently in the research output
 
 ## False Assumption Handling
@@ -44,4 +45,4 @@ If any assumption is marked `false`:
 
 ## Output
 
-The verification pass modifies the existing `[[assumptions]]` entries in research.toml. No new artifact is produced.
+The verification pass modifies the existing `[[assumptions]]` entries in research.toml — setting `status`, `evidence_grade`, `verified_by`, and `verified_at` fields. No new artifact is produced.
