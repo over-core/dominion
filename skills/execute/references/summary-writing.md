@@ -28,6 +28,19 @@ Create the `summaries/` directory if it does not exist.
 ## Friction Encountered
 {What was harder than expected, what required workarounds, what assumptions were wrong. This is the most valuable section — be honest and specific. "None" is acceptable but rare.}
 
+## Friction Report
+| Category | Issue | Impact | Recurrent? |
+|----------|-------|--------|------------|
+| tooling / codebase / process / external | {specific friction} | {how it slowed work} | yes / no / first-time |
+
+Categories:
+- **tooling**: MCP failures, CLI bugs, test runner issues, build tool problems
+- **codebase**: unclear patterns, missing types, undocumented behavior, tech debt
+- **process**: unclear acceptance criteria, missing knowledge_refs, plan gaps
+- **external**: dependency issues, API changes, documentation gaps
+
+Flag recurrent items — these become improvement proposals in `/dominion:improve`.
+
 ## Decisions Made
 {Any design decisions or trade-offs made during implementation. Include rationale. Reference relevant standards or patterns.}
 
@@ -42,3 +55,4 @@ Create the `summaries/` directory if it does not exist.
 3. **Friction and Decisions are the most valuable sections.** These feed into inter-wave knowledge transfer and review. Invest time here.
 4. **Acceptance criteria checkboxes must match the plan.** Use the exact criterion text from plan.toml. Check or uncheck honestly.
 5. **Handoff notes are for downstream tasks, not humans.** Write them so another Developer agent can act on them without asking questions.
+6. **Friction Report categorizes every friction item.** Use exactly one of the four categories (tooling, codebase, process, external). Mark recurrent items — these are the highest-value signals for `/dominion:improve` improvement proposals.

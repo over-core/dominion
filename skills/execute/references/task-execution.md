@@ -2,6 +2,56 @@
 
 Wave execution protocol for parallel Developer agents.
 
+## Developer Methodology
+
+Each Developer agent follows a 7-phase execution cycle per task:
+
+1. **Task Intake** — Read the task from plan.toml (id, title, file_ownership, acceptance criteria, verify_command). Load knowledge_refs and upstream handoff notes. Search EchoVault for gotchas related to task files and domain.
+
+2. **Context Building** — Use serena (`get_symbols_overview`, `find_referencing_symbols`) to map symbols and relationships within the file_ownership scope. Read existing tests for affected code. Check style.toml for conventions. Identify existing patterns and abstractions to extend rather than reinvent.
+
+3. **TDD Red** — Write tests that capture acceptance criteria as executable assertions. Run them and verify they fail for the right reason. Skip for pure refactoring tasks.
+
+4. **Implementation (TDD Green)** — Write minimum code to pass the failing test. Follow clean code and SOLID principles. Use existing codebase patterns. Stay within file_ownership boundaries. Priority order: working > clean > fast.
+
+5. **Refactor** — Apply refactoring patterns (Fowler catalog) if code smells are present. Boy Scout Rule: leave code better than found, but only within task scope. Run tests after each refactoring step.
+
+6. **Verification** — Run verify_command from acceptance criteria. Run the existing test suite to check for regressions. Verify changes stay within file_ownership. If verification fails, iterate from the Implementation phase.
+
+7. **Commit & Handoff** — Atomic commit with conventional commit message. Write SUMMARY.md with friction, decisions, and discoveries. Save discoveries to EchoVault. Report blockers via signal protocol.
+
+### Context Building with Serena
+
+Before writing any code, Developers use serena to understand the code they will change:
+
+- `get_symbols_overview` on each file in file_ownership — understand the public API, classes, functions, and types.
+- `find_referencing_symbols` on symbols being modified — identify callers, implementors, and dependents to assess impact.
+- `find_symbol` to read specific implementations when understanding behavior before changing it.
+- `replace_symbol_body` for targeted edits to existing functions/methods — preferred over raw file editing.
+
+This replaces "read the whole file and grep around." Symbol-level navigation gives precise scope awareness with lower token cost.
+
+### Mode Adaptation
+
+The 7-phase cycle adapts based on execution mode:
+
+- **Orchestrated mode** (`/dominion:execute`): Strict Red-Green-Refactor discipline. One atomic commit per task. file_ownership boundaries enforced from plan.toml. Full summary writing.
+- **Quick mode** (`/dominion:quick`): Relaxed — tests-after is acceptable. One commit for the whole change. Developer determines own scope. Abbreviated summaries.
+- **Improve mode** (`/dominion:improve`): Matches the task type (fix, refactor, enhancement). Per mini-plan task from Architect's improvement plan. Standard summaries.
+
+### TDD Discipline
+
+TDD is the default execution pattern (Kent Beck's Red-Green-Refactor):
+
+1. **Red**: Write a failing test that encodes the acceptance criterion. Run it. Confirm it fails for the expected reason (not a syntax error or import failure).
+2. **Green**: Write the minimum code to make the test pass. No more. Resist the urge to generalize.
+3. **Refactor**: With tests green, improve the code structure. Extract methods, rename for clarity, remove duplication. Run tests after each refactoring.
+
+Exceptions:
+- Pure refactoring tasks: existing tests serve as the safety net. No new tests needed unless coverage gaps are found.
+- Quick mode: tests-after is acceptable when speed matters. Write them, but the order is relaxed.
+- Infrastructure/config tasks: where executable tests are impractical, verify_command serves as the test.
+
 ## Worktree Setup
 
 For each task in the wave:
