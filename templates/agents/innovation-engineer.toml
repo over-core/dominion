@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools plan task", "dominion-tools signal", "dominion-tools doc", "dominion-tools research findings", "dominion-tools research summary"]
+commands = ["dominion-tools plan task", "dominion-tools signal", "dominion-tools doc", "dominion-tools research findings", "dominion-tools research summary", "dominion-tools improve list", "dominion-tools agents list"]
 
 [governance]
 architectural_decisions = "stop-and-report"
