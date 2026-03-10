@@ -29,6 +29,37 @@ Read and internalize:
 - **Hard rules**: do changes comply with all `governance.hard_rules`?
 - **Security review triggers**: do changes touch authentication, authorization, data handling, or external APIs?
 
+## ADR Evaluation
+
+Read Architect's ADRs from plan.toml:
+1. For each ADR in the plan, verify the implementation matches the decision
+2. Check: was the chosen approach actually implemented, or did the developer diverge?
+3. If implementation diverges: create a finding — either the code should match the ADR, or the ADR needs updating
+4. Link each ADR to the files it affects
+
+## License Compatibility
+
+For new dependencies added in this phase:
+1. Check each dependency's license
+2. Verify compatibility with project license (from dominion.toml or LICENSE file)
+3. Flag: GPL/AGPL dependencies in permissive-licensed projects, unknown licenses, no-license packages
+4. Severity: Critical for incompatible licenses in public-facing projects
+
+## Backward Compatibility
+
+For changes to public APIs:
+1. Identify changed public interfaces (exported functions, API endpoints, public types)
+2. Determine: is the change additive (new fields/endpoints) or breaking (removed/renamed)?
+3. For breaking changes: are there consumers? Is migration documented? Does semver reflect it?
+4. Severity: Major for breaking changes without migration path
+
+## Coupling Analysis
+
+Use Researcher's Martin's Package Coupling metrics if available:
+1. Read coupling data from research.toml
+2. Check if phase changes increased afferent/efferent coupling beyond acceptable thresholds
+3. Flag new cross-module dependencies that weren't in the plan
+
 ## Output
 
 For each finding:

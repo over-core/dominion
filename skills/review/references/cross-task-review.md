@@ -30,6 +30,22 @@ Read and internalize:
 - Did multiple agents hit similar friction? This indicates a systemic issue worth flagging
 - Did any agent make a decision that conflicts with another agent's decision?
 
+## Specialist Consultation Protocol
+
+When specialist agents are active (check `.dominion/agents/` for specialist roles):
+
+1. For each active specialist, read `specialist_referral` tags from research.toml
+2. Filter the phase diff to only include files relevant to that specialist's domain
+3. Formulate a scoped query:
+   - "Review the phase {N} changes from a {domain} perspective."
+   - "Changed files in your domain: {filtered file list}"
+   - "Assess: domain-specific correctness, domain-specific risks, domain-specific improvements"
+   - "Return: findings with severity and specific file:line references"
+4. Collect specialist assessment
+5. Assign finding IDs, record `source = "{specialist role}"` for provenance
+6. Integrate into unified review — Reviewer owns all findings, specialists contribute expertise
+7. Skip if no specialists are active
+
 ## Output
 
 For each finding:

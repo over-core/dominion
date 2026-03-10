@@ -30,6 +30,8 @@ Read:
 - `rollbacks_performed`: count rollback commits in git log for this phase (match "revert: rollback task" messages)
 - `average_tokens_per_task`: estimate from summary file sizes (rough proxy — each summary character ≈ 1 token for the work that produced it). If not estimable, set to 0
 - `improvement_proposals`: count proposals in review.toml
+- `iso_25010_delta`: score each ISO 25010 dimension (functional suitability, performance efficiency, compatibility, usability, reliability, security, maintainability, portability) using the shared rubric from [iso-25010-rubric.md](../../../templates/references/iso-25010-rubric.md). Compare against Researcher's pre-phase baseline from research.toml. Record delta per dimension (positive = improved).
+- `sqale_debt_delta`: assess current technical debt by category (design, implementation, test). Compare against Researcher's pre-phase SQALE inventory. Record delta (negative = debt reduced).
 
 ## Write Metrics
 
