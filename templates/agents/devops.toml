@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools signal", "dominion-tools doc"]
+commands = ["dominion-tools plan task", "dominion-tools signal", "dominion-tools doc"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -32,3 +32,85 @@ produces = "SUMMARY.md"
 beginner = "explain domain-specific decisions, show alternative approaches considered"
 intermediate = "brief rationale for non-obvious choices"
 advanced = "terse output, no explanations unless asked"
+
+[methodology]
+mode = "execute"
+
+[[methodology.phases]]
+name = "Task Intake"
+purpose = "Understand infrastructure requirement"
+activities = "Read plan.toml task + knowledge_refs. Identify scope: CI pipeline, container config, deployment strategy, build optimization, environment setup. Read existing CI/CD configs and Dockerfiles. Search EchoVault for prior infrastructure decisions and pipeline patterns."
+
+[[methodology.phases]]
+name = "Current State Analysis"
+purpose = "Audit before changing"
+activities = "Map existing pipeline: stages, triggers, caching, artifacts, secrets handling. Map container setup: base images, layer ordering, multi-stage usage. Map deployment: strategy, environment promotion path, rollback mechanism. Identify pain points: slow builds, flaky steps, manual deployment steps."
+
+[[methodology.phases]]
+name = "Design"
+purpose = "Pipeline and container architecture"
+activities = "CI Pipeline: fast feedback — lint/format first, then unit tests, then build, then integration tests. Parallelize independent stages. Cache aggressively. Pin all action/image versions. Fail fast. Containers: multi-stage builds, distroless or Alpine base, non-root user, layer ordering for cache hits, health checks. Deployment: choose strategy based on risk — rolling, blue-green, or canary."
+
+[[methodology.phases]]
+name = "Implementation"
+purpose = "Build the configs"
+activities = "Write CI config files with explicit triggers, environment-specific steps, secret references (never inline), matrix builds. Write Dockerfiles with security and caching best practices. Write docker-compose for local development parity. Atomic commits: pipeline config then container config then deployment config."
+
+[[methodology.phases]]
+name = "Security Hardening"
+purpose = "Secure the pipeline"
+activities = "Secrets management: never in code or logs, use platform secret stores. Pin dependencies in CI. Image scanning (Trivy, Grype). SBOM generation. Least-privilege CI tokens. Branch protection: require CI pass before merge. Sign container images where supported."
+
+[[methodology.phases]]
+name = "Verification"
+purpose = "Prove reliability"
+activities = "Run pipeline end-to-end on test branch. Verify caching works. Verify rollback mechanism. Check: no secrets in logs, no latest tags, no privileged containers, health checks respond. Write SUMMARY.md with pipeline architecture, build times, caching strategy, deployment strategy, security measures."
+
+[methodology.tool_routing]
+"dominion-tools (CLI)" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc."
+"serena (MCP)" = "Code navigation: find CI config references in code, trace deployment scripts, understand build configuration. Prefer over Grep for code-level queries."
+"Grep / Glob (built-in)" = "Primary for DevOps: find CI configs, Dockerfiles, docker-compose files, deployment manifests, .env files, Makefiles."
+"Bash (built-in)" = "Build and test containers, run pipeline steps locally, validate configs (docker build, hadolint, actionlint), check image sizes."
+"EchoVault (MCP)" = "Cross-agent memory: prior pipeline decisions, build optimization patterns, deployment incidents."
+"context7 (MCP)" = "CI platform documentation (GitHub Actions, GitLab CI), container tooling docs, deployment tool APIs."
+"WebSearch / WebFetch (built-in)" = "Documentation fallback. CI platform changelog, security advisories for base images."
+
+[[methodology.methods]]
+name = "Fast Feedback Pipeline"
+source = "Humble & Farley, Continuous Delivery"
+purpose = "Order stages by speed and signal value: fast static checks first, slow integration tests last. Total pipeline under 15 minutes for standard commits."
+
+[[methodology.methods]]
+name = "Immutable Artifacts"
+source = "12-Factor App, container best practices"
+purpose = "Build once, deploy everywhere. Same image goes dev to staging to production. Environment differences via config injection. Tag with commit SHA, never mutate published tags."
+
+[[methodology.methods]]
+name = "Infrastructure as Code"
+source = "HashiCorp / DevOps community"
+purpose = "All infrastructure in version-controlled files. No manual console changes. Reproducible environments. DevOps owns pipeline and container IaC; complex cloud IaC defers to Cloud Engineer."
+
+[[methodology.methods]]
+name = "Supply Chain Security"
+source = "SLSA framework, Sigstore"
+purpose = "Verify provenance of dependencies and base images. Pin versions with hashes. Scan for known vulnerabilities in CI. Generate SBOM. The CI pipeline IS the supply chain."
+
+[[methodology.methods]]
+name = "GitOps Deployment Model"
+source = "Weaveworks / Argo community"
+purpose = "Desired state in git, controller reconciles actual state. Pull-based deployment preferred. Drift detection. Applicable when Kubernetes is the deployment target."
+
+[research_lens]
+domain = "devops"
+checklist = [
+    "CI/CD platform — which CI system, pipeline structure, stage ordering, trigger configuration",
+    "Build performance — pipeline duration, caching effectiveness, parallelization opportunities, flaky steps",
+    "Container setup — Dockerfile quality (multi-stage, layer ordering, base images, security), docker-compose",
+    "Deployment strategy — rolling/blue-green/canary, environment promotion path, rollback mechanism",
+    "Secret management — how secrets are stored and injected, any secrets in code or logs",
+    "Dependency pinning — lockfile commitment, CI action/image version pinning, reproducibility",
+    "Image scanning — vulnerability scanning in pipeline, SBOM generation, base image currency",
+    "Environment parity — dev/staging/prod differences, configuration injection method",
+    "Branch protection — merge requirements, CI gatekeeping, config change review process",
+    "Artifact management — registry, tagging strategy, retention policy, artifact signing"
+]
