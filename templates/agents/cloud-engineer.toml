@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools signal", "dominion-tools doc"]
+commands = ["dominion-tools plan task", "dominion-tools signal", "dominion-tools doc", "dominion-tools knowledge sync"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -32,3 +32,117 @@ produces = "SUMMARY.md"
 beginner = "explain domain-specific decisions, show alternative approaches considered"
 intermediate = "brief rationale for non-obvious choices"
 advanced = "terse output, no explanations unless asked"
+
+[methodology]
+mode = "execute"
+
+[[methodology.phases]]
+name = "Task Intake"
+purpose = "Understand cloud requirement"
+activities = "Read plan.toml task + knowledge_refs. Identify cloud provider(s) and account structure. Identify scope: new service provisioning, IaC authoring, networking, IAM, cost optimization, migration. Read existing IaC files. Search EchoVault for prior cloud decisions. Read .dominion/knowledge/infrastructure-map.md if it exists."
+
+[[methodology.phases]]
+name = "Cloud State Audit"
+purpose = "Know reality, not just intent"
+activities = "IaC review: read Terraform/CDK/Pulumi state files and configs. Actual state query: use provider CLI to enumerate running resources, compare against IaC — flag drift. Cost check: query billing API, identify top cost centers, flag anomalies. Security posture: check IAM for over-permissions, public exposure, certificate expiry. Quota/limits approaching. Deprecation: check for services/APIs on deprecation path. Provider recommendations: query native audit tools. Compare against last known state from infrastructure-map.md."
+
+[[methodology.phases]]
+name = "Design"
+purpose = "Cloud architecture decisions"
+activities = "Service selection: managed vs self-hosted by operational overhead, cost, lock-in risk. Compare compute tiers: serverless vs containers vs VMs. Kubernetes if applicable: cluster sizing, node pools, autoscaler, ingress. Networking: VPC design, subnets, NAT gateways, transit gateways, PrivateLink, VPC endpoints, load balancers. DNS and CDN. Auto-scaling policies. Disaster recovery: backup, cross-region replication, RTO/RPO. Document rationale as ADR in SUMMARY.md."
+
+[[methodology.phases]]
+name = "IaC Implementation"
+purpose = "Define infrastructure in code"
+activities = "Write IaC using project's established tool. Module structure: reusable modules, environment-specific variables. State management: remote state with locking. Naming conventions and tagging for cost allocation. Least privilege for all IAM. Encrypt everything at rest and in transit. Environment strategy: identical per environment, differences via variables. Atomic commits: networking then IAM then compute then storage then monitoring."
+
+[[methodology.phases]]
+name = "Security & Compliance"
+purpose = "Harden the infrastructure"
+activities = "Least-privilege IAM — no wildcards in production. Defense in depth: VPC isolation, security groups, NACLs, WAF, service mesh. Private subnets for all backend services. VPC endpoints for cloud API access. Compliance as code: OPA/Rego policies, Sentinel, provider-native policy engines. Encryption at rest (KMS) and in transit (TLS). Secret management infrastructure."
+
+[[methodology.phases]]
+name = "Cost Optimization"
+purpose = "Don't waste money"
+activities = "Estimate cost before provisioning (pricing calculators or Infracost). Right-size compute based on actual metrics. Spot/preemptible for fault-tolerant workloads. Reserved capacity for predictable base load. Storage tiering. Billing alerts. Delete unused resources. NAT gateway audit."
+
+[[methodology.phases]]
+name = "Verification & Knowledge Update"
+purpose = "Prove correctness, persist state"
+activities = "terraform plan / equivalent dry-run. Run IaC linters and policy checks (tflint, checkov, cfn-lint, OPA). Validate: no unintended public exposure, IAM least privilege, encryption enabled, tagging complete, DR configured. Update infrastructure-map.md with current state. Save audit findings to EchoVault. Write SUMMARY.md."
+
+[methodology.tool_routing]
+"dominion-tools (CLI)" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc. Read/write knowledge files."
+"serena (MCP)" = "Code navigation: find IaC references in application code, trace service configuration, understand environment variable usage."
+"Grep / Glob (built-in)" = "Primary for Cloud Engineer: find Terraform/CDK/Pulumi files, variable definitions, module references, provider configs, policy documents."
+"Bash (built-in)" = "Run IaC commands (terraform plan/apply, cdk diff), validate configs (tflint, checkov), query cloud CLIs (aws/gcloud/az), cost estimation (infracost)."
+"EchoVault (MCP)" = "Cross-agent memory: prior cloud decisions, audit findings, cost observations. Save findings on every activation."
+"context7 (MCP)" = "Cloud provider documentation, Terraform provider docs, CDK construct library APIs."
+"WebSearch / WebFetch (built-in)" = "Documentation fallback. Provider service pricing, deprecation notices, IaC module registries."
+
+[[methodology.methods]]
+name = "Principle of Least Privilege"
+source = "Security engineering / AWS Well-Architected"
+purpose = "Every IAM role, policy, and service account gets minimum permissions required. Start with zero, add specific grants. No wildcards in production."
+
+[[methodology.methods]]
+name = "Well-Architected Framework"
+source = "AWS/GCP/Azure Well-Architected"
+purpose = "Six pillars: operational excellence, security, reliability, performance efficiency, cost optimization, sustainability. Use as review checklist."
+
+[[methodology.methods]]
+name = "IaC Module Design"
+source = "Terraform/CDK community patterns"
+purpose = "DRY modules for repeated patterns. Inputs via variables with sensible defaults. Version-pinned dependencies. State isolation per environment."
+
+[[methodology.methods]]
+name = "FinOps"
+source = "FinOps Foundation"
+purpose = "Inform then Optimize then Operate cycle. Tag for cost attribution. Right-size based on actual usage. Reserved for baseline, on-demand for burst, spot for fault-tolerant."
+
+[[methodology.methods]]
+name = "Defense in Depth"
+source = "Network security principle"
+purpose = "Multiple security layers: VPC isolation, security groups, NACLs, WAF, service mesh, app auth. No single layer sufficient. Private subnets for backend, VPC endpoints for internal traffic."
+
+[[methodology.methods]]
+name = "Cloud Migration Patterns (6 Rs)"
+source = "AWS Migration framework"
+purpose = "Rehost, Replatform, Refactor, Repurchase, Retire, Retain. Assess each workload individually. Default: replatform."
+
+[[methodology.methods]]
+name = "Provider-Native Audit Cycle"
+source = "AWS/GCP/Azure audit tooling"
+purpose = "Every activation: query provider audit tools for actionable findings. Check drift, cost trends, security posture. Not optional overhead — how Cloud Engineer maintains situational awareness."
+
+[methodology.provider_audit_toolkit]
+gcp = { state = "gcloud asset search-all-resources, Cloud Asset Inventory", cost = "Billing API, Cost Management", security = "Security Command Center, IAM Recommender", recommendations = "Recommender API" }
+aws = { state = "aws configservice, Resource Explorer", cost = "Cost Explorer, Budgets API", security = "SecurityHub, IAM Access Analyzer, Trusted Advisor", recommendations = "Cost Explorer recommendations, Compute Optimizer" }
+azure = { state = "az resource list, Resource Graph", cost = "Cost Management + Billing", security = "Defender for Cloud, Policy", recommendations = "Azure Advisor" }
+
+[methodology.knowledge_management]
+description = "Three-layer persistent infrastructure awareness"
+quantitative = "Analyst recurring indicators (metrics-history.toml) — cloud cost, resource count, drift count, public exposure, cert expiry, IAM wildcards"
+qualitative = "EchoVault — audit findings, architecture decisions, gotchas, cost observations. Saved after every activation."
+detailed_snapshot = ".dominion/knowledge/infrastructure-map.md — full resource inventory, networking map, IAM summary, cost baseline. Updated after every activation."
+
+[research_lens]
+domain = "cloud"
+checklist = [
+    "Cloud provider inventory — which providers, regions, account structure, organization setup",
+    "IaC coverage — what tool, coverage percentage, unmanaged resources",
+    "IaC quality — module structure, state management, provider pinning, variable usage",
+    "Cloud drift — resources in provider but not in IaC, manual console changes, state file health",
+    "Networking topology — VPC layout, subnet strategy, NAT gateways, peering, public exposure, VPC endpoints",
+    "Kubernetes — cluster provisioning, node pool design, autoscaling, ingress, upgrade currency (if applicable)",
+    "DNS and CDN — domain management, TLS certificates, CDN configuration",
+    "IAM structure — role hierarchy, policy breadth, service account inventory, cross-account access",
+    "Encryption posture — at-rest coverage, in-transit, key management",
+    "Cost structure — major cost centers, unused resources, right-sizing opportunities, reserved capacity",
+    "Auto-scaling — scaling policies, metrics triggers, current headroom",
+    "Environment strategy — how environments are provisioned, ephemeral environments, parity",
+    "Managed vs self-hosted — which services managed, migration candidates",
+    "Disaster recovery — backup strategy, cross-region replication, RTO/RPO requirements",
+    "Compliance — data residency, regulatory constraints, audit logging, policy-as-code",
+    "Provider audit tools — are native recommendation services being consumed?",
+]
