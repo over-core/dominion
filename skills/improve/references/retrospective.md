@@ -13,6 +13,31 @@ Read:
 6. `.dominion/phases/{N}/progress.toml` — wave/task execution data
 7. `.dominion/state.toml` — `[[autonomous_decisions]]` for auto mode review
 
+## SBAR Framing
+
+For complex phase outcomes, structure the retrospective using SBAR:
+- **Situation**: current phase status (completed, partial, blocked)
+- **Background**: what was planned, what context existed at phase start
+- **Assessment**: what actually happened — metrics, friction themes, quality delta
+- **Recommendation**: key takeaways and recommended next actions
+
+Use SBAR when the phase had significant friction, unexpected outcomes, or multiple competing concerns. For straightforward phases, the standard What Went Well / Friction / Patterns structure is sufficient.
+
+## Progressive Disclosure
+
+Adapt retrospective depth to user experience level (from user-profile.toml):
+- **Beginner**: full explanations of metrics, what they mean, why they matter. Walk through each section with context.
+- **Intermediate**: standard retrospective with brief context. Highlight significant changes.
+- **Advanced**: metrics summary, friction themes only if actionable. Skip explanations.
+
+## CBAM-lite Consumption
+
+When presenting proposals during the improve step:
+1. Read Researcher's CBAM cost-benefit analysis from research.toml (if available)
+2. For each proposal, cross-reference with CBAM data to estimate ROI
+3. Present proposals ordered by impact-to-effort ratio
+4. Use CBAM data to support recommendations: "This proposal addresses a high-cost area identified in research"
+
 ## Autonomous Decision Review
 
 Check state.toml for `[[autonomous_decisions]]` where `reviewed = false`.

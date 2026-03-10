@@ -10,6 +10,32 @@ Before asking questions, read and internalize:
 3. Previous phase's `review.toml` `[[findings]]` with severity "high" (if exists)
 4. `.dominion/backlog.toml` items with priority "high" (if exists)
 
+## Socratic Questioning
+
+When user goals are vague or ambiguous, use Socratic questioning to draw out specifics:
+- "What would success look like for this phase?"
+- "If you had to cut one feature, which goes first?"
+- "What's the worst outcome you want to avoid?"
+- "Who will use this, and what will they do with it?"
+
+Never accept ambiguous intent like "just make it better" or "fix everything." Drill down to concrete, testable goals.
+
+## Decision Support
+
+When the user faces scope trade-offs during intent capture:
+1. Present options with trade-offs using evidence from research (CBAM-lite analysis if available)
+2. Articulate consequences of each option
+3. Recommend based on effort-vs-value ratio
+4. Present a clear default: "Here's what I'd recommend and why"
+5. Never decide for the user — present options, let them choose
+
+## Active Listening
+
+After each substantive user response, confirm understanding before moving on:
+- "So you want X but not Y — correct?"
+- "Let me make sure I understand: the priority is A, then B, and C is out of scope?"
+- Never assume implicit agreement — explicit confirmation required
+
 ## Required Questions
 
 Ask these in order, presenting relevant context with each:
