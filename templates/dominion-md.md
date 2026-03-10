@@ -45,7 +45,6 @@
 | `/dominion:improve --agent` | Create a new specialized agent |
 | `/dominion:improve --skill` | Create a new skill |
 | `/dominion:improve --from <source>` | Import knowledge from external source |
-| `/dominion:study` | Internalize a plugin's methodology |
 | `/dominion:claim` | Merge Dominion with existing Claude Code setup |
 | `/dominion:release` | Generate changelog, PR synopsis, publish release |
 | `/dominion:status` | Pipeline status dashboard |
@@ -63,6 +62,11 @@ dominion-tools agents list           # Show active agents
 dominion-tools improve list          # Show pending proposals
 dominion-tools release prepare       # Generate changelog + synopsis
 dominion-tools zone check <path>     # Check if path is in legacy zone
+dominion-tools security scan          # Run security scanners, write findings
+dominion-tools security findings      # List findings (filter by severity/status)
+dominion-tools security finding <id>  # Show full detail for one finding
+dominion-tools security track         # Compare findings across phases
+dominion-tools metrics baseline       # Record recurring indicator measurements
 ```
 
 ### Directory Structure
