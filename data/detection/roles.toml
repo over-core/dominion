@@ -113,3 +113,13 @@ triggers = [
     { files = [".releaserc", ".releaserc.json", "release.config.js"] },
     { project_trait = "versioned" },
 ]
+
+# === Innovation Engineer ===
+
+[[roles]]
+name = "innovation-engineer"
+agent_template = "innovation-engineer.toml"
+description = "Contradiction resolution, structured invention, meta-improvement"
+triggers = [
+    { project_trait = "user_requested" },
+]
