@@ -23,11 +23,35 @@ For each changed file:
 2. If yes, do the tests cover the new/modified code paths?
 3. Use Grep to check if new functions/methods have test cases
 
-## Severity Classification
+## HRBT-Based Severity
 
-- **High**: untested error handling, security-related code, data validation, authentication/authorization
-- **Medium**: untested business logic, new API endpoints, state transitions
-- **Low**: untested display/formatting code, logging, comments-only changes
+Replace static severity heuristics with risk-based classification from Researcher's HRBT matrix:
+
+1. Read `.dominion/phases/{N}/research.toml` — find HRBT risk entries per component
+2. For each gap, determine the component's HRBT risk level:
+   - **High risk** (HRBT): untested code in high-risk components — severity "high" regardless of code type
+   - **Medium risk** (HRBT): untested code in medium-risk components — severity "medium"
+   - **Low risk** (HRBT): untested code in low-risk components — severity "low"
+3. If no HRBT data available, fall back to static heuristics:
+   - High: security-related code, data validation, authentication/authorization, error handling
+   - Medium: business logic, API endpoints, state transitions
+   - Low: display/formatting, logging, comments-only changes
+
+## Test Layer Classification
+
+For each gap, identify which test layer is missing:
+- `unit` — isolated function/method testing
+- `integration` — module boundary / service interaction testing
+- `property` — invariant-based generative testing
+- `adversarial` — malformed input, resource exhaustion, race conditions
+
+## Fragility Assessment
+
+After identifying gaps, assess existing test suite health:
+1. **Flaky tests**: tests that fail non-deterministically — grep for `sleep`, `setTimeout`, time-dependent assertions, shared mutable state between tests
+2. **Brittle tests**: tests that break on implementation change but behavior is preserved — tests asserting on internal implementation details rather than behavior
+3. **Test independence**: verify no test depends on execution order or shared state — look for global setup, shared database state, test coupling
+4. **Flag**: report fragile tests in test-report.toml `[[fragility]]` entries with type (flaky/brittle) and description
 
 ## Write New Tests
 
@@ -44,6 +68,8 @@ For low severity gaps:
 For each gap:
 - `id`: G1, G2, ... (sequential)
 - `description`: what is not covered
-- `severity`: high | medium | low
+- `severity`: high | medium | low (from HRBT risk classification)
+- `risk_level`: high | medium | low (HRBT source)
+- `test_layer`: unit | integration | property | adversarial (which layer is missing)
 - `new_test_written`: true if a test was written for this gap
 - `test_file`: path to the new test file (if written)

@@ -2,6 +2,21 @@
 
 Tester-driven verification of plan acceptance criteria.
 
+## HRBT Risk Context
+
+Before running validations, load risk context:
+1. Read `.dominion/phases/{N}/research.toml` — find HRBT risk matrix entries
+2. Map each task's affected components to risk levels (high/medium/low)
+3. Critical-path tasks (plan.toml `critical_path = true`) get stricter validation — all criteria must pass with explicit evidence
+
+## Smoke Testing
+
+Run smoke tests FIRST before detailed validation:
+1. Identify core user paths from plan.toml tasks (high-priority, critical-path)
+2. Run a quick smoke: build succeeds, main entry point starts, core API responds
+3. If smoke fails → halt validation, report blocker via `dominion-tools signal blocker`
+4. Only proceed to detailed validation after smoke passes
+
 ## Input
 
 Read and internalize:

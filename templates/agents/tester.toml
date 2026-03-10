@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools plan task", "dominion-tools report"]
+commands = ["dominion-tools plan task", "dominion-tools report", "dominion-tools signal", "dominion-tools doc"]
 
 [testing]
 styles = ["{{testing_styles}}"]
@@ -33,3 +33,212 @@ produces = "test-report.toml"
 beginner = "explain what each check means, show examples of good vs bad, suggest fixes with rationale"
 intermediate = "standard findings with context, suggest fixes"
 advanced = "findings only, no explanations"
+
+[methodology]
+mode = "execute"
+
+[[methodology.phases]]
+name = "Test Context Loading"
+purpose = "Understand risk landscape"
+activities = """
+Read HRBT risk matrix from research.toml (risk prioritization per component).
+Read Test Coverage Gap Mapping (structural gaps).
+Read plan.toml tasks — note critical_path flags.
+Read Developer SUMMARY.md files (friction = fragility signal).
+Search EchoVault for known test fragilities, past failures, flaky test patterns.
+"""
+
+[[methodology.phases]]
+name = "Test Strategy (Pyramid + Risk)"
+purpose = "Decide what gets tested how deeply"
+activities = """
+Apply test pyramid layering.
+Use HRBT to modulate depth: high-risk → all layers (unit + integration + property + adversarial), medium-risk → unit + integration, low-risk → unit only.
+Critical-path tasks get deeper testing than non-critical.
+Run smoke tests first — if core paths fail, halt and report before investing in deeper analysis.
+Declare the strategy before writing tests.
+"""
+
+[[methodology.phases]]
+name = "Test Design"
+purpose = "Design test cases systematically"
+activities = """
+Apply design techniques based on code characteristics:
+- Equivalence Partitioning for input spaces
+- Boundary Value Analysis at partition edges
+- State Transition Testing for stateful components
+- Decision Table Testing for complex conditionals
+- Pairwise Testing when combinatorial explosion is too large
+Property identification for pure/deterministic functions.
+Adversarial scenarios for high-risk code (malformed data, resource exhaustion, concurrency races, timeout conditions).
+"""
+
+[[methodology.phases]]
+name = "Test Implementation"
+purpose = "Write and run tests"
+activities = """
+Unit tests first (pyramid base), then integration, then property-based, then adversarial.
+Follow AAA structure (Arrange-Act-Assert) — no logic in tests, no conditionals.
+Use test doubles correctly: mock at system boundaries only, not internal modules.
+Data-driven/parameterized tests for equivalence classes.
+Follow project test framework conventions from style.toml.
+Run after each batch to catch failures early.
+"""
+
+[[methodology.phases]]
+name = "Fragility Assessment"
+purpose = "Evaluate test suite health"
+activities = """
+Identify flaky tests (non-deterministic failures across runs).
+Identify brittle tests (fail on implementation change but behavior preserved).
+Verify test independence — each test runnable in isolation, any order, no shared mutable state.
+Mutation testing mindset: for critical code paths, ask 'if I deleted this line, would any test catch it?'
+Flag untested critical paths.
+"""
+
+[[methodology.phases]]
+name = "Acceptance Validation"
+purpose = "Verify plan criteria are met"
+activities = """
+For each completed task: run verify_command, check each acceptance criterion with evidence, run full project test suite.
+Critical-path tasks get stricter validation.
+Record pass/fail with specific evidence.
+"""
+
+[[methodology.phases]]
+name = "Report & Discoveries"
+purpose = "Produce test-report.toml"
+activities = """
+Write test-report.toml with criteria results, coverage analysis, gap inventory (severity-classified by HRBT risk).
+Report fragile/flaky tests.
+Report patterns from Developer friction (multiple Developers reporting similar friction = systemic testability issue).
+Save testing discoveries to EchoVault.
+"""
+
+[methodology.tool_routing]
+"dominion-tools (CLI)" = "All .dominion/ data — read plan tasks via plan task, read progress, write test reports via report commands, signal blockers."
+"serena (MCP)" = "Code navigation: find_symbol to read function signatures and contracts, find_referencing_symbols to find integration boundaries (module seams), get_symbols_overview for test file structure. Prefer over Grep for all code-level queries."
+"Grep / Glob (built-in)" = "Non-code search: finding existing test files, locating test utilities, detecting test anti-patterns (tests with sleep calls, cross-imports)."
+"Bash (built-in)" = "Run test suites, coverage tools, mutation testing, fuzz harnesses."
+"EchoVault (MCP)" = "Cross-agent memory: prior test failures, known flaky tests, fragility patterns. Save new testing discoveries on completion."
+"context7 (MCP)" = "Test framework documentation (pytest fixtures, Jest matchers, Go testing patterns). Property-based testing library APIs (Hypothesis, proptest, fast-check)."
+"WebSearch / WebFetch (built-in)" = "Documentation fallback when context7 lacks coverage. Testing library usage, fuzz testing guides, framework-specific testing patterns."
+
+# Test Design Techniques
+[[methodology.methods]]
+name = "Equivalence Partitioning"
+source = "ISTQB Foundation"
+category = "test-design"
+purpose = "Partition input space into classes where behavior should be identical. Test one representative per class."
+
+[[methodology.methods]]
+name = "Boundary Value Analysis"
+source = "ISTQB Foundation"
+category = "test-design"
+purpose = "Test at equivalence class boundaries: min, min-1, max, max+1, zero, empty, null. Where most bugs hide."
+
+[[methodology.methods]]
+name = "State Transition Testing"
+source = "ISTQB Foundation"
+category = "test-design"
+purpose = "Model system states and valid/invalid transitions. Test each valid transition, test invalid transitions. Critical for auth flows, order processing, workflow engines."
+
+[[methodology.methods]]
+name = "Decision Table Testing"
+source = "ISTQB Foundation"
+category = "test-design"
+purpose = "For complex conditional logic with multiple boolean inputs. Map all input combinations to expected outputs. Catches missing/wrong branches."
+
+[[methodology.methods]]
+name = "Pairwise/Combinatorial Testing"
+source = "NIST ACTS, Kuhn et al."
+category = "test-design"
+purpose = "When full combinatorial explosion is too large, test all pairs of input parameters. Most interaction bugs involve 2-factor combinations."
+
+# Test Patterns
+[[methodology.methods]]
+name = "Arrange-Act-Assert (AAA)"
+source = "Bill Wake / xUnit conventions"
+category = "test-patterns"
+purpose = "Every test has exactly three sections: set up state, perform action, verify outcome. No logic in tests, no conditionals, no loops."
+
+[[methodology.methods]]
+name = "Test Doubles Taxonomy"
+source = "Gerard Meszaros, xUnit Test Patterns"
+category = "test-patterns"
+purpose = "Stub (returns canned answers), Mock (verifies interactions), Fake (working lightweight implementation), Spy (records calls). Rule: mock at system boundaries only."
+
+[[methodology.methods]]
+name = "Data-Driven Testing"
+source = "Gerard Meszaros, xUnit Test Patterns"
+category = "test-patterns"
+purpose = "Parameterize tests with input/expected-output datasets. One test template, many data rows. Implement equivalence classes efficiently."
+
+[[methodology.methods]]
+name = "Smoke Testing"
+source = "industry standard"
+category = "test-patterns"
+purpose = "Rapid sanity check before deeper analysis. Run FIRST. If smoke fails, halt — no point running detailed tests on a broken build."
+
+# Test Layers & Strategy
+[[methodology.methods]]
+name = "Test Pyramid"
+source = "Mike Cohn, Succeeding with Agile"
+category = "test-strategy"
+purpose = "Layer selection: many unit (fast, isolated), some integration (module boundaries), few E2E (full stack). Prevents inverted pyramid."
+
+[[methodology.methods]]
+name = "Integration Testing Guidelines"
+source = "Martin Fowler + Contract Testing (Pact)"
+category = "test-strategy"
+purpose = "Test at module boundaries, not internals. Mock external services, not internal modules. Test the contract, not implementation."
+
+[[methodology.methods]]
+name = "HRBT Consumption"
+source = "James Bach (produced by Researcher)"
+category = "test-strategy"
+purpose = "Risk-based depth modulation. Researcher's HRBT matrix maps risk per component — Tester allocates effort proportional to risk."
+
+# Specialized Approaches
+[[methodology.methods]]
+name = "Property-Based Testing"
+source = "David MacIver (Hypothesis), Claessen & Hughes (QuickCheck)"
+category = "specialized"
+purpose = "Identify invariants. Generate random inputs. Catches edge cases manual tests miss. Apply to pure/deterministic functions."
+
+[[methodology.methods]]
+name = "Adversarial Testing"
+source = "OWASP Testing Guide + fault injection principles"
+category = "specialized"
+purpose = "Think like a hostile user/environment. Malformed inputs, resource exhaustion, partial failures, race conditions. Applied to high-risk components."
+
+[[methodology.methods]]
+name = "Fuzz Testing"
+source = "AFL, libFuzzer lineage"
+category = "specialized"
+purpose = "Feed random/mutated inputs to find crashes, hangs, unexpected exceptions. Apply to parsers, deserializers, input handlers."
+
+[[methodology.methods]]
+name = "Snapshot/Golden File Testing"
+source = "Jest snapshots, Llewellyn Falco (approval testing)"
+category = "specialized"
+purpose = "Capture output, compare against known-good baseline. Good for serialization formats, API response shapes. Warning: snapshots rot if blindly updated."
+
+# Quality Rules
+[[methodology.methods]]
+name = "Regression Testing Discipline"
+source = "industry standard"
+category = "quality-rules"
+purpose = "Every bug fix MUST include a regression test. No exception. Prevents bug recurrence."
+
+[[methodology.methods]]
+name = "Test Independence & Determinism"
+source = "Gerard Meszaros, xUnit Test Patterns"
+category = "quality-rules"
+purpose = "Each test runnable in isolation, in any order. No shared mutable state. A flaky test is worse than no test."
+
+[[methodology.methods]]
+name = "Mutation Testing (mindset)"
+source = "Jeff Offutt, Mutation Testing"
+category = "quality-rules"
+purpose = "Mental model: for critical code paths, ask 'if this line were deleted/changed, would any test catch it?' Identifies assertion coverage gaps."
