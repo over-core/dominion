@@ -36,6 +36,19 @@ Extract domain knowledge from external sources for `/dominion:improve --from`.
 3. If it's a directory: read all `.md`, `.txt`, `.pdf` files within
 4. Structure into domain knowledge format
 
+### Plugin Reference (`--from plugin:<name>`)
+1. Locate the plugin: check installed Claude Code plugins for the named plugin
+2. Read all plugin artifacts: skills, agents, hooks, configs, package manifest
+3. **Security Gate**: invoke Security Auditor's Improve Mode before any extraction:
+   - **Inventory**: catalog all plugin artifacts (skills, agents, hooks, configs)
+   - **Security Assessment**: evaluate each artifact for command injection, permission escalation, data exfiltration, filesystem escape, secret exposure, supply chain concerns
+   - **Kill Gate**: present findings to user per artifact
+     - **Unsafe** artifacts are killed — no further processing
+     - **Conditional** artifacts require user acknowledgment of risks
+     - **Safe** artifacts pass to the normal improve pipeline
+4. Only artifacts that pass the kill gate proceed to post-extraction
+5. Structure passing artifacts into domain knowledge format
+
 ## Post-extraction
 
 After extracting from any source:
