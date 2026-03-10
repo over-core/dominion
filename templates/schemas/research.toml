@@ -13,6 +13,9 @@ title = ""
 description = ""
 evidence = []                       # file:line references
 recommendation = ""
+confidence = ""                     # confirmed | supported | inferred (speculative items go to assumptions, not findings)
+specialist_referral = ""            # role name if needs deeper specialist review, empty otherwise
+method = ""                         # which research method produced this finding
 
 [[opportunities]]
 id = ""                             # O1, O2, ...
@@ -27,6 +30,7 @@ risk = ""                           # low | medium | high
 status = "unverified"               # unverified | verified | false
 verified_by = ""                    # how it was verified (test, docs, manual check)
 verified_at = ""                    # ISO 8601 timestamp
+evidence_grade = ""                 # confirmed | supported | inferred | speculative
 
 # Role proposals (detected during explore, suggested during improve)
 [[role_proposals]]

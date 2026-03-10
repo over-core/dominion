@@ -5,6 +5,10 @@
 schema_version = 1
 phase = 0
 
+[baselines]
+iso_25010_delta = ""                # JSON or inline table — quality characteristic scores delta from pre-phase baseline
+sqale_debt_delta = ""               # JSON or inline table — debt category deltas (design, implementation, test)
+
 [[findings]]
 id = ""                             # R1, R2, ...
 category = ""                       # code-quality | architecture | process | testing | cross-task
@@ -13,6 +17,8 @@ title = ""
 description = ""
 file = ""                           # file path
 suggestion = ""                     # actionable fix
+dimension = ""                      # correctness | security | compliance | performance | reliability | maintainability | architecture | test-adequacy | style
+source = ""                         # reviewer | {specialist role name} — who identified this finding
 
 [[proposals]]
 id = ""                             # P1, P2, ...

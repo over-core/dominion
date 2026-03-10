@@ -13,12 +13,14 @@ tests_run = 0
 tests_passed = 0
 tests_failed = 0
 coverage_delta = ""                 # "+12%", "-3%", "N/A"
+strategy = ""                       # description of test strategy selected (pyramid level, risk focus)
 
 [[criteria_results]]
 task = ""                           # task id
 criterion = ""                      # acceptance criterion text
 status = ""                         # passed | failed
 evidence = ""                       # test output, file reference
+risk_level = ""                     # high | medium | low — from HRBT risk matrix
 
 [[gaps]]
 id = ""                             # G1, G2, ...
@@ -26,3 +28,10 @@ description = ""                    # what is not covered
 severity = ""                       # high | medium | low
 new_test_written = false            # true if Tester wrote a test for this
 test_file = ""                      # path to new test if written
+risk_level = ""                     # high | medium | low — from HRBT risk matrix
+test_layer = ""                     # unit | integration | property | adversarial
+
+[[fragility]]
+test_file = ""                      # path to fragile test
+type = ""                           # flaky | brittle
+description = ""                    # what makes it fragile

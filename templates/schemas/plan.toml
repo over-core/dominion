@@ -15,6 +15,8 @@ agent = "Developer"
 file_ownership = []                 # directories/files this task may modify
 token_estimate = 0                  # estimated tokens for task, 0 = not estimated
 knowledge_refs = []                 # knowledge file names relevant to this task (from .dominion/knowledge/)
+critical_path = false               # true if on critical dependency chain (CPM-lite)
+specialist_referral = ""            # from research.toml, agent routing hint
 
 [tasks.acceptance]
 criteria = []                       # list of verifiable done conditions
