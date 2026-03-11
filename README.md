@@ -2,7 +2,7 @@
 
 > Your AI development team, generated from your codebase.
 
-**v0.9.0** | MIT License | Claude Code Plugin
+**v0.1.0** | MIT License | Claude Code Plugin
 
 Dominion is a Claude Code plugin that analyzes your project and generates a complete AI development methodology — specialized agents, curated tools, governance rules, code conventions, git workflow, and a CLI toolkit — all committed to git. The plugin is the author; the artifacts are the runtime. Dominion is needed to create and evolve the setup, but a cloned repo works without it. New developers get best practices on `git clone`. The methodology improves itself after every development phase.
 
@@ -30,7 +30,7 @@ Run `/dominion:init` once and Dominion generates the following in your project:
 │   └── ...
 ├── settings.json              # Permissions and tool access
 └── commands/
-    └── dominion-cli/        # Generated CLI toolkit (52 commands)
+    └── dominion-cli/        # CLI toolkit (54 commands)
 
 CLAUDE.md                      # Project-aware AI instructions
 AGENTS.md                      # Agent roster documentation
@@ -125,36 +125,81 @@ The Innovation Engineer applies structured invention methodologies (TRIZ, SIT, A
 
 ## CLI Toolkit
 
-`dominion-cli` is generated during init and serves as the exclusive data access layer for all `.dominion/` TOML files. All 18 agents read and write project state through these commands — no exceptions.
+`dominion-cli` is the exclusive data access layer for all `.dominion/` TOML files. It ships pre-built with the plugin and is installed during `/dominion:init`. All 18 agents read and write project state through CLI commands — no agent edits TOML files directly.
 
-**52 commands** organized in the following groups:
+### Installation
 
-| Group | Commands | Purpose |
-|-------|----------|---------|
-| State | 9 | Session position, decisions log, blockers, checkpoints, deferred items |
-| Agents | 3 | List agents, show config, regenerate agent files |
-| Planning | 6 | Task details, wave view, dependencies, handoffs, plan validation |
-| Signals | 4 | Raise/resolve blockers and warnings between agents |
-| Research | 4 | Filter findings by severity, view opportunities, research summaries |
-| Phase & Wave | 5 | Initialize phases, track wave progress, trigger wave merges |
-| Reports | 2 | Create and finalize test/review artifacts |
-| Backlog | 3 | Capture ideas, filter backlog, get smart suggestions |
-| Metrics | 3 | View phase metrics, trends across phases, baseline measurements |
-| Improvements | 3 | List proposals, show details, update proposal status |
-| Autonomy | 5 | Pre-flight checks, autonomous decision logging, auto mode control |
-| Security | 4 | Run security scans, list findings, track across phases |
-| Release | 3 | Prepare changelog, publish release, check release spec |
-| Documentation | 2 | Generate and display project overview |
-| Direction | 1 | Check direction zone for file paths |
-| Profile | 3 | View/update user preferences, increment session count |
-| Rollback | 2 | Roll back to wave/task/phase boundary, view commit history |
-| Style | 1 | Check code against style.toml conventions |
-| Claim | 1 | Show brownfield claim provenance |
-| Roadmap | 2 | Display roadmap summary and phase objectives |
-| Validation | 1 | Check config integrity |
-| Knowledge | 2 | Sync MEMORY.md from knowledge index, search by topic |
+The CLI is installed automatically during init. To install manually:
 
-All commands support human-readable output by default and `--json` for machine-readable output.
+```bash
+cd your-project
+uv tool install ./path-to-dominion/cli
+```
+
+### Usage
+
+```bash
+# Check current pipeline position
+dominion-cli state position
+
+# Resume context at session start
+dominion-cli state resume
+
+# List active agents
+dominion-cli agents list
+
+# Show task details for the current plan
+dominion-cli plan task 1-03
+
+# Raise a blocker signal
+dominion-cli signal blocker --task 1-03 --reason "API schema undefined" --level phase
+
+# Read any TOML value (generic escape hatch)
+dominion-cli data get dominion.toml --key project.name
+
+# Write any TOML value
+dominion-cli data set state.toml --key position.step --value '"execute"'
+
+# All commands support JSON output
+dominion-cli state position --json
+dominion-cli agents list --json
+```
+
+### Command Reference
+
+**54 commands** across 22 groups. All commands support `--json` for machine-readable output.
+
+| Group | Commands | Description |
+|-------|----------|-------------|
+| `state` | `resume`, `position`, `update`, `checkpoint`, `decision`, `decisions`, `defer`, `deferred`, `blockers` | Session position, decisions log, blockers, checkpoints, deferred items |
+| `agents` | `list`, `show`, `generate` | List agents, show config, regenerate `.claude/agents/*.md` and `AGENTS.md` |
+| `plan` | `task`, `wave`, `deps`, `handoff`, `index`, `validate` | Task details, wave view, dependency graph, handoffs, plan validation |
+| `signal` | `blocker`, `warning`, `list`, `resolve` | Raise/resolve blockers and warnings between agents |
+| `research` | `findings`, `finding`, `opportunities`, `summary` | Filter findings by severity, view opportunities, research summaries |
+| `phase` | `init`, `status`, `progress` | Initialize phases, view status, track task completion |
+| `wave` | `create`, `status`, `merge` | Create wave directories, track wave progress, trigger merges |
+| `report` | `create`, `finalize` | Create and finalize test/review artifacts |
+| `backlog` | `add`, `list`, `suggest` | Capture ideas, filter by priority/status, get smart suggestions |
+| `metrics` | `show`, `trends`, `baseline` | Phase metrics, cross-phase trends, baseline measurements |
+| `improve` | `list`, `show`, `update` | List proposals, show details, update proposal status |
+| `auto` | `readiness`, `decisions`, `start`, `stop`, `log` | Pre-flight checks, autonomous decision logging, auto mode control |
+| `security` | `scan`, `findings`, `finding`, `track` | Run security scans, list/show findings, track across phases |
+| `release` | `prepare`, `publish`, `status` | Prepare changelog, publish release, check release spec |
+| `doc` | `generate`, `show` | Generate and display DOMINION.md project overview |
+| `zone` | `check` | Check direction zone for file paths |
+| `profile` | `show`, `set`, `tick` | View/update user preferences, increment session count |
+| `roadmap` | `show`, `phases` | Display roadmap summary and phase objectives |
+| `style` | `check` | Check code against style.toml conventions |
+| `knowledge` | `sync`, `search` | Sync MEMORY.md from knowledge index, search by topic |
+| `data` | `get`, `set` | Generic read/write for any `.dominion/` TOML file (escape hatch) |
+| *(top-level)* | `validate`, `rollback`, `history` | Config integrity check, rollback to safe boundary, commit history |
+
+### Key Design Principles
+
+- **CLI is the only interface** — agents never read or write `.dominion/` TOML files directly
+- **`data get`/`data set`** are the generic escape hatch — when `/dominion:improve` creates a new TOML file type, agents can immediately access it without waiting for a dedicated command
+- **Path traversal protection** — `data get`/`data set` refuse `..` and absolute paths outside `.dominion/`
+- **Agent discovery** — `agents generate` reads `cli-spec.toml` to produce a "CLI Commands Available" section in each agent's `.md` file, with command descriptions and the governance rule
 
 ## Project Detection
 
@@ -269,7 +314,7 @@ templates/
   agents/                  18 agent TOML templates (9 core + 9 specialist)
   schemas/                 18 TOML schema definitions
   references/              11 shared reference files
-  cli-spec.toml            CLI specification (52 commands)
+  cli-spec.toml            CLI specification (54 commands)
   dominion-md.md           Project overview template
 
 data/detection/
@@ -293,17 +338,9 @@ This is not a traditional codebase. There is almost no application code. The pro
 
 ## Version History
 
-| Version | Codename | Highlights |
-|---------|----------|------------|
-| 0.1 | Genesis | Initial project analysis and methodology generation |
-| 0.2 | Orchestration | 7-step pipeline (discuss → explore → plan → execute → test → review → improve) |
-| 0.3 | Garrison | Session hooks, git workflow, rollback protocol, MCP curation |
-| 0.4 | Evolution | Improvement loop, knowledge layer, metrics tracking |
-| 0.5 | Autonomy | Auto mode, circuit breakers, token-aware planning, degraded mode |
-| 0.6 | Expansion | 9 specialist roles, direction system, language tier rename |
-| 0.7 | Adoption | Brownfield claim, user profiling, cross-project preferences, progressive disclosure |
-| 0.8 | Visibility | Stabilization, skill consolidation |
-| 0.9 | Methodology | Industry-standard agent methodologies, Innovation Engineer, Security Auditor promotion |
+| Version | Highlights |
+|---------|------------|
+| 0.1.0 | Initial release — 14 skills, 18 agents, 54 CLI commands, 7-step pipeline, auto mode, brownfield claim, improvement loop |
 
 ## License
 
