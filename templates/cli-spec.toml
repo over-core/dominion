@@ -21,6 +21,7 @@ minimum_commands = [
     "roadmap show", "roadmap phases", "style check",
     "security scan", "security findings", "security finding", "security track",
     "metrics baseline",
+    "data get", "data set",
 ]
 
 # === Validation ===
@@ -1345,6 +1346,45 @@ reads = ["DOMINION.md"]
 behavior = """
 Read and display DOMINION.md from project root.
 If not found: "No DOMINION.md found. Run doc generate first."
+"""
+
+# === Generic Data Access ===
+
+[[commands]]
+name = "data get"
+description = "Read any .dominion/ TOML file or a specific key within it"
+args = [
+    { name = "file", description = "TOML file path relative to .dominion/", required = true },
+    { name = "--key", description = "Dotted key path (e.g., findings.0.title)", optional = true },
+    { name = "--json", description = "Output as JSON", optional = true },
+]
+reads = [".dominion/**/*.toml"]
+behavior = """
+Read the specified TOML file from .dominion/. If --key given, traverse the parsed data
+to that path and output only that value. Refuses paths outside .dominion/ (rejects '..'
+and absolute paths).
+
+This is the generic escape hatch for project-specific data types created by /dominion:improve.
+When a new TOML file type is introduced (e.g., compliance.toml), agents can immediately
+read it via `data get` without waiting for a dedicated CLI command.
+"""
+
+[[commands]]
+name = "data set"
+description = "Write a value to any .dominion/ TOML file"
+args = [
+    { name = "file", description = "TOML file path relative to .dominion/", required = true },
+    { name = "--key", description = "Dotted key path to write", required = true },
+    { name = "--value", description = "JSON-encoded value to write", required = true },
+]
+writes = [".dominion/**/*.toml"]
+behavior = """
+Parse --value as JSON, traverse the TOML to the specified key path, set the value,
+write back. Creates intermediate tables as needed. Refuses paths outside .dominion/.
+
+Two-stage validation:
+1. json.loads(value) — rejects invalid JSON syntax
+2. TOML serialization — rejects values TOML cannot represent (e.g., null)
 """
 
 # === Output Format ===

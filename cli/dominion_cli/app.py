@@ -12,6 +12,7 @@ from .commands import (
     agents,
     auto,
     backlog,
+    data,
     doc,
     history,
     improve,
@@ -76,6 +77,7 @@ app.add_typer(roadmap.app, name="roadmap")
 app.add_typer(style.app, name="style")
 app.add_typer(security.app, name="security")
 app.add_typer(improve.app, name="improve")
+app.add_typer(data.app, name="data")
 
 # --- "project" sub-group (project summary) ---
 project_app = typer.Typer(help="Project overview")
