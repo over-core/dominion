@@ -92,6 +92,35 @@ Follow [claude-md-generation.md](references/claude-md-generation.md):
 - Phase 1: Draft synthesis (ultrathink)
 - Phase 2: Section-by-section walkthrough with user
 
+## Verification Gates
+
+After each generation step, verify expected files exist. Fail loudly if missing.
+
+### After Step 3 (Project Config):
+- Glob: `.dominion/dominion.toml`, `.dominion/style.toml`, `.dominion/roadmap.toml`, `.dominion/knowledge/index.toml`
+- Read each file, verify TOML parses: `python3 -c "import tomllib; tomllib.load(open('{file}','rb'))"`
+- FAIL if any missing or unparseable. Do not proceed to Step 4.
+
+### After Step 4 (Agents):
+- Glob: `.dominion/agents/*.toml` — expect at least 8 files (core agents)
+- Glob: `.claude/agents/*.md` — expect matching count
+- Verify each TOML parses.
+- FAIL if count mismatch or any unparseable.
+
+### After Step 6 (settings.json):
+- Read `.claude/settings.json`, verify JSON parses.
+- Check it contains `dominion-cli` in allowed tools.
+- FAIL if missing or malformed.
+
+### After Step 7 (Hooks):
+- Glob: `.claude/hookify.*.local.md` — expect 4 files
+- Read each, verify YAML frontmatter has `event:` field
+- FAIL if fewer than 4 or any malformed.
+
+### After Step 9 (CLI):
+- Run `dominion-cli --version` — verify exit code 0 and version matches
+- FAIL if command not found or version mismatch.
+
 ## Step 9: Install CLI
 
 Follow [cli-installation.md](../../templates/references/cli-installation.md):
