@@ -4,20 +4,20 @@ Assemble and present a project status dashboard.
 
 ## Data Collection
 
-Read these files (skip any that don't exist):
+Collect data using CLI commands. Run each via Bash, skip any that fail:
 
-1. `.dominion/dominion.toml` — `[project]` section for project name and vision
-2. `.dominion/state.toml` — `[position]` for phase, step, wave, status, last_session; `[lock]` for active locks; `[blocker]` for active blocker
-3. `.dominion/roadmap.toml` — current phase title and milestone context
-4. `.dominion/phases/{N}/progress.toml` — wave/task counts and statuses (only if position.phase > 0 and step is execute or later)
-5. `.dominion/signals/` — list directory, count `.toml` files by type (blocker vs warning)
-6. `.dominion/backlog.toml` — count items by priority (high/medium/low) and status (open only)
-7. `.dominion/state.toml` `[[decisions]]` — count decisions for current phase
-8. `.dominion/phases/{N}/metrics.toml` — phase metrics summary (only if step is improve or later)
-9. `.dominion/improvements.toml` — pending improvement proposals count
-10. `.dominion/dominion.toml` `[autonomy]` — mode and circuit breaker config (only if section exists)
-11. `.dominion/state.toml` `[[autonomous_decisions]]` — count unreviewed decisions
-12. `.dominion/state.toml` `[[mcp_status]]` — MCP availability summary
+1. **Project info**: `dominion-cli data get dominion.toml --key project --json`
+2. **State position**: `dominion-cli state position --json`
+3. **Roadmap**: `dominion-cli roadmap show --json`
+4. **Phase progress** (only if position.phase > 0 and step is execute or later): `dominion-cli phase progress {N} --json`
+5. **Signals**: `dominion-cli signal list --json`
+6. **Backlog** (open items only): `dominion-cli backlog list --status open --json`
+7. **Decisions**: `dominion-cli state decisions --json`
+8. **Metrics** (only if step is improve or later): `dominion-cli metrics show --phase {N} --json`
+9. **Improvements**: `dominion-cli improve list --status pending --json`
+10. **Autonomy config** (only if autonomy section exists): `dominion-cli data get dominion.toml --key autonomy --json`
+11. **Auto decisions**: `dominion-cli auto decisions --reviewed false --json`
+12. **MCP status**: `dominion-cli data get state.toml --key mcp_status --json`
 
 ## Dashboard Format
 

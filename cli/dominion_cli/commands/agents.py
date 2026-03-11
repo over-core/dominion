@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Annotated, Optional
+from typing import Annotated
 
 import typer
 
 from ..core.config import dominion_path, project_root
 from ..core.formatters import error, info, output, table
-from ..core.readers import read_toml, read_toml_glob
+from ..core.readers import read_toml, read_toml_glob, read_toml_optional
 
 app = typer.Typer(help="Agent configuration management")
 
@@ -18,6 +18,58 @@ SPECIALIZED_ROLES = [
     "devops", "cloud-engineer", "technical-writer",
     "observability-engineer", "release-manager", "innovation-engineer",
 ]
+
+UNIVERSAL_CLI_COMMANDS = ["state position", "state resume", "data get", "data set"]
+
+
+def _load_cli_spec() -> dict[str, str]:
+    """Load cli-spec.toml and return a dict of command name -> description."""
+    spec_path = dominion_path("specs", "cli-spec.toml")
+    data = read_toml_optional(spec_path)
+    if not data:
+        return {}
+    return {cmd["name"]: cmd.get("description", "") for cmd in data.get("commands", [])}
+
+
+def _normalize_cli_commands(tools: dict) -> list[str]:
+    """Extract CLI command list from tools dict, handling flat and nested formats."""
+    cli = tools.get("cli")
+    if cli is None:
+        return []
+    if isinstance(cli, list):
+        return cli
+    if isinstance(cli, dict):
+        return cli.get("commands", [])
+    return []
+
+
+def _expand_cli_commands(
+    commands: list[str], spec: dict[str, str],
+) -> list[tuple[str, str]]:
+    """Expand group prefixes and resolve descriptions from cli-spec.toml.
+
+    Returns sorted list of (name, description) tuples.
+    """
+    result: dict[str, str] = {}
+    for cmd in commands:
+        name = cmd.removeprefix("dominion-cli ").strip()
+        name = name.removesuffix(" *").strip()
+
+        # Exact match
+        if name in spec:
+            result[name] = spec[name]
+            continue
+
+        # Group prefix — expand to all matching leaf commands
+        prefix = name + " "
+        matches = {k: v for k, v in spec.items() if k.startswith(prefix)}
+        if matches:
+            result.update(matches)
+        else:
+            # Graceful degradation — include with empty description
+            result[name] = ""
+
+    return sorted(result.items())
 
 
 @app.command(name="list")
@@ -71,6 +123,7 @@ def show(
 def generate() -> None:
     """Regenerate AGENTS.md and .claude/agents/*.md from agent TOMLs."""
     agents = read_toml_glob(dominion_path("agents"))
+    cli_spec = _load_cli_spec()
     root = project_root()
     claude_agents_dir = root / ".claude" / "agents"
     claude_agents_dir.mkdir(parents=True, exist_ok=True)
@@ -114,11 +167,16 @@ def generate() -> None:
         role_name = a.get("role", {}).get("name", a.get("_file", ""))
         slug = a.get("_file", role_name.lower().replace(" ", "-"))
         produces = a.get("workflow", {}).get("produces", [])
-        tools = a.get("tools", {}).get("mcp", [])
+        mcp_tools = a.get("tools", {}).get("mcp", [])
+        cli_cmds = _normalize_cli_commands(a.get("tools", {}))
+        expanded_cmds = _expand_cli_commands(cli_cmds, cli_spec)
         lines.append(f"### {role_name}")
         lines.append(f"- Invoke: `/dominion:agents spawn {slug}`")
-        if tools:
-            lines.append(f"- MCP tools: {', '.join(tools)}")
+        if mcp_tools:
+            lines.append(f"- MCP tools: {', '.join(mcp_tools)}")
+        if expanded_cmds:
+            cmd_names = [f"`dominion-cli {n}`" for n, _ in expanded_cmds]
+            lines.append(f"- CLI: {', '.join(cmd_names)}")
         if produces:
             lines.append(f"- Produces: {', '.join(produces)}")
         lines.append("")
@@ -144,15 +202,38 @@ def generate() -> None:
             "",
         ]
 
-        # Tools section
+        # MCP Tools section
         tools = a.get("tools", {})
-        if tools:
+        mcp_tools = tools.get("mcp", [])
+        if mcp_tools:
             md_lines.append("## Tools")
-            if tools.get("mcp"):
-                md_lines.append(f"- MCP: {', '.join(tools['mcp'])}")
-            if tools.get("cli"):
-                md_lines.append(f"- CLI: {', '.join(tools['cli'])}")
+            md_lines.append(f"- MCP: {', '.join(mcp_tools)}")
             md_lines.append("")
+
+        # CLI Commands Available section
+        cli_commands = _normalize_cli_commands(tools)
+        expanded = _expand_cli_commands(cli_commands, cli_spec)
+        # Inject universal commands (deduplicated)
+        existing_names = {name for name, _ in expanded}
+        for ucmd in UNIVERSAL_CLI_COMMANDS:
+            if ucmd not in existing_names:
+                desc = cli_spec.get(ucmd, "")
+                expanded.append((ucmd, desc))
+        expanded.sort()
+
+        md_lines.append("## CLI Commands Available")
+        md_lines.append("")
+        md_lines.append(
+            "NEVER edit `.dominion/` TOML files directly. "
+            "All reads and writes go through these commands."
+        )
+        md_lines.append("")
+        for cmd_name, cmd_desc in expanded:
+            if cmd_desc:
+                md_lines.append(f"- `dominion-cli {cmd_name}` — {cmd_desc}")
+            else:
+                md_lines.append(f"- `dominion-cli {cmd_name}`")
+        md_lines.append("")
 
         # Governance section
         gov = a.get("governance", {})

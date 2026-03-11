@@ -103,3 +103,88 @@ class TestGenerate:
         content = (claude_agents / "researcher.md").read_text()
         assert "Dominion" in content
         assert "Researcher" in content
+
+    def test_generate_cli_commands_expanded(self, tmp_dominion: Path) -> None:
+        """Group prefix 'dominion-cli signal' should expand into leaf commands."""
+        # Developer has cli = ["dominion-cli plan *", "dominion-cli state *"]
+        # "plan *" should expand to plan task, plan wave, plan deps, etc.
+        result = runner.invoke(app, ["agents", "generate"])
+        assert result.exit_code == 0
+
+        content = (tmp_dominion / ".claude" / "agents" / "developer.md").read_text()
+        # "plan *" should expand to individual plan commands
+        assert "dominion-cli plan task" in content
+        assert "dominion-cli plan wave" in content
+        assert "dominion-cli plan deps" in content
+        # "state *" should expand to individual state commands
+        assert "dominion-cli state resume" in content
+        assert "dominion-cli state position" in content
+        assert "dominion-cli state update" in content
+
+    def test_generate_cli_commands_with_descriptions(self, tmp_dominion: Path) -> None:
+        """Descriptions from cli-spec.toml should appear in generated .md files."""
+        result = runner.invoke(app, ["agents", "generate"])
+        assert result.exit_code == 0
+
+        content = (tmp_dominion / ".claude" / "agents" / "developer.md").read_text()
+        # Commands should have descriptions from cli-spec.toml
+        assert "Show task details and handoffs" in content
+        assert "Show current pipeline position" in content
+
+    def test_generate_universal_commands(self, tmp_dominion: Path) -> None:
+        """data get, data set, state position, state resume appear for every agent."""
+        result = runner.invoke(app, ["agents", "generate"])
+        assert result.exit_code == 0
+
+        for agent_file in ["researcher.md", "developer.md"]:
+            content = (tmp_dominion / ".claude" / "agents" / agent_file).read_text()
+            assert "dominion-cli data get" in content, f"data get missing from {agent_file}"
+            assert "dominion-cli data set" in content, f"data set missing from {agent_file}"
+            assert "dominion-cli state position" in content, f"state position missing from {agent_file}"
+            assert "dominion-cli state resume" in content, f"state resume missing from {agent_file}"
+
+    def test_generate_governance_rule(self, tmp_dominion: Path) -> None:
+        """'NEVER edit .dominion/ TOML files directly' should appear in every agent .md."""
+        result = runner.invoke(app, ["agents", "generate"])
+        assert result.exit_code == 0
+
+        for agent_file in ["researcher.md", "developer.md"]:
+            content = (tmp_dominion / ".claude" / "agents" / agent_file).read_text()
+            assert "NEVER edit `.dominion/` TOML files directly" in content, (
+                f"governance rule missing from {agent_file}"
+            )
+
+    def test_generate_handles_nested_tools_format(self, tmp_dominion: Path) -> None:
+        """tools.cli as a dict with 'commands' key should work."""
+        # Overwrite developer.toml with nested format
+        agent_toml = tmp_dominion / ".dominion" / "agents" / "developer.toml"
+        agent_toml.write_text("""\
+[role]
+name = "Developer"
+purpose = "Implement planned tasks with quality"
+
+[model]
+name = "claude-sonnet-4-20250514"
+
+[tools]
+mcp = ["serena", "echovault"]
+
+[tools.cli]
+commands = ["dominion-cli signal blocker", "dominion-cli signal warning"]
+
+[governance]
+file_ownership = ["src/"]
+hard_stops = ["Never modify files outside task scope"]
+
+[workflow]
+produces = ["source code", "tests"]
+commit_style = "feat(scope): description"
+""")
+        result = runner.invoke(app, ["agents", "generate"])
+        assert result.exit_code == 0
+
+        content = (tmp_dominion / ".claude" / "agents" / "developer.md").read_text()
+        assert "dominion-cli signal blocker" in content
+        assert "dominion-cli signal warning" in content
+        # Universal commands still injected
+        assert "dominion-cli data get" in content

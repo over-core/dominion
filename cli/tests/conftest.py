@@ -119,7 +119,83 @@ commit_style = "feat(scope): description"
 CLI_SPEC_TOML = """\
 [meta]
 spec_version = "0.5"
-minimum_commands = ["state resume", "state update", "agents list", "agents show", "signal blocker", "validate"]
+minimum_commands = ["state resume", "state update", "state position", "agents list", "agents show", "signal blocker", "validate", "data get", "data set"]
+
+[[commands]]
+name = "state resume"
+description = "Display current position for session start"
+
+[[commands]]
+name = "state position"
+description = "Show current pipeline position"
+
+[[commands]]
+name = "state update"
+description = "Update pipeline step or status"
+
+[[commands]]
+name = "signal blocker"
+description = "Raise a blocker signal"
+
+[[commands]]
+name = "signal warning"
+description = "Raise a warning signal"
+
+[[commands]]
+name = "signal list"
+description = "List active signals"
+
+[[commands]]
+name = "signal resolve"
+description = "Resolve a signal"
+
+[[commands]]
+name = "plan task"
+description = "Show task details and handoffs"
+
+[[commands]]
+name = "plan wave"
+description = "Show wave tasks and progress"
+
+[[commands]]
+name = "plan deps"
+description = "Show task dependency graph"
+
+[[commands]]
+name = "plan handoff"
+description = "Record handoff between agents"
+
+[[commands]]
+name = "plan index"
+description = "Show plan index for current phase"
+
+[[commands]]
+name = "plan validate"
+description = "Validate plan structure and constraints"
+
+[[commands]]
+name = "data get"
+description = "Read any .dominion/ TOML value"
+
+[[commands]]
+name = "data set"
+description = "Write a value to any .dominion/ TOML file"
+
+[[commands]]
+name = "research findings"
+description = "List research findings"
+
+[[commands]]
+name = "research finding"
+description = "Show a single research finding"
+
+[[commands]]
+name = "research opportunities"
+description = "List research opportunities"
+
+[[commands]]
+name = "research summary"
+description = "Show research summary"
 """
 
 KNOWLEDGE_INDEX_TOML = """\
