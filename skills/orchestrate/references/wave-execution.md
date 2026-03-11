@@ -20,24 +20,34 @@ For each wave:
   ```bash
   git worktree add .worktrees/dominion-{task-id} -b dominion/{task-id}
   ```
+- Write pre-spawn checkpoint to `.dominion/execution.toml` per [completion-signals.md](../../../templates/references/completion-signals.md) §1
 - Run `dominion-cli wave create {wave number}` to initialize wave tracking in progress.toml
 
 ### 2. Spawn Agents
-- For each task in the wave, spawn a Developer agent:
-  ```bash
-  claude --agent developer --working-directory .worktrees/dominion-{task-id}
-  ```
+- For each task, spawn Developer agent via Agent tool with `run_in_background: true`
+- Include in each agent's prompt:
+  "On completion, write completion marker: `.dominion/signals/complete-{task-id}.toml`
+   with task_id, completed_at, exit_status, commit_hash.
+   Write this BEFORE writing SUMMARY.md."
 - Provide each agent with: task details, file ownership, criteria, upstream handoffs, signal protocol
-- All agents spawn concurrently
+- All agents spawn concurrently in one message (parallel Agent tool calls)
 
 ### 3. Monitor
-- Poll `.dominion/signals/` for new signal files
+- Agents run as background subprocesses — notifications arrive when each completes
+- As each notification arrives: read completion marker, update execution.toml
 - React to signals per the signal protocol (task/wave/phase blockers)
-- Wait for all agents to complete or signal
+- On context compaction: follow recovery protocol ([completion-signals.md](../../../templates/references/completion-signals.md) §4)
+  - Read execution.toml for spawned agent list
+  - Check completion markers on disk
+  - Poll every 30 seconds for remaining agents (they're still running)
+  - Timeout after 15 minutes of no new completions → mark stale, prompt user
 
 ### 4. Verify
+- For each task: check completion marker exists (`.dominion/signals/complete-{task-id}.toml` with exit_status = "success")
 - Check SUMMARY.md exists for each task: `.dominion/phases/{N}/summaries/task-{id}.md`
 - Run verify_command for each task (if specified)
+- If completion marker missing but SUMMARY.md exists: warn but proceed
+- If both missing: task did not complete, handle as failure
 
 ### 5. Merge
 - For each completed task:
