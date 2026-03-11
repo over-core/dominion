@@ -8,7 +8,7 @@
     {
       "name": "dominion",
       "description": "Analyzes your project and generates a complete AI development methodology: specialized agents, curated tools, governance rules, code conventions, and a CLI toolkit.",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "source": "./",
       "author": {
         "name": "over-core"
