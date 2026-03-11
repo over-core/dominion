@@ -47,6 +47,7 @@ When proposing a new CLI command:
 1. Read `.dominion/specs/cli-spec.toml`
 2. Check if a similar command already exists (by name or by behavior)
 3. If similar: recommend extending the existing command with new args/flags
+4. If the proposed command is simple data access (read/write a TOML file): note that `dominion-cli data get/set` already provides generic access — a dedicated command may not be needed
 
 ## Output
 

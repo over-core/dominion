@@ -124,10 +124,11 @@ After each generation step, verify expected files exist. Fail loudly if missing.
 ## Step 9: Install CLI
 
 Follow [cli-installation.md](../../templates/references/cli-installation.md):
-1. Check uv is available
-2. Install dominion-cli from plugin distribution
-3. Verify version and smoke test
-4. Copy cli-spec.toml to .dominion/specs/
+1. Determine the plugin root directory (derive from this skill's base directory — strip `/skills/init` from the path shown in the system message when this skill loaded)
+2. Check uv is available
+3. Install dominion-cli from plugin distribution
+4. Verify version and smoke test
+5. Copy cli-spec.toml to .dominion/specs/
 
 ## Step 10: Initialize State
 

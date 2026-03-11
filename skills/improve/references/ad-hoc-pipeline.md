@@ -165,8 +165,10 @@ Do not attempt to write skills manually without skill-creator's eval loop — un
 
 ### CLI Command
 1. Add `[[commands]]` entry to `.dominion/specs/cli-spec.toml`
-2. Developer agent implements the command
-3. Validate: `dominion-cli {command} --help`
+2. If the command reads/writes a TOML file: verify `dominion-cli data get <file>` works — generic access is immediate
+3. If the command needs complex logic beyond read/write: note in the spec entry that this requires a plugin update. Use existing commands as interim workaround.
+4. Add to `minimum_commands` if it should be validated
+5. Validate: `dominion-cli data get <file> --json`
 
 ### Hook Rule
 

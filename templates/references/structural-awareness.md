@@ -64,12 +64,14 @@ A command available via `dominion-cli`.
 
 **Composed of:**
 - Entry in `.dominion/specs/cli-spec.toml` — command definition (name, description, args, reads, writes, behavior)
-- Implementation in the project's `dominion-cli` script
+- Built-in implementation in the dominion-cli package (for core commands)
+- OR generic access via `dominion-cli data get/set` (for project-specific data)
 
 **To create:**
 1. Add `[[commands]]` entry to `.dominion/specs/cli-spec.toml`
-2. Developer agent implements the command
-3. Add to `minimum_commands` list if it should be validated
+2. Add to `minimum_commands` list if it should be validated
+3. For data access (read/write a TOML file): use `dominion-cli data get <file>` and `dominion-cli data set <file>` — no code changes needed
+4. For complex operations (aggregation, cross-file validation): record as a plugin feature request — use existing commands as workaround until next plugin version
 
 ### Hook Rule
 

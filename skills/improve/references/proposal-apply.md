@@ -26,7 +26,7 @@ For each direct-apply proposal:
 
 These require a plan/execute cycle:
 
-- **New CLI commands**: need implementation in dominion-cli/
+- **New CLI commands**: add spec entry to `.dominion/specs/cli-spec.toml`. If command is data access (read/write TOML), `dominion-cli data get/set` provides immediate generic access — no code changes needed. If command needs complex logic, record as plugin feature request.
 - **New hook scripts**: need shell script generation
 - **Structural changes**: new file templates, new directory structures
 
@@ -42,7 +42,7 @@ These create new Dominion building blocks — require the full ad-hoc pipeline w
 
 - **New agent**: follow ad-hoc pipeline Steps 2-6 (investigate, design, criticize, present, create). The design step (Step 3) includes methodology design per [agent-methodology-design.md](../../../templates/references/agent-methodology-design.md) — phases, methods, tool routing, research lens, cross-dependencies.
 - **New skill**: follow ad-hoc pipeline Steps 2-6. The design step (Step 3) includes quality criteria per [skill-quality-guide.md](../../../templates/references/skill-quality-guide.md).
-- **New CLI command**: add to cli-spec.toml, Developer implements
+- **New CLI command**: add to cli-spec.toml, use `dominion-cli data get/set` for data access commands. Complex logic commands require plugin update.
 - **New hook rule**: invoke `/hookify:writing-rules` for correct rule authoring. Requires hookify plugin.
 - **New config section**: add to dominion.toml
 
