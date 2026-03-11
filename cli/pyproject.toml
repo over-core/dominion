@@ -8,6 +8,9 @@ description = "Data access layer for Dominion AI development methodology"
 [project.scripts]
 dominion-cli = "dominion_cli.app:app"
 
+[dependency-groups]
+dev = ["pytest"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
