@@ -24,10 +24,9 @@ Dominion init will:
   - Analyze your project structure
   - Generate agent configs and instructions (8 agents)
   - Draft and walk through CLAUDE.md with you
-  - Spawn a Developer agent to build dominion-cli CLI
-  - Spawn a Tester agent to validate the CLI
+  - Install the dominion-cli tool
 
-  Estimated token usage: ~200K tokens
+  Estimated token usage: ~100K tokens
   Proceed? [Y/n]
 ```
 
@@ -93,13 +92,13 @@ Follow [claude-md-generation.md](references/claude-md-generation.md):
 - Phase 1: Draft synthesis (ultrathink)
 - Phase 2: Section-by-section walkthrough with user
 
-## Step 9: CLI Proving Ground
+## Step 9: Install CLI
 
-Follow [cli-spec-delivery.md](../../templates/references/cli-spec-delivery.md):
-1. Copy cli-spec.toml to `.dominion/specs/`
-2. Spawn Developer agent to implement dominion-cli
-3. Spawn Tester agent to validate
-4. Handle failures if any
+Follow [cli-installation.md](../../templates/references/cli-installation.md):
+1. Check uv is available
+2. Install dominion-cli from plugin distribution
+3. Verify version and smoke test
+4. Copy cli-spec.toml to .dominion/specs/
 
 ## Step 10: Initialize State
 
@@ -116,7 +115,8 @@ last_session = "{today's date}"
 
 [init]
 completed_at = "{current ISO 8601 timestamp}"
-cli_proven = {true if all CLI tests passed, false otherwise}
+cli_installed = true
+cli_version = "0.9.1"
 validate_passed = false
 ```
 
@@ -164,7 +164,7 @@ Generated:
   CLAUDE.md           Project instructions (you own this now)
   AGENTS.md           Agent roster (auto-generated)
   DOMINION.md           Project overview and Dominion cheatsheet
-  dominion-cli/     CLI tool ({language}, {N} commands)
+  dominion-cli        Installed via uv tool ({version}, {N} commands)
 
 Validation: {PASS/FAIL with details}
 
