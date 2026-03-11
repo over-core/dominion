@@ -61,7 +61,7 @@ If total exceeds `memory_budget_lines` (200):
 
 ## Step 5: Sync
 
-After all index changes are made, the improve skill's Step 5 will run `dominion-tools knowledge sync` to rebuild MEMORY.md.
+After all index changes are made, the improve skill's Step 5 will run `dominion-cli knowledge sync` to rebuild MEMORY.md.
 
 ## Rules
 

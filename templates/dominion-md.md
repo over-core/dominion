@@ -56,17 +56,17 @@
 ### Key CLI Commands
 
 ```
-dominion-tools validate              # Check setup integrity
-dominion-tools state resume          # Resume from last checkpoint
-dominion-tools agents list           # Show active agents
-dominion-tools improve list          # Show pending proposals
-dominion-tools release prepare       # Generate changelog + synopsis
-dominion-tools zone check <path>     # Check if path is in legacy zone
-dominion-tools security scan          # Run security scanners, write findings
-dominion-tools security findings      # List findings (filter by severity/status)
-dominion-tools security finding <id>  # Show full detail for one finding
-dominion-tools security track         # Compare findings across phases
-dominion-tools metrics baseline       # Record recurring indicator measurements
+dominion-cli validate              # Check setup integrity
+dominion-cli state resume          # Resume from last checkpoint
+dominion-cli agents list           # Show active agents
+dominion-cli improve list          # Show pending proposals
+dominion-cli release prepare       # Generate changelog + synopsis
+dominion-cli zone check <path>     # Check if path is in legacy zone
+dominion-cli security scan          # Run security scanners, write findings
+dominion-cli security findings      # List findings (filter by severity/status)
+dominion-cli security finding <id>  # Show full detail for one finding
+dominion-cli security track         # Compare findings across phases
+dominion-cli metrics baseline       # Record recurring indicator measurements
 ```
 
 ### Directory Structure

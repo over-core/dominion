@@ -13,7 +13,7 @@ Raise when:
 - An assumption seems shaky but doesn't prevent your task
 
 ```bash
-dominion-tools signal warning --task {id} --message "{description}"
+dominion-cli signal warning --task {id} --message "{description}"
 ```
 
 ### Task Blocker
@@ -24,7 +24,7 @@ Raise when:
 - The issue is confined to your task and does not affect other wave tasks
 
 ```bash
-dominion-tools signal blocker --level task --task {id} --reason "{description}"
+dominion-cli signal blocker --level task --task {id} --reason "{description}"
 ```
 
 ### Wave Blocker
@@ -36,7 +36,7 @@ Raise when:
 - A file ownership conflict was detected at runtime
 
 ```bash
-dominion-tools signal blocker --level wave --task {id} --reason "{description}"
+dominion-cli signal blocker --level wave --task {id} --reason "{description}"
 ```
 
 ### Phase Blocker
@@ -48,7 +48,7 @@ Raise when:
 - The phase goal itself may need rethinking
 
 ```bash
-dominion-tools signal blocker --level phase --task {id} --reason "{description}"
+dominion-cli signal blocker --level phase --task {id} --reason "{description}"
 ```
 
 ## After Signaling a Blocker

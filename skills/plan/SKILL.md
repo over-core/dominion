@@ -56,5 +56,5 @@ Ask: "Approve this plan? [Y / adjust / redo]"
 ## Step 6: Update State
 
 Update state:
-- Run `dominion-tools state update --step plan --status complete`
-- Run `dominion-tools state checkpoint`
+- Run `dominion-cli state update --step plan --status complete`
+- Run `dominion-cli state checkpoint`

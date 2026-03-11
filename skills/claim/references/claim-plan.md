@@ -29,7 +29,7 @@ Dominion will add:
   + .dominion/specs/cli-spec.toml CLI command spec
   + .claude/agents/*.md           {N} new agent files
   + AGENTS.md                     Agent roster
-  + dominion-tools/               CLI tool
+  + dominion-cli/               CLI tool
 ```
 
 ### 3. Merges

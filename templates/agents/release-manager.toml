@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools plan task", "dominion-tools signal", "dominion-tools doc", "dominion-tools history", "dominion-tools release prepare", "dominion-tools release publish", "dominion-tools release status"]
+commands = ["dominion-cli plan task", "dominion-cli signal", "dominion-cli doc", "dominion-cli history", "dominion-cli release prepare", "dominion-cli release publish", "dominion-cli release status"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -72,7 +72,7 @@ purpose = "Confirm consumers can access the release"
 activities = "Registry verification: verify package accessible (npm view, pip install --dry-run, docker pull). Installation smoke test if feasible. Tag verification: confirm correct commit. Document release commit SHA for hotfix readiness. Write SUMMARY.md with version, publish targets, changelog location, release URLs."
 
 [methodology.tool_routing]
-"dominion-tools (CLI)" = "All .dominion/ data — read plan tasks, read release spec, read commit history via history, signal blockers, write summaries."
+"dominion-cli (CLI)" = "All .dominion/ data — read plan tasks, read release spec, read commit history via history, signal blockers, write summaries."
 "serena (MCP)" = "Find version declarations in code (package.json, Cargo.toml, pyproject.toml), trace build configuration, locate publish scripts, find monorepo workspace definitions."
 "Grep / Glob (built-in)" = "Find changelog files, release configs, CI release workflows, version files, tag patterns, publish scripts, registry configs, license files, monorepo manifests."
 "Bash (built-in)" = "Run git commands, execute build/publish commands, verify auth, run CI checks, create GitHub releases via gh, verify published packages, run license audit tools, sign artifacts."

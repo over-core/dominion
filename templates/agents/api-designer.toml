@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools plan task", "dominion-tools signal", "dominion-tools doc"]
+commands = ["dominion-cli plan task", "dominion-cli signal", "dominion-cli doc"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -67,7 +67,7 @@ purpose = "Contract compliance"
 activities = "Run contract tests (schema validation against spec). Test error paths — every documented error code must be triggerable. Test pagination boundaries. Test backward compatibility. Test caching behavior. Write SUMMARY.md."
 
 [methodology.tool_routing]
-"dominion-tools (CLI)" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc."
+"dominion-cli (CLI)" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc."
 "serena (MCP)" = "Code navigation: navigate API handlers, trace request flow through middleware/controllers, find schema definitions, check interface contracts. Prefer over Grep for all code-level queries."
 "Grep / Glob (built-in)" = "Non-code search: find OpenAPI/protobuf/AsyncAPI spec files, config files, route definition files."
 "Bash (built-in)" = "Run schema validators (openapi-generator validate, buf lint, spectral), contract tests, API test suites."

@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools plan task", "dominion-tools signal", "dominion-tools doc", "dominion-tools research findings", "dominion-tools research summary", "dominion-tools improve list", "dominion-tools agents list"]
+commands = ["dominion-cli plan task", "dominion-cli signal", "dominion-cli doc", "dominion-cli research findings", "dominion-cli research summary", "dominion-cli improve list", "dominion-cli agents list"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -129,7 +129,7 @@ Save insights to EchoVault for longitudinal tracking of Dominion evolution.
 """
 
 [methodology.tool_routing]
-"dominion-tools (CLI)" = "All .dominion/ data — read plan tasks via plan task, research findings via research commands, signal blockers for critical contradictions, write summaries via doc."
+"dominion-cli (CLI)" = "All .dominion/ data — read plan tasks via plan task, research findings via research commands, signal blockers for critical contradictions, write summaries via doc."
 "serena (MCP)" = "Code navigation: trace dependencies between conflicting components, understand module boundaries for contradiction analysis, verify functional independence of proposed solutions."
 "Grep / Glob (built-in)" = "Non-code search: configuration trade-offs, conflicting settings, file patterns for morphological dimension identification."
 "Bash (built-in)" = "Run validation checks on proposed solutions, execute feasibility tests."

@@ -27,7 +27,7 @@ Terminal: Stop and ask the user.
 If `.dominion/state.toml` exists but position.status = "blocked":
 Warn on any code-modifying tool call:
 ```
-WARNING: A blocker is active. Check: dominion-tools state blockers
+WARNING: A blocker is active. Check: dominion-cli state blockers
 ```
 
 (This rule is informational in v0.1 — becomes enforcement in v0.2+)
@@ -40,7 +40,7 @@ Create a hookify rule that runs on the first prompt of each session:
 
 Behavior:
 1. Check if `.dominion/state.toml` exists — if not, skip
-2. Run `dominion-tools state resume` to get current position
+2. Run `dominion-cli state resume` to get current position
 3. Check for stale locks: if `lock.locked_at` is older than `lock.expires_after_hours`, clear the lock
 4. Check `.dominion/signals/` for active blocker files — count them
 5. Present status line:
@@ -64,7 +64,7 @@ Create a hookify rule that runs on session end:
 
 Behavior:
 1. Check if `.dominion/state.toml` exists — if not, skip
-2. Run `dominion-tools state checkpoint`
+2. Run `dominion-cli state checkpoint`
 3. This updates `position.last_session` and clears expired locks
 
 Skip conditions:
@@ -83,8 +83,8 @@ Use `/hookify:writing-rules` to create each rule as a `.claude/hookify.{name}.lo
 
 - Rule 1 → `hookify.block-source-diving.local.md` with `event: file`, conditions on `file_path` matching library paths, `action: block`
 - Rule 2 → `hookify.warn-blocker-active.local.md` with `event: bash` + `event: file`, condition checking state.toml blocker status, `action: warn`
-- Rule 3 → `hookify.dominion-session-start.local.md` with `event: prompt`, inline `dominion-tools state resume`
-- Rule 4 → `hookify.dominion-session-end.local.md` with `event: stop`, inline `dominion-tools state checkpoint`
+- Rule 3 → `hookify.dominion-session-start.local.md` with `event: prompt`, inline `dominion-cli state resume`
+- Rule 4 → `hookify.dominion-session-end.local.md` with `event: stop`, inline `dominion-cli state checkpoint`
 
 Hookify provides declarative markdown rules with regex pattern matching, conditions, and warn/block actions. The `/hookify:writing-rules` skill documents the exact YAML frontmatter format, condition operators, and pattern syntax.
 

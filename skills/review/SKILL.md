@@ -63,7 +63,7 @@ Categories:
 ## Step 8: Update State and Announce
 
 Update state:
-- Run `dominion-tools state update --step review --status complete`
-- Run `dominion-tools state checkpoint`
+- Run `dominion-cli state update --step review --status complete`
+- Run `dominion-cli state checkpoint`
 
 Announce: "Phase {N} review complete. Run /dominion:improve to review proposals and apply improvements."

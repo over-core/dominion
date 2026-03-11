@@ -4,7 +4,7 @@ Instructions for running the pipeline unattended via `/dominion:orchestrate --au
 
 ## Pre-Flight
 
-1. Run `dominion-tools auto readiness`
+1. Run `dominion-cli auto readiness`
 2. If result is "NO": present gaps and ask user to resolve before proceeding
 3. If result is "YES" (with or without warnings): present summary and confirm start
    ```
@@ -16,7 +16,7 @@ Instructions for running the pipeline unattended via `/dominion:orchestrate --au
    Starting Phase {N}. Will halt only on governance hard stops.
    Proceed? [Y/n]
    ```
-4. On confirmation: run `dominion-tools auto start`
+4. On confirmation: run `dominion-cli auto start`
 
 ## Step Dispatch — Auto Mode
 
@@ -45,8 +45,8 @@ These halt auto mode and wait for human input regardless:
 - Critical halts (any agent raises a critical-level blocker)
 
 When a hard stop fires:
-1. Run `dominion-tools signal blocker --level critical --task {task} --reason "{reason}"` to log the halt
-2. Checkpoint state via `dominion-tools state checkpoint`
+1. Run `dominion-cli signal blocker --level critical --task {task} --reason "{reason}"` to log the halt
+2. Checkpoint state via `dominion-cli state checkpoint`
 3. Output: "Auto mode halted: {reason}. Waiting for human input."
 4. The next session resume will present the blocker per [resume-logic.md](resume-logic.md)
 
@@ -64,7 +64,7 @@ Read `dominion.toml [autonomy.circuit_breakers]` before each task dispatch:
 
 When any decision is made without human input:
 
-Run `dominion-tools auto log --task {task} --type {type} --description "{description}" --reason "{reason}"`
+Run `dominion-cli auto log --task {task} --type {type} --description "{description}" --reason "{reason}"`
 
 Decision types:
 - **replan**: Architect changed the plan for a failed task
@@ -89,8 +89,8 @@ If the Architect needs to violate a constraint, this becomes a governance hard s
 ## Session End
 
 When auto mode completes (all steps done) or is halted:
-1. Run `dominion-tools state checkpoint`
-2. Run `dominion-tools auto stop`
+1. Run `dominion-cli state checkpoint`
+2. Run `dominion-cli auto stop`
 3. Output summary:
    ```
    Auto session complete.

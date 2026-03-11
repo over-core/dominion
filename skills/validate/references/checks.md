@@ -28,7 +28,7 @@ Fail: missing or incomplete roster
 ## Check 4: settings.json Permissions
 
 - Verify `.claude/settings.json` exists
-- Verify it contains `Bash(dominion-tools *)` permission
+- Verify it contains `Bash(dominion-cli *)` permission
 - For each agent's required MCPs, verify the MCP's read permissions are listed
 
 Pass: all required permissions present
@@ -38,7 +38,7 @@ Fail: settings.json missing or missing required permissions
 ## Check 5: CLI Completeness
 
 - Read `.dominion/specs/cli-spec.toml`
-- For each command in `minimum_commands`, verify `dominion-tools {command} --help` works
+- For each command in `minimum_commands`, verify `dominion-cli {command} --help` works
 
 Pass: all commands respond to --help
 Fail: list commands that fail
@@ -72,7 +72,7 @@ Fail: missing or invalid state
 
 - Read `.dominion/specs/cli-spec.toml`
 - Verify `spec_version` >= "0.2"
-- Verify all entries in `minimum_commands` are implemented by `dominion-tools`
+- Verify all entries in `minimum_commands` are implemented by `dominion-cli`
 
 Pass: spec version current and all minimum commands respond to --help
 Fail: outdated spec version or missing commands
@@ -121,8 +121,8 @@ Fail: workflow configured but hooks missing or not executable
 - Verify governance hooks exist — check EITHER:
   - Hookify rules: `.claude/hookify.dominion-session-start.local.md` and `.claude/hookify.dominion-session-end.local.md` exist
   - OR native hooks: `.claude/settings.json` contains `"hooks"` config with `SessionStart` and `Stop` entries
-- Session start hook should reference `dominion-tools state resume`
-- Session end hook should reference `dominion-tools state checkpoint`
+- Session start hook should reference `dominion-cli state resume`
+- Session end hook should reference `dominion-cli state checkpoint`
 
 Pass: both session hooks present and reference correct commands
 Warn: no governance hooks found (neither hookify rules nor native hooks configured)
@@ -375,7 +375,7 @@ Fail: style.toml exists but has invalid structure — list specific violations
 
 For every command in `minimum_commands` (from `.dominion/specs/cli-spec.toml`):
 - Search all skill files (`skills/*/SKILL.md`) and reference files (`skills/*/references/*.md`, `templates/references/*.md`) for the command name
-- A command is "covered" if it appears as a `dominion-tools {command}` instruction in at least one file
+- A command is "covered" if it appears as a `dominion-cli {command}` instruction in at least one file
 
 Pass: all commands referenced by at least one skill or reference file
 Warn: commands with no references (list them) — these are defined but no agent is instructed to use them
@@ -403,13 +403,13 @@ Search all skill files and reference files for patterns that describe direct TOM
 
 Exclude: schema template files (`templates/schemas/`), comments, conditional checks (`if`, `verify`, `check`)
 
-Pass: no direct TOML manipulation found — all data writes use `dominion-tools` commands
+Pass: no direct TOML manipulation found — all data writes use `dominion-cli` commands
 Fail: list each instance with file:line and the CLI command that should be used instead
 
 ## Check 38: Instruction Specificity
 
 Search all skill files and reference files for vague action instructions:
-- "Regenerate {artifact}" without a `dominion-tools` command
+- "Regenerate {artifact}" without a `dominion-cli` command
 - "Update {file}" without specifying which CLI command
 - "Write to {file}" without specifying which CLI command (outside of schema init/creation context)
 

@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools report", "dominion-tools style check", "dominion-tools metrics", "dominion-tools plan task", "dominion-tools signal"]
+commands = ["dominion-cli report", "dominion-cli style check", "dominion-cli metrics", "dominion-cli plan task", "dominion-cli signal"]
 
 [governance]
 architectural_decisions = "flag-and-report"
@@ -135,7 +135,7 @@ minor = "Style violations, naming issues, documentation gaps, low-risk test gaps
 info = "Suggestions, alternative approaches, learning opportunities, observations. No action required."
 
 [methodology.tool_routing]
-"dominion-tools (CLI)" = "All .dominion/ data — read test reports, plan structure, progress. Write review.toml and metrics.toml via report and metrics commands."
+"dominion-cli (CLI)" = "All .dominion/ data — read test reports, plan structure, progress. Write review.toml and metrics.toml via report and metrics commands."
 "serena (MCP)" = "Primary for code review: read changed symbols, trace dependencies for architecture compliance, find_referencing_symbols for impact verification and backward compatibility. Prefer over Grep for all code-level queries."
 "Grep / Glob (built-in)" = "Non-code search: style compliance checking, pattern detection (PII in logs, hardcoded secrets, TODO/FIXME), finding duplicate code, locating test files."
 "EchoVault (MCP)" = "Cross-agent memory: recurring findings from prior phases. Prior review patterns. Save new patterns on completion."

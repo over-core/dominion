@@ -250,7 +250,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools signal", "dominion-tools doc"]
+commands = ["dominion-cli signal", "dominion-cli doc"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -284,7 +284,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools signal", "dominion-tools doc"]
+commands = ["dominion-cli signal", "dominion-cli doc"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -318,7 +318,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools signal", "dominion-tools doc"]
+commands = ["dominion-cli signal", "dominion-cli doc"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -379,7 +379,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools signal", "dominion-tools doc"]
+commands = ["dominion-cli signal", "dominion-cli doc"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -413,7 +413,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools signal", "dominion-tools doc"]
+commands = ["dominion-cli signal", "dominion-cli doc"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -447,7 +447,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools signal", "dominion-tools doc"]
+commands = ["dominion-cli signal", "dominion-cli doc"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -507,7 +507,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools signal", "dominion-tools doc", "dominion-tools metrics show", "dominion-tools metrics trends"]
+commands = ["dominion-cli signal", "dominion-cli doc", "dominion-cli metrics show", "dominion-cli metrics trends"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -541,7 +541,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools signal", "dominion-tools doc"]
+commands = ["dominion-cli signal", "dominion-cli doc"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -575,7 +575,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools signal", "dominion-tools doc", "dominion-tools history"]
+commands = ["dominion-cli signal", "dominion-cli doc", "dominion-cli history"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -1244,7 +1244,7 @@ Otherwise, follow `@references/output-routing.md` to determine the best output f
 1. If output is a knowledge file: write to `.dominion/knowledge/{topic}.md`, update `.dominion/knowledge/index.toml`
 2. If output is a skill: write to `.dominion/skills/{name}.md`
 3. If output is an agent: write TOML to `.dominion/agents/{role}.toml`, generate `.claude/agents/{role}.md` via Attendant
-4. Run `dominion-tools knowledge sync` to update MEMORY.md with new knowledge
+4. Run `dominion-cli knowledge sync` to update MEMORY.md with new knowledge
 5. Commit all new files
 ```
 
@@ -1547,7 +1547,7 @@ For each item that passed the kill gate: create Dominion-native version.
 
 1. Present summary: "{N} items studied, {passed} passed kill gate, {created} artifacts created"
 2. List created artifacts with paths
-3. Run `dominion-tools agents generate` if any agents were created
+3. Run `dominion-cli agents generate` if any agents were created
 4. Commit all new files
 5. Inform user: "The studied plugin can now be uninstalled if desired."
 ```
@@ -1779,7 +1779,7 @@ New specialized roles detected:
 For each accepted role:
 - Read the agent template from `@templates/agents/{role}.toml`
 - Attendant generates the agent config: `.dominion/agents/{role}.toml` + `.claude/agents/{role}.md`
-- Run `dominion-tools agents generate` to update AGENTS.md
+- Run `dominion-cli agents generate` to update AGENTS.md
 
 For rejected roles:
 - Note in improvements.toml as a rejected proposal (so it's not suggested again next phase)

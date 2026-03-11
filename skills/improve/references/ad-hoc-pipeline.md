@@ -110,9 +110,9 @@ For each output type, follow the creation steps from [structural-awareness.md](.
 
 ### Agent
 1. Write `.dominion/agents/{role}.toml`
-2. Run `dominion-tools agents generate`
+2. Run `dominion-cli agents generate`
 3. Update `.claude/settings.json` with required permissions
-4. Run `dominion-tools doc generate` to regenerate DOMINION.md
+4. Run `dominion-cli doc generate` to regenerate DOMINION.md
 
 ### Skill
 
@@ -144,7 +144,7 @@ After writing, run the eval loop: create test cases (use positive/negative trigg
 
 After skill-creator completes, the Secretary places the validated files:
 1. Move skill files to `.dominion/skills/{name}.md` (and `references/` if created)
-2. Run `dominion-tools doc generate` to regenerate DOMINION.md
+2. Run `dominion-cli doc generate` to regenerate DOMINION.md
 3. Update `.claude/settings.json` if the skill needs permissions
 
 **If skill-creator is NOT installed:**
@@ -161,12 +161,12 @@ Do not attempt to write skills manually without skill-creator's eval loop — un
 ### Knowledge
 1. Write `.dominion/knowledge/{topic}.md`
 2. Update `.dominion/knowledge/index.toml`
-3. Run `dominion-tools knowledge sync`
+3. Run `dominion-cli knowledge sync`
 
 ### CLI Command
 1. Add `[[commands]]` entry to `.dominion/specs/cli-spec.toml`
 2. Developer agent implements the command
-3. Validate: `dominion-tools {command} --help`
+3. Validate: `dominion-cli {command} --help`
 
 ### Hook Rule
 

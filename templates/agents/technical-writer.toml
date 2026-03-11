@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools plan task", "dominion-tools signal", "dominion-tools doc", "dominion-tools knowledge sync"]
+commands = ["dominion-cli plan task", "dominion-cli signal", "dominion-cli doc", "dominion-cli knowledge sync"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -72,7 +72,7 @@ purpose = "Ensure quality"
 activities = "Verify accuracy: every code example must be correct. Check links: all cross-references resolve. Check rendering: markdown renders correctly. Check completeness: compare doc coverage against public API surface. Run doc tooling build if configured. Run link checker. Write SUMMARY.md with documentation changes, coverage delta, staleness fixes."
 
 [methodology.tool_routing]
-"dominion-tools (CLI)" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc, sync knowledge entries via knowledge sync."
+"dominion-cli (CLI)" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc, sync knowledge entries via knowledge sync."
 "serena (MCP)" = "Primary for Technical Writer: navigate code to document. Get symbol overviews, read function signatures, trace type definitions. Prefer over reading entire files."
 "Grep / Glob (built-in)" = "Find documentation files (.md, .rst, .adoc), config files (mkdocs.yml, docusaurus.config.js, conf.py), inline doc patterns, README files."
 "Bash (built-in)" = "Run doc tooling (mkdocs build, sphinx-build, typedoc, rustdoc), validate markdown, check link integrity, run doctests, check git log for staleness."

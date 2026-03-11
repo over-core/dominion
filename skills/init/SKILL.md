@@ -24,7 +24,7 @@ Dominion init will:
   - Analyze your project structure
   - Generate agent configs and instructions (8 agents)
   - Draft and walk through CLAUDE.md with you
-  - Spawn a Developer agent to build dominion-tools CLI
+  - Spawn a Developer agent to build dominion-cli CLI
   - Spawn a Tester agent to validate the CLI
 
   Estimated token usage: ~200K tokens
@@ -97,7 +97,7 @@ Follow [claude-md-generation.md](references/claude-md-generation.md):
 
 Follow [cli-spec-delivery.md](../../templates/references/cli-spec-delivery.md):
 1. Copy cli-spec.toml to `.dominion/specs/`
-2. Spawn Developer agent to implement dominion-tools
+2. Spawn Developer agent to implement dominion-cli
 3. Spawn Tester agent to validate
 4. Handle failures if any
 
@@ -147,7 +147,7 @@ Generate `DOMINION.md` at project root from [dominion-md.md](../../templates/dom
 5. Write to `DOMINION.md` at project root
 
 The Secretary maintains this file. It is regenerated when:
-- Agent roster changes (`dominion-tools agents generate`)
+- Agent roster changes (`dominion-cli agents generate`)
 - Improve step applies structural changes
 - Roadmap phases are added or completed
 
@@ -164,7 +164,7 @@ Generated:
   CLAUDE.md           Project instructions (you own this now)
   AGENTS.md           Agent roster (auto-generated)
   DOMINION.md           Project overview and Dominion cheatsheet
-  dominion-tools/     CLI tool ({language}, {N} commands)
+  dominion-cli/     CLI tool ({language}, {N} commands)
 
 Validation: {PASS/FAIL with details}
 

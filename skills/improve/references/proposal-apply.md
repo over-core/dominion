@@ -11,7 +11,7 @@ Categorize each accepted proposal:
 These are applied directly by the Secretary — no plan/execute cycle:
 
 - **TOML updates**: style.toml additions, agent TOML instruction changes, dominion.toml updates
-- **Agent instruction refinement**: update agent TOML `[tools.skills]` or behavioral sections, then run `dominion-tools agents generate` to regenerate .md files
+- **Agent instruction refinement**: update agent TOML `[tools.skills]` or behavioral sections, then run `dominion-cli agents generate` to regenerate .md files
 - **Style drift correction**: update style.toml conventions, regenerate affected CLAUDE.md sections
 - **New hook rules**: invoke `/hookify:writing-rules` to create hookify rule. Requires hookify plugin.
 - **Documentation chain updates**: update dominion.toml `[documentation]` section
@@ -20,13 +20,13 @@ For each direct-apply proposal:
 1. Make the change
 2. Validate (TOML parses, hookify rule is well-formed)
 3. Commit: `git commit -m "improve: {proposal title}"`
-4. Run `dominion-tools improve update {id} --status accepted --applied-at {commit hash} --applied-by direct`
+4. Run `dominion-cli improve update {id} --status accepted --applied-at {commit hash} --applied-by direct`
 
 ### Code-Touching Changes (Mini Pipeline)
 
 These require a plan/execute cycle:
 
-- **New CLI commands**: need implementation in dominion-tools/
+- **New CLI commands**: need implementation in dominion-cli/
 - **New hook scripts**: need shell script generation
 - **Structural changes**: new file templates, new directory structures
 
@@ -34,7 +34,7 @@ For each pipeline-apply proposal:
 1. Architect writes a mini-plan (1-3 tasks, inline — not a full plan.toml)
 2. Developer implements each task
 3. Commit per task: `git commit -m "improve: {proposal title} — {task description}"`
-4. Run `dominion-tools improve update {id} --status accepted --applied-at {final commit hash} --applied-by pipeline`
+4. Run `dominion-cli improve update {id} --status accepted --applied-at {final commit hash} --applied-by pipeline`
 
 ### Structural Changes (Ad-Hoc Pipeline)
 
@@ -52,14 +52,14 @@ For each structural proposal:
 3. Reviewer criticizes the proposal
 4. If approved: Secretary creates artifacts
 5. Commit: `git commit -m "improve: add {type} {name}"`
-6. Run `dominion-tools improve update {id} --status accepted --applied-by structural`
+6. Run `dominion-cli improve update {id} --status accepted --applied-by structural`
 
 ## Guard Rails
 
 - Never auto-apply. Each change is visible to the user in this session.
 - Never remove a governance hard stop — skip the proposal and flag it.
 - If a proposal fails to apply (TOML doesn't parse, test fails), mark as `status = "rolled-back"` and inform the user.
-- Run `dominion-tools agents generate` after any agent TOML changes.
+- Run `dominion-cli agents generate` after any agent TOML changes.
 
 ## Completion
 

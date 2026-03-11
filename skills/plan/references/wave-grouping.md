@@ -50,7 +50,7 @@ For each task, check `.dominion/knowledge/index.toml` for entries whose tags or 
 
 ## Output
 
-Run `dominion-tools plan index` to assign wave fields. Report the wave structure:
+Run `dominion-cli plan index` to assign wave fields. Report the wave structure:
 ```
 Wave 1: {task ids}
 Wave 2: {task ids}

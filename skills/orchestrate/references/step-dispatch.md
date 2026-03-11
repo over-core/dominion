@@ -25,7 +25,7 @@ If it exists, read `experience_level` and pass it to the dispatched agent as con
 
 This affects presentation, not behavior. All agents perform the same work regardless of level.
 
-Run `dominion-tools profile tick` at the start of each orchestrate session.
+Run `dominion-cli profile tick` at the start of each orchestrate session.
 
 ## Transition Rules
 
@@ -34,7 +34,7 @@ Each step has prerequisites. Verify before dispatching:
 - **discuss**: phase number identified from roadmap.toml
 - **explore**: discuss complete (intent.md exists or phase goals are in roadmap)
 - **plan**: research.toml exists for current phase
-- **execute**: plan.toml exists for current phase, lock acquired, `dominion-tools plan validate` passes
+- **execute**: plan.toml exists for current phase, lock acquired, `dominion-cli plan validate` passes
 - **test**: progress.toml exists, execute step complete
 - **review**: test-report.toml exists for current phase
 - **improve**: review.toml and metrics.toml exist for current phase
@@ -67,7 +67,7 @@ Proceed? [Y/n]
 ```
 
 If user approves: write `[estimates]` section to plan.toml and continue to execute.
-If user declines: pause pipeline, run `dominion-tools state update --step plan --status complete`.
+If user declines: pause pipeline, run `dominion-cli state update --step plan --status complete`.
 
 In auto mode: write estimates to plan.toml, log but do not halt. Circuit breakers handle cost control.
 
@@ -103,18 +103,18 @@ Dry run complete.
 Resume with /dominion:orchestrate to execute.
 ```
 
-Run `dominion-tools state update --step plan --status complete`. Release lock. Exit.
+Run `dominion-cli state update --step plan --status complete`. Release lock. Exit.
 
 When the user later runs `/dominion:orchestrate` without `--dry-run`, resume-logic picks up from execute step normally.
 
 ## State Updates
 
 Before dispatching a step:
-- Run `dominion-tools state update --step {step name} --status active`
+- Run `dominion-cli state update --step {step name} --status active`
 
 After step completes:
-- Run `dominion-tools state update --status complete`
-- Run `dominion-tools state checkpoint`
+- Run `dominion-cli state update --status complete`
+- Run `dominion-cli state checkpoint`
 
 ## User Control Points
 
@@ -146,6 +146,6 @@ Auto mode halts (becomes a control point) only for:
 - Circuit breaker: `max_failed_tasks_per_wave` exceeded
 - Circuit breaker: `session_time_limit_hours` exceeded
 
-On halt: run `dominion-tools state update --status blocked`, then `dominion-tools state checkpoint`, wait for human.
+On halt: run `dominion-cli state update --status blocked`, then `dominion-cli state checkpoint`, wait for human.
 
 See [auto-mode.md](auto-mode.md) for full protocol.

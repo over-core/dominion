@@ -71,7 +71,7 @@ Present the merged CLAUDE.md as a diff for final approval before writing.
 Follow [settings-generation.md](../../../templates/references/settings-generation.md):
 - Read existing settings.json
 - Add Dominion MCP permissions (extend, never remove existing)
-- Add Dominion CLI tool permission: `Bash(dominion-tools *)`
+- Add Dominion CLI tool permission: `Bash(dominion-cli *)`
 
 ### 7. Add Lifecycle Hooks
 

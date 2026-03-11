@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools plan task", "dominion-tools signal", "dominion-tools doc"]
+commands = ["dominion-cli plan task", "dominion-cli signal", "dominion-cli doc"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -72,7 +72,7 @@ purpose = "Prove safety and performance"
 activities = "Run migration forward and backward on realistic test data. EXPLAIN ANALYZE key queries before and after. Verify no data loss on rollback. Check constraint coverage. Verify ORM models match new DDL. Write SUMMARY.md with schema changes, migration strategy, index changes, query performance impact, rollback plan."
 
 [methodology.tool_routing]
-"dominion-tools (CLI)" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc."
+"dominion-cli (CLI)" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc."
 "serena (MCP)" = "Code navigation: find ORM models, repository patterns, query builders, migration files. Trace data access from API handlers to database calls. Prefer over Grep for all code-level queries."
 "Grep / Glob (built-in)" = "Non-code search: find migration files by pattern, SQL files, config files (database connection, pooling settings)."
 "Bash (built-in)" = "Run migrations (forward + rollback), execute EXPLAIN ANALYZE, run database CLI tools (psql, mongosh, redis-cli), check table sizes and index usage."

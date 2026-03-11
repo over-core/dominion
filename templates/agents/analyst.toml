@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools signal", "dominion-tools doc", "dominion-tools metrics show", "dominion-tools metrics trends", "dominion-tools metrics baseline", "dominion-tools plan task"]
+commands = ["dominion-cli signal", "dominion-cli doc", "dominion-cli metrics show", "dominion-cli metrics trends", "dominion-cli metrics baseline", "dominion-cli plan task"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -163,7 +163,7 @@ Save results to EchoVault for future reference.
 """
 
 [methodology.tool_routing]
-"dominion-tools (CLI)" = "All .dominion/ data — read/write metrics via metrics show, metrics trends, metrics baseline. Read progress, test reports. Signal warnings for regressions."
+"dominion-cli (CLI)" = "All .dominion/ data — read/write metrics via metrics show, metrics trends, metrics baseline. Read progress, test reports. Signal warnings for regressions."
 "serena (MCP)" = "Code navigation: read code structure when analyzing performance-sensitive paths, symbol navigation for hot-path tracing. Prefer over Grep for all code-level queries."
 "Grep / Glob (built-in)" = "Non-code search: find benchmark files, test performance data, profiling output files, config files for build/test commands."
 "Bash (built-in)" = "Execute profiling tools, benchmarks, build commands, measurement scripts. Parse profiling output. Always use text/JSON output modes."

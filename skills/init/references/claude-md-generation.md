@@ -55,7 +55,7 @@ TERMINAL: Stop and ask. Never read library source code.
 - {other installed MCPs with one-line purpose}
 
 ### CLI
-- `dominion-tools` — agent CLI for state, plans, signals
+- `dominion-cli` — agent CLI for state, plans, signals
 ```
 
 ### Section 5: Git Conventions (15-20 lines)
@@ -87,8 +87,8 @@ Before committing, run:
 ## Dominion
 - Agent roster: see AGENTS.md
 - Agent configs: .dominion/agents/*.toml
-- CLI: dominion-tools (run `dominion-tools --help`)
-- Current state: `dominion-tools state resume`
+- CLI: dominion-cli (run `dominion-cli --help`)
+- Current state: `dominion-cli state resume`
 - Documentation chain: {first → second → ... → STOP AND ASK}
 ```
 

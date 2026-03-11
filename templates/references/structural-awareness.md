@@ -17,9 +17,9 @@ An autonomous role with defined capabilities, tool access, and governance rules.
 **To create:**
 1. Write `.dominion/agents/{role}.toml` (use existing agent TOMLs as reference)
 2. If adding methodology: follow [agent-methodology-design.md](agent-methodology-design.md) for `[methodology]`, `[methodology.tool_routing]`, `[methodology.methods]`, and `[research_lens]` sections
-3. Run `dominion-tools agents generate` — generates .md and updates AGENTS.md
+3. Run `dominion-cli agents generate` — generates .md and updates AGENTS.md
 4. Update `.claude/settings.json` with required MCP permissions
-5. Run `dominion-tools doc generate` to regenerate DOMINION.md
+5. Run `dominion-cli doc generate` to regenerate DOMINION.md
 
 **When to create vs extend:**
 - Create a new agent when: ongoing specialized behavior, distinct file ownership, separate governance rules
@@ -37,7 +37,7 @@ A repeatable procedure or workflow invoked as a `/dominion:*` command.
 1. Define architecture: name, purpose, reference files needed, governance rules (Dominion pipeline Steps 1-5)
 2. Author and validate: invoke `/skill-creator` with the architecture context — it writes the SKILL.md, runs eval loops, and optimizes the description for triggering (requires skill-creator plugin — install with `/plugin marketplace install skill-creator`)
 3. Use markdown links for sub-steps: `[filename.md](references/filename.md)`
-4. Run `dominion-tools doc generate` to regenerate DOMINION.md
+4. Run `dominion-cli doc generate` to regenerate DOMINION.md
 
 **When to create vs use knowledge:**
 - Create a skill when: repeatable procedure, decision tree, process that fires as a command
@@ -54,17 +54,17 @@ Domain knowledge that agents reference during their work.
 **To create:**
 1. Write `.dominion/knowledge/{topic}.md`
 2. Add entry to `.dominion/knowledge/index.toml` with temperature and summary
-3. Run `dominion-tools knowledge sync` to update MEMORY.md
+3. Run `dominion-cli knowledge sync` to update MEMORY.md
 
 **Budget:** Hot entries load into MEMORY.md. Total hot summary lines must stay under `memory_budget_lines`.
 
 ### CLI Command
 
-A command available via `dominion-tools`.
+A command available via `dominion-cli`.
 
 **Composed of:**
 - Entry in `.dominion/specs/cli-spec.toml` — command definition (name, description, args, reads, writes, behavior)
-- Implementation in the project's `dominion-tools` script
+- Implementation in the project's `dominion-cli` script
 
 **To create:**
 1. Add `[[commands]]` entry to `.dominion/specs/cli-spec.toml`
@@ -93,7 +93,7 @@ Project-specific configuration in TOML.
 
 **To create:**
 1. Add section to `.dominion/dominion.toml`
-2. Add validation check in `dominion-tools validate`
+2. Add validation check in `dominion-cli validate`
 3. Update schema template in [dominion.toml](../schemas/dominion.toml) if it's a reusable pattern
 
 ## Wiring Checklist
@@ -102,10 +102,10 @@ When creating any new building block, verify:
 
 - [ ] TOML files parse: `python3 -c "import tomllib; tomllib.load(open('file.toml','rb'))"`
 - [ ] References resolve: all markdown link references point to existing files
-- [ ] AGENTS.md updated: if agents changed, run `dominion-tools agents generate`
-- [ ] DOMINION.md updated: if skills, agents, or config changed, run `dominion-tools doc generate`
+- [ ] AGENTS.md updated: if agents changed, run `dominion-cli agents generate`
+- [ ] DOMINION.md updated: if skills, agents, or config changed, run `dominion-cli doc generate`
 - [ ] settings.json updated: if new MCP permissions needed
-- [ ] Validate passes: run `dominion-tools validate`
+- [ ] Validate passes: run `dominion-cli validate`
 
 ## Extensibility
 

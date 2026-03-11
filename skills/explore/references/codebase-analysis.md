@@ -6,7 +6,7 @@ Researcher-driven analysis scoped to the current phase goals.
 
 Research follows a 5-phase pipeline. Execute in order:
 
-1. **Context Loading** — Never start from scratch. Read prior phase research (`dominion-tools research findings`), backlog items, EchoVault search results (`memory_search` + `memory_context`), `intent.md`, and `roadmap.toml`. Understand what is already known before exploring.
+1. **Context Loading** — Never start from scratch. Read prior phase research (`dominion-cli research findings`), backlog items, EchoVault search results (`memory_search` + `memory_context`), `intent.md`, and `roadmap.toml`. Understand what is already known before exploring.
 
 2. **Architecture Mapping** — Top-down systematic exploration. Trace entry points → module boundaries → dependency graph → data flow → control flow. Primary tool: serena (`get_symbols_overview`, `find_referencing_symbols`). Record findings with category "architecture".
 

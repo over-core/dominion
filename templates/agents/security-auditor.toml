@@ -17,14 +17,14 @@ custom = []
 
 [tools.cli]
 commands = [
-    "dominion-tools validate",
-    "dominion-tools signal",
-    "dominion-tools doc",
-    "dominion-tools plan task",
-    "dominion-tools security scan",
-    "dominion-tools security findings",
-    "dominion-tools security finding",
-    "dominion-tools security track"
+    "dominion-cli validate",
+    "dominion-cli signal",
+    "dominion-cli doc",
+    "dominion-cli plan task",
+    "dominion-cli security scan",
+    "dominion-cli security findings",
+    "dominion-cli security finding",
+    "dominion-cli security track"
 ]
 
 [security]
@@ -182,7 +182,7 @@ Flag Critical/High via signal blocker/warning.
 """
 
 [methodology.tool_routing]
-"dominion-tools (CLI)" = "All .dominion/ data — read plan tasks, signal blockers for critical findings, write summaries, validate configs. Security scan/findings/finding/track commands."
+"dominion-cli (CLI)" = "All .dominion/ data — read plan tasks, signal blockers for critical findings, write summaries, validate configs. Security scan/findings/finding/track commands."
 "serena (MCP)" = "Primary for security review: trace data flow from input to sink (find_referencing_symbols), read auth/authz implementations (find_symbol with include_body), map trust boundaries through call hierarchies. Prefer over Grep for all code-level queries."
 "Grep / Glob (built-in)" = "Pattern scanning: hardcoded secrets (API keys, tokens, passwords), dangerous function calls (eval, exec, innerHTML, unsafe), security header configs, .env files, CORS settings."
 "Bash (built-in)" = "Run security scanners (npm audit, pip-audit, cargo-audit, govulncheck, semgrep, trivy, trufflehog, gitleaks), check TLS configuration."

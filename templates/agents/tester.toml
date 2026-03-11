@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools plan task", "dominion-tools report", "dominion-tools signal", "dominion-tools doc"]
+commands = ["dominion-cli plan task", "dominion-cli report", "dominion-cli signal", "dominion-cli doc"]
 
 [testing]
 styles = ["{{testing_styles}}"]
@@ -116,7 +116,7 @@ Save testing discoveries to EchoVault.
 """
 
 [methodology.tool_routing]
-"dominion-tools (CLI)" = "All .dominion/ data — read plan tasks via plan task, read progress, write test reports via report commands, signal blockers."
+"dominion-cli (CLI)" = "All .dominion/ data — read plan tasks via plan task, read progress, write test reports via report commands, signal blockers."
 "serena (MCP)" = "Code navigation: find_symbol to read function signatures and contracts, find_referencing_symbols to find integration boundaries (module seams), get_symbols_overview for test file structure. Prefer over Grep for all code-level queries."
 "Grep / Glob (built-in)" = "Non-code search: finding existing test files, locating test utilities, detecting test anti-patterns (tests with sleep calls, cross-imports)."
 "Bash (built-in)" = "Run test suites, coverage tools, mutation testing, fuzz harnesses."

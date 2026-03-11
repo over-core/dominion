@@ -27,7 +27,7 @@ Note the gap in SUMMARY.md:
 
 Halt the current task. Raise a blocker signal:
 ```bash
-dominion-tools signal blocker --task {task_id} --level task --reason "{mcp_name} unavailable — required for {purpose}"
+dominion-cli signal blocker --task {task_id} --level task --reason "{mcp_name} unavailable — required for {purpose}"
 ```
 
 The orchestrator handles the blocker per standard blocker protocol.

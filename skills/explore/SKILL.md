@@ -15,7 +15,7 @@ If phase is 0, tell the user: "No active phase. Run /dominion:discuss first."
 ## Pre-check
 
 1. Read `.dominion/state.toml` — get current phase number
-2. Verify `.dominion/phases/{N}/` directory exists (create if needed via `dominion-tools phase init`)
+2. Verify `.dominion/phases/{N}/` directory exists (create if needed via `dominion-cli phase init`)
 3. If `.dominion/phases/{N}/research.toml` already exists, warn: "Research already exists for phase {N}. Re-running will overwrite. Continue? [Y/n]"
 
 ## Step 1: Codebase Analysis
@@ -71,5 +71,5 @@ Unverified assumptions:
 ## Step 6: Update State
 
 Update state:
-- Run `dominion-tools state update --step explore --status complete`
-- Run `dominion-tools state checkpoint`
+- Run `dominion-cli state update --step explore --status complete`
+- Run `dominion-cli state checkpoint`

@@ -34,7 +34,7 @@ For each completed task that has downstream dependents:
 - Read the "Handoff Notes" section from the task's SUMMARY.md
 - Write the handoff to downstream tasks via:
   ```bash
-  dominion-tools plan handoff {from-id} --to {to-id} "{note}"
+  dominion-cli plan handoff {from-id} --to {to-id} "{note}"
   ```
 
 ### 5. Clean Signals

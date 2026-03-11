@@ -47,7 +47,7 @@ Perform these checks in order, report pass/fail for each:
 2. Every .dominion/agents/*.toml has a matching .claude/agents/*.md
 3. Agent .md files contain the expected Dominion header comment
 4. AGENTS.md exists and lists all agents from .dominion/agents/
-5. settings.json exists and contains Dominion CLI permission (Bash(dominion-tools *))
+5. settings.json exists and contains Dominion CLI permission (Bash(dominion-cli *))
 6. settings.json contains MCP permissions for all 'required' MCPs in agent configs
 7. CLI implements all commands listed in cli-spec.toml minimum_commands
 8. dominion.toml [documentation.fallback] section exists and has stop-and-ask terminal
@@ -94,7 +94,7 @@ Read state.toml position. Format as:
 
 If phase = 0:
   Dominion initialized. No active phase.
-  CLI: dominion-tools (N commands, all passing)
+  CLI: dominion-cli (N commands, all passing)
   Agents: N core, all configured
 """
 
@@ -1149,7 +1149,7 @@ Read ~/.claude/.dominion/user-profile.toml.
 If file doesn't exist: "No profile found. Run /dominion:init to create one."
 
 Output format:
-  dominion-tools profile show
+  dominion-cli profile show
     Experience: {level}
     Sessions: {count} (first: {date}, last: {date})
     Preferences:
@@ -1205,7 +1205,7 @@ Read .dominion/dominion.toml [claim] section.
 If [claim] section doesn't exist or claimed_at is empty: "This project was initialized with /dominion:init (greenfield)."
 
 If claim data exists:
-  dominion-tools claim status
+  dominion-cli claim status
     Claimed: {claimed_at}
     Source: {source_setup}
     Preserved: {count} artifacts

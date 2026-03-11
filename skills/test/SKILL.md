@@ -49,5 +49,5 @@ Gaps ({count}):
 ## Step 5: Update State
 
 Update state:
-- Run `dominion-tools state update --step test --status complete`
-- Run `dominion-tools state checkpoint`
+- Run `dominion-cli state update --step test --status complete`
+- Run `dominion-cli state checkpoint`

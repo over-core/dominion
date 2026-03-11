@@ -61,12 +61,12 @@ Follow [knowledge-management.md](references/knowledge-management.md)
 ### Step 5: Update State and Announce
 
 Update state:
-- Run `dominion-tools state update --step improve --status complete`
-- Run `dominion-tools state checkpoint`
+- Run `dominion-cli state update --step improve --status complete`
+- Run `dominion-cli state checkpoint`
 
-Run `dominion-tools knowledge sync` to rebuild MEMORY.md with any new knowledge entries.
+Run `dominion-cli knowledge sync` to rebuild MEMORY.md with any new knowledge entries.
 
-If any structural changes were applied, run `dominion-tools doc generate` to regenerate DOMINION.md.
+If any structural changes were applied, run `dominion-cli doc generate` to regenerate DOMINION.md.
 
 Announce:
 ```

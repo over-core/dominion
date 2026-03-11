@@ -30,7 +30,7 @@ Run `/dominion:init` once and Dominion generates the following in your project:
 │   └── ...
 ├── settings.json              # Permissions and tool access
 └── commands/
-    └── dominion-tools/        # Generated CLI toolkit (52 commands)
+    └── dominion-cli/        # Generated CLI toolkit (52 commands)
 
 CLAUDE.md                      # Project-aware AI instructions
 AGENTS.md                      # Agent roster documentation
@@ -59,7 +59,7 @@ For small, well-scoped changes that don't need the full ceremony, use `/dominion
 
 ## Agents
 
-Dominion generates 18 agents, each with industry-standard methodology, prescribed tool routing, and structured research protocols. Agents interact with project state exclusively through the `dominion-tools` CLI.
+Dominion generates 18 agents, each with industry-standard methodology, prescribed tool routing, and structured research protocols. Agents interact with project state exclusively through the `dominion-cli` CLI.
 
 ### Core Agents
 
@@ -125,7 +125,7 @@ The Innovation Engineer applies structured invention methodologies (TRIZ, SIT, A
 
 ## CLI Toolkit
 
-`dominion-tools` is generated during init and serves as the exclusive data access layer for all `.dominion/` TOML files. All 18 agents read and write project state through these commands — no exceptions.
+`dominion-cli` is generated during init and serves as the exclusive data access layer for all `.dominion/` TOML files. All 18 agents read and write project state through these commands — no exceptions.
 
 **52 commands** organized in the following groups:
 

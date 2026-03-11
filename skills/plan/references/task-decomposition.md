@@ -6,7 +6,7 @@ Architect-driven breakdown of phase goals into atomic tasks.
 
 Before decomposition, systematically intake the Researcher's output:
 
-1. **Read research.toml findings** via `dominion-tools research findings`. Process severity-sorted: critical findings first, then high, medium, low. Each finding has an impact scope — note which files/modules are affected.
+1. **Read research.toml findings** via `dominion-cli research findings`. Process severity-sorted: critical findings first, then high, medium, low. Each finding has an impact scope — note which files/modules are affected.
 2. **Read assumptions** — unverified assumptions first. These are risks that may invalidate task scoping. Flag any assumption that, if wrong, would change the decomposition.
 3. **Read opportunities** — potential improvements the Researcher surfaced. Decide which opportunities align with the phase goal and should become tasks.
 4. **Read specialist_referrals** — the Researcher flags work that needs specialist agents (Frontend, API, Database, DevOps, etc.). These directly feed into agent assignment.
@@ -87,4 +87,4 @@ Record Architecture Decision Records for non-obvious planning choices:
 1. **Decomposition trade-offs.** When splitting a task is debatable (e.g., keeping a large task whole for coherence vs. splitting for parallelism), record the decision and rationale as an ADR.
 2. **Agent routing rationale.** When assigning a task to a specialist instead of Developer (or vice versa), record why — especially when overriding a specialist_referral.
 3. **Wave-grouping decisions.** When co-locating or separating tasks deviates from the default topological sort (e.g., coupling-aware grouping, critical path priority), record the reasoning.
-4. **Write ADRs** via `dominion-tools plan task` metadata or as notes in plan.toml. ADRs are consumed by the Reviewer agent during the review step to validate planning rationale.
+4. **Write ADRs** via `dominion-cli plan task` metadata or as notes in plan.toml. ADRs are consumed by the Reviewer agent during the review step to validate planning rationale.

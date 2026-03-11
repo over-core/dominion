@@ -64,7 +64,7 @@ After all decisions are reviewed, proceed to regular decisions review.
 
 ### Regular Decisions Review
 
-Run `dominion-tools state decisions --phase {N}` to get decisions recorded during this phase.
+Run `dominion-cli state decisions --phase {N}` to get decisions recorded during this phase.
 
 If decisions exist, present a summary:
 ```
@@ -97,7 +97,7 @@ New specialized roles detected:
 For each accepted role:
 - Read the agent template from [agents/{role}.toml](../../../templates/agents/{role}.toml)
 - Secretary generates the agent config: `.dominion/agents/{role}.toml` + `.claude/agents/{role}.md`
-- Run `dominion-tools agents generate` to update AGENTS.md
+- Run `dominion-cli agents generate` to update AGENTS.md
 
 For rejected roles:
 - Note in improvements.toml as a rejected proposal (so it's not suggested again next phase)

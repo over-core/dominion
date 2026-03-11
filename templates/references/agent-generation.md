@@ -42,8 +42,8 @@ description: {agent.purpose}
 ## Startup Sequence
 1. Load required MCP tools: {for each required MCP, generate ToolSearch call}
 2. Load optional MCP tools (if available): {for each optional MCP}
-3. Read current state: `dominion-tools state position --json`
-4. Read task assignment (if in execution): `dominion-tools plan task {task-id} --json`
+3. Read current state: `dominion-cli state position --json`
+4. Read task assignment (if in execution): `dominion-cli plan task {task-id} --json`
 5. Load prior context (if echovault available): call `memory_context` for project-scoped decisions and patterns
 6. Search task-relevant memory (if echovault available and in execution): call `memory_search` with task title and key file names
 ```
@@ -76,12 +76,12 @@ Terminal: {fallback.action} — {fallback.message}
 
 ### CLI Commands Available
 {for each command in [tools.cli.commands]:}
-  {if command is a group name (e.g. "dominion-tools plan"):}
+  {if command is a group name (e.g. "dominion-cli plan"):}
     {look up all leaf commands in cli-spec.toml that start with this prefix}
-    {for each leaf command: print "- `dominion-tools {name}` — {description}"}
+    {for each leaf command: print "- `dominion-cli {name}` — {description}"}
   {else:}
     {look up the command in cli-spec.toml}
-    {print "- `dominion-tools {name}` — {description}"}
+    {print "- `dominion-cli {name}` — {description}"}
 ```
 
 **Governance** — from [governance]:
@@ -91,7 +91,7 @@ Terminal: {fallback.action} — {fallback.message}
 - STOP and report if you encounter an architectural decision
 {for each hard_stop:}
 - HARD STOP: {description}
-- NEVER edit `.dominion/` TOML files directly. All data reads and writes go through `dominion-tools` commands.
+- NEVER edit `.dominion/` TOML files directly. All data reads and writes go through `dominion-cli` commands.
 
 ### File Ownership
 {if file_ownership is non-empty: list owned directories}

@@ -135,7 +135,7 @@ policy = "minimal-change"            # minimal-change (only policy for now)
 
 ### CLI Command
 
-`dominion-tools zone check <path>` — agents call this before editing files:
+`dominion-cli zone check <path>` — agents call this before editing files:
 - Zones defined + path in zone → "legacy, minimal-change"
 - Zones defined + path outside zones → "active, follow target state"
 - No zones defined → "full restructure, follow target state"
@@ -297,7 +297,7 @@ Produces one or more of:
 
 ### CLI Spec
 
-- `dominion-tools zone check <path>` — direction zone checking
+- `dominion-cli zone check <path>` — direction zone checking
 - Update spec_version to 0.6
 
 ### Validate Checks

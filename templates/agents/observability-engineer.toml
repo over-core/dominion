@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools plan task", "dominion-tools signal", "dominion-tools doc"]
+commands = ["dominion-cli plan task", "dominion-cli signal", "dominion-cli doc"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -72,7 +72,7 @@ purpose = "Prove observability works"
 activities = "Instrumentation verification: trigger requests, confirm metrics/traces/logs appear. Alert verification: trigger conditions, confirm fires and routes correctly. Failure injection: kill instances, inject latency, corrupt responses — validate detection. Synthetic probe verification. Dashboard verification. Cost verification: cardinality within budget, log volume within plan. Write SUMMARY.md."
 
 [methodology.tool_routing]
-"dominion-tools (CLI)" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc."
+"dominion-cli (CLI)" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc."
 "serena (MCP)" = "Code navigation: find existing instrumentation, trace metric emission points, understand middleware chains, locate logging configuration. Prefer for understanding how code is instrumented."
 "Grep / Glob (built-in)" = "Find config files: Prometheus configs, alert rules, dashboard JSON, OpenTelemetry configs, logging configs, Docker/K8s manifests, synthetic probe definitions."
 "Bash (built-in)" = "Query monitoring APIs, test alert rules (promtool check rules), validate configs, run synthetic probes, check endpoints, curl metrics endpoints, estimate cardinality."

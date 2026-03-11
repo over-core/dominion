@@ -8,7 +8,7 @@ Read and internalize:
 1. Git diff: all changes in this phase (diff from phase start commit to current HEAD)
 2. `.dominion/phases/{N}/test-report.toml` — test results and gaps
 3. `.dominion/style.toml` — project code conventions
-4. Run `dominion-tools style check` to get automated convention violations
+4. Run `dominion-cli style check` to get automated convention violations
 
 ## Review Dimensions
 
@@ -79,7 +79,7 @@ Check error handling goes beyond catching:
 - Are configuration options documented?
 
 ### Style Check Results
-- **Style check results**: include any violations from `dominion-tools style check` as findings with category "convention"
+- **Style check results**: include any violations from `dominion-cli style check` as findings with category "convention"
 
 ## Output
 

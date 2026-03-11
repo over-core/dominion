@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools plan task", "dominion-tools signal", "dominion-tools doc"]
+commands = ["dominion-cli plan task", "dominion-cli signal", "dominion-cli doc"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -77,7 +77,7 @@ quick = "Relaxed — tests-after acceptable. One commit for whole change. Develo
 improve = "Matches task type. Per mini-plan task. From Architect's mini-plan."
 
 [[methodology.tool_routing]]
-tool = "dominion-tools (CLI)"
+tool = "dominion-cli (CLI)"
 use_for = "All .dominion/ data — read plan tasks via plan task, update progress via signal, write summaries via doc."
 
 [[methodology.tool_routing]]

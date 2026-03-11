@@ -4,7 +4,7 @@ Pre-flight verification before auto mode starts. Also useful as a standalone dia
 
 ## Invocation
 
-Run `dominion-tools auto readiness` (or invoke the check logic directly).
+Run `dominion-cli auto readiness` (or invoke the check logic directly).
 
 ## Check 1: Autonomy Configuration
 

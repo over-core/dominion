@@ -116,7 +116,7 @@ Fill in each row with agent-specific usage. Omit tools that don't apply to this 
 
 | Priority | Tool | Standard Usage |
 |----------|------|---------------|
-| 1 | dominion-tools (CLI) | **Mandatory for every agent.** All `.dominion/` data reads and writes — plan tasks, signals, summaries, knowledge. |
+| 1 | dominion-cli (CLI) | **Mandatory for every agent.** All `.dominion/` data reads and writes — plan tasks, signals, summaries, knowledge. |
 | 2 | serena (MCP) | Code navigation: symbol relationships, call hierarchies, definitions, references. Primary for code-level queries. Prefer over Grep for code. |
 | 3 | Grep / Glob (built-in) | Non-code search: config files, lockfiles, file discovery by pattern. Use for anything that isn't source code symbols. |
 | 4 | Bash (built-in) | Run tools, tests, builds, linters, external CLIs. The agent's hands for executing commands. |

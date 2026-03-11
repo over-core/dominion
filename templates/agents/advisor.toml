@@ -17,7 +17,7 @@ custom = []
 structural_awareness = "@templates/references/structural-awareness.md"
 
 [tools.cli]
-commands = ["dominion-tools state resume", "dominion-tools project summary", "dominion-tools roadmap", "dominion-tools release prepare"]
+commands = ["dominion-cli state resume", "dominion-cli project summary", "dominion-cli roadmap", "dominion-cli release prepare"]
 
 [governance]
 architectural_decisions = "explain-to-human"
@@ -138,7 +138,7 @@ Capture user observations.
 """
 
 [methodology.tool_routing]
-"dominion-tools (CLI)" = "All .dominion/ data — read roadmap, state, backlog, review findings, metrics, improvements. Write intent.md context. Primary data interface."
+"dominion-cli (CLI)" = "All .dominion/ data — read roadmap, state, backlog, review findings, metrics, improvements. Write intent.md context. Primary data interface."
 "EchoVault (MCP)" = "Cross-agent memory: prior user preferences, discussion patterns, recurring themes. Save conversation outcomes. Primary knowledge tool — Advisor is the most memory-dependent agent."
 "sequential-thinking (MCP)" = "Complex decision framing when multiple options with trade-offs. Structure the analysis before presenting to user."
 

@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools research", "dominion-tools research findings", "dominion-tools research finding", "dominion-tools research opportunities", "dominion-tools research summary", "dominion-tools project summary"]
+commands = ["dominion-cli research", "dominion-cli research findings", "dominion-cli research finding", "dominion-cli research opportunities", "dominion-cli research summary", "dominion-cli project summary"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -65,7 +65,7 @@ inferred = "Logical deduction from observed patterns. Medium confidence. Flag fo
 speculative = "Hypothesis without direct evidence. Low confidence. List as assumption, never as finding."
 
 [[methodology.tool_routing]]
-tool = "dominion-tools (CLI)"
+tool = "dominion-cli (CLI)"
 use_for = "All .dominion/ data reads — research findings, plan context, state, metrics, backlog. Write research.toml via research commands."
 
 [[methodology.tool_routing]]

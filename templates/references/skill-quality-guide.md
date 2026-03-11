@@ -65,10 +65,10 @@ Write instructions the LLM follows, not documentation a human reads.
 |-----|------|
 | "Analyze the project structure to understand the architecture" | "Use Glob to find Cargo.toml, pyproject.toml, package.json, go.mod. Read each found file. Record languages, package managers, and dependencies." |
 | "Consider the implications of the changes" | "Read review.toml findings. For each Critical finding: check if the proposed change resolves it. Record unresolved findings." |
-| "The system should validate inputs" | "Run `dominion-tools validate`. If errors: list them and STOP." |
+| "The system should validate inputs" | "Run `dominion-cli validate`. If errors: list them and STOP." |
 
 **Rules:**
-- Specify tools by name: "Read file X" not "check file X." "Run `dominion-tools state update`" not "update the state."
+- Specify tools by name: "Read file X" not "check file X." "Run `dominion-cli state update`" not "update the state."
 - Specify outputs with templates: show the exact output format in a code block, not "present a summary."
 - Every step produces an observable artifact: file written, state updated, output shown to user. No steps that "think about" something without producing output.
 - Use imperative mood: "Read", "Write", "Run", "Present" — not "You should read" or "It would be good to."
@@ -104,13 +104,13 @@ Skills that participate in the pipeline must manage state:
 
 **On start:**
 ```markdown
-Run `dominion-tools state update --step {step} --status in_progress`
+Run `dominion-cli state update --step {step} --status in_progress`
 ```
 
 **On completion:**
 ```markdown
-Run `dominion-tools state update --step {step} --status complete`
-Run `dominion-tools state checkpoint`
+Run `dominion-cli state update --step {step} --status complete`
+Run `dominion-cli state checkpoint`
 ```
 
 **Resume detection** (for interruptible skills):
@@ -205,7 +205,7 @@ The Reviewer applies these checklists during Step 4 (criticism).
 ### Prose Quality Checklist
 
 - [ ] Prose is directive — instructions the LLM follows, not documentation
-- [ ] Tool usage is specific — named tools ("Read", "Run `dominion-tools`"), not vague ("analyze", "check")
+- [ ] Tool usage is specific — named tools ("Read", "Run `dominion-cli`"), not vague ("analyze", "check")
 - [ ] Output formats are templated — exact format shown in code blocks
 - [ ] No steps without observable output — every step produces something
 - [ ] Imperative mood used throughout — "Read", "Write", "Present"
@@ -215,7 +215,7 @@ The Reviewer applies these checklists during Step 4 (criticism).
 - [ ] Pre-checks verify required state before proceeding
 - [ ] Pre-checks verify required plugins/MCPs before proceeding
 - [ ] Error paths STOP with clear messages — no degraded fallback
-- [ ] State management via `dominion-tools` CLI — not direct TOML edits
+- [ ] State management via `dominion-cli` CLI — not direct TOML edits
 - [ ] Flag parsing happens before any logic (if flags exist)
 - [ ] Resume detection for interruptible skills (if applicable)
 

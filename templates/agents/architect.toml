@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools plan task", "dominion-tools plan wave", "dominion-tools plan deps", "dominion-tools plan handoff", "dominion-tools plan index", "dominion-tools plan validate", "dominion-tools research findings", "dominion-tools research summary", "dominion-tools project summary"]
+commands = ["dominion-cli plan task", "dominion-cli plan wave", "dominion-cli plan deps", "dominion-cli plan handoff", "dominion-cli plan index", "dominion-cli plan validate", "dominion-cli research findings", "dominion-cli research summary", "dominion-cli project summary"]
 
 [governance]
 architectural_decisions = "owns"
@@ -69,7 +69,7 @@ purpose = "Write plan.toml and record decisions"
 key_activities = ["Write plan.toml via CLI", "Record ADRs for decomposition trade-offs and routing decisions", "Generate wave-transition handoff notes", "Save planning decisions to EchoVault"]
 
 [[methodology.tool_routing]]
-tool = "dominion-tools (CLI)"
+tool = "dominion-cli (CLI)"
 use_for = "All .dominion/ data — read research.toml via research commands, write plan.toml via plan commands. State, backlog, metrics for planning context."
 
 [[methodology.tool_routing]]

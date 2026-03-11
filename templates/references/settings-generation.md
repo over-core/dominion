@@ -14,7 +14,7 @@ Always add:
 {
   "permissions": {
     "allow": [
-      "Bash(dominion-tools *)"
+      "Bash(dominion-cli *)"
     ]
   }
 }

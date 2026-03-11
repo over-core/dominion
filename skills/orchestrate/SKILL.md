@@ -79,4 +79,4 @@ Phase {N} Complete:
 Next: /dominion:orchestrate to start the next phase.
 ```
 
-Run `dominion-tools state update --step improve --status complete` and `dominion-tools state checkpoint`.
+Run `dominion-cli state update --step improve --status complete` and `dominion-cli state checkpoint`.

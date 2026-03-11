@@ -14,7 +14,7 @@ Before running validations, load risk context:
 Run smoke tests FIRST before detailed validation:
 1. Identify core user paths from plan.toml tasks (high-priority, critical-path)
 2. Run a quick smoke: build succeeds, main entry point starts, core API responds
-3. If smoke fails → halt validation, report blocker via `dominion-tools signal blocker`
+3. If smoke fails → halt validation, report blocker via `dominion-cli signal blocker`
 4. Only proceed to detailed validation after smoke passes
 
 ## Input

@@ -30,7 +30,7 @@ Read .dominion/specs/cli-spec.toml and implement all commands as a CLI tool.
 
 Language: {detected language}
 Framework: {recommended CLI framework}
-Write to: dominion-tools/
+Write to: dominion-cli/
 
 Requirements:
 - Read CLAUDE.md for code conventions
@@ -52,9 +52,9 @@ Do NOT:
 After Developer completes, spawn a Tester agent:
 
 ```
-Write a test suite and validate dominion-tools against .dominion/specs/cli-spec.toml.
+Write a test suite and validate dominion-cli against .dominion/specs/cli-spec.toml.
 
-Write tests to: dominion-tools/tests/
+Write tests to: dominion-cli/tests/
 Use the project's test runner and conventions from CLAUDE.md.
 
 ### Functional Tests (per command)
@@ -86,7 +86,7 @@ For each command, test graceful failure:
 - `--help` on every command and on the root → prints usage, exits 0
 - Unknown command → helpful error suggesting valid commands, exits non-zero
 - Exit codes: 0 for success, non-zero for failure
-- No command (bare `dominion-tools`) → prints help or status summary
+- No command (bare `dominion-cli`) → prints help or status summary
 
 ### JSON Schema Consistency
 
@@ -99,7 +99,7 @@ For every command that supports --json:
 ### Test Report
 
 After running all tests, produce a summary:
-  dominion-tools test results
+  dominion-cli test results
     [PASS] validate — functional (3/3)
     [PASS] validate — error handling (4/4)
     [PASS] state resume — functional (2/2)

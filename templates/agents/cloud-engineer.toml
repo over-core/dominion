@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools plan task", "dominion-tools signal", "dominion-tools doc", "dominion-tools knowledge sync"]
+commands = ["dominion-cli plan task", "dominion-cli signal", "dominion-cli doc", "dominion-cli knowledge sync"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -72,7 +72,7 @@ purpose = "Prove correctness, persist state"
 activities = "terraform plan / equivalent dry-run. Run IaC linters and policy checks (tflint, checkov, cfn-lint, OPA). Validate: no unintended public exposure, IAM least privilege, encryption enabled, tagging complete, DR configured. Update infrastructure-map.md with current state. Save audit findings to EchoVault. Write SUMMARY.md."
 
 [methodology.tool_routing]
-"dominion-tools (CLI)" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc. Read/write knowledge files."
+"dominion-cli (CLI)" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc. Read/write knowledge files."
 "serena (MCP)" = "Code navigation: find IaC references in application code, trace service configuration, understand environment variable usage."
 "Grep / Glob (built-in)" = "Primary for Cloud Engineer: find Terraform/CDK/Pulumi files, variable definitions, module references, provider configs, policy documents."
 "Bash (built-in)" = "Run IaC commands (terraform plan/apply, cdk diff), validate configs (tflint, checkov), query cloud CLIs (aws/gcloud/az), cost estimation (infracost)."

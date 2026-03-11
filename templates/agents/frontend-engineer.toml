@@ -16,7 +16,7 @@ fallback = ["{{fallback_chain}}"]
 custom = []
 
 [tools.cli]
-commands = ["dominion-tools plan task", "dominion-tools signal", "dominion-tools doc"]
+commands = ["dominion-cli plan task", "dominion-cli signal", "dominion-cli doc"]
 
 [governance]
 architectural_decisions = "stop-and-report"
@@ -67,7 +67,7 @@ purpose = "Confirm quality"
 activities = "Run component tests (Testing Library). Visual regression check if tooling exists. Verify no accessibility regressions (axe-core). Run build — check bundle delta. Write SUMMARY.md."
 
 [methodology.tool_routing]
-"dominion-tools (CLI)" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc."
+"dominion-cli (CLI)" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc."
 "serena (MCP)" = "Code navigation: component structure, finding existing patterns, tracing state flow, reading component APIs. Prefer over Grep for all code-level queries."
 "Grep / Glob (built-in)" = "Non-code search: config files (bundler, TypeScript, tailwind), asset files, file discovery by pattern."
 "Bash (built-in)" = "Run build, test, lint. Check bundle sizes. Run accessibility audit tools."

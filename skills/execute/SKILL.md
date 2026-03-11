@@ -67,5 +67,5 @@ Execution Complete (Phase {N}):
 ## Step 5: Update State
 
 Update state:
-- Run `dominion-tools state update --step execute --status {complete|blocked}`
-- Run `dominion-tools state checkpoint`
+- Run `dominion-cli state update --step execute --status {complete|blocked}`
+- Run `dominion-cli state checkpoint`

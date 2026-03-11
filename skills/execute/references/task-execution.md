@@ -92,7 +92,7 @@ While agents are running:
 When the developer makes a significant decision during task work — architectural trade-offs, deviations from plan, technology choices — record it:
 
 ```bash
-dominion-tools state decision --task {task-id} --text "{description}" --tags "{comma-separated tags}"
+dominion-cli state decision --task {task-id} --text "{description}" --tags "{comma-separated tags}"
 ```
 
 Not every decision. Only those that:
@@ -107,7 +107,7 @@ These surface during `/dominion:improve` retrospective for review.
 When the developer encounters work that is out of scope for the current task — a bug in unrelated code, a refactoring opportunity, a missing feature — park it:
 
 ```bash
-dominion-tools state defer --text "{description}"
+dominion-cli state defer --text "{description}"
 ```
 
 These surface during the next `/dominion:discuss` session so the user can decide whether to address them.
@@ -118,7 +118,7 @@ When all agents in the wave have finished:
 
 1. **Verify summaries**: check `.dominion/phases/{N}/summaries/task-{id}.md` exists for each task
 2. **Run verify_command**: for each task with a verify_command, run it in the worktree
-3. **Update progress**: run `dominion-tools wave status` to check and update task statuses (complete, failed, or blocked)
+3. **Update progress**: run `dominion-cli wave status` to check and update task statuses (complete, failed, or blocked)
 
 ## Merge Protocol
 
@@ -143,7 +143,7 @@ git branch -d dominion/{task-id}
 After wave cleanup, before starting the next wave:
 1. Read all SUMMARY.md files from the completed wave
 2. Extract gotchas from "Friction Encountered" and "Decisions Made" sections
-3. Apply handoff notes to downstream tasks via `dominion-tools plan handoff`
+3. Apply handoff notes to downstream tasks via `dominion-cli plan handoff`
 4. Clean resolved signals from `.dominion/signals/`
 
 ## Failure Handling
