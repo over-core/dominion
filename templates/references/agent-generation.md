@@ -91,7 +91,10 @@ Terminal: {fallback.action} — {fallback.message}
 - STOP and report if you encounter an architectural decision
 {for each hard_stop:}
 - HARD STOP: {description}
-- NEVER edit `.dominion/` TOML files directly. All data reads and writes go through `dominion-cli` commands.
+
+### TOML Write Scope
+- **Config files** (dominion.toml, state.toml, roadmap.toml, style.toml, knowledge/index.toml): CLI-only. Use dominion-cli commands.
+- **Phase artifact files** (research.toml, plan.toml, review.toml, test-report.toml, progress.toml, metrics.toml, summaries/): direct write allowed. These are one-time artifacts produced by agent methodology.
 
 ### File Ownership
 {if file_ownership is non-empty: list owned directories}
@@ -160,3 +163,21 @@ Use ultrathink to synthesize these sections based on:
 ```
 
 Write each rendered .md to `.claude/agents/{role}.md`.
+
+## Post-Generation Verification
+
+After generating all agent files, verify each `.dominion/agents/{role}.toml`:
+1. TOML parses without error
+2. `[governance]` section exists with non-empty `hard_stops` array
+3. `[methodology]` section exists with at least one `[[methodology.phases]]` entry
+4. `[tools.mcps]` section exists
+5. `[workflow]` section exists with non-empty `produces` field
+
+After generating all `.claude/agents/{role}.md`:
+6. File contains "Dominion" in first 200 characters (header comment)
+7. File contains a Startup Sequence section
+8. File contains a Governance Rules section
+9. File contains a Tool Routing section
+10. File references style.toml for language conventions (not inline conventions)
+
+FAIL if any check fails. List specific agents and missing fields. Do not proceed to AGENTS.md generation until all checks pass.

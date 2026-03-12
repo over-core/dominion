@@ -16,10 +16,10 @@ Read `.dominion/dominion.toml`:
 
 ## Check 2: Permission Audit
 
-Read `.claude/settings.json` and `registry/registry.toml`:
+Read `.claude/settings.local.json` and `registry/registry.toml`:
 - For each MCP in `dominion.toml [mcps.installed]`:
   - Look up MCP in registry.toml
-  - For each tool in `safe_read_tools`: verify it appears in settings.json `permissions.allow`
+  - For each tool in `safe_read_tools`: verify it appears in settings.local.json `permissions.allow`
 - Report: "{approved}/{total} read tools pre-approved"
 - If gaps found: list missing permissions with the MCP name and tool name
 

@@ -61,7 +61,7 @@ This phase:
 1. Creates `.dominion/` directory structure
 2. Generates TOML configs from existing artifacts
 3. Merges CLAUDE.md (Dominion sections alongside existing)
-4. Updates settings.json (extend, never replace)
+4. Updates settings.local.json (extend, never replace)
 5. Adds lifecycle hooks alongside existing hooks
 6. Records provenance in `dominion.toml [claim]`
 7. Runs the reduced wizard for sections that need user input

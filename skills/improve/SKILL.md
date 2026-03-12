@@ -13,6 +13,11 @@ This skill operates in two modes based on context:
 - **Ad-hoc mode**: standalone invocation for creating or modifying Dominion entities
 </IMPORTANT>
 
+## Agent Dispatch: INLINE
+
+Read `.claude/agents/advisor.md`. Adopt the Advisor's startup sequence and methodology.
+See @templates/references/agent-dispatch.md for the inline dispatch protocol.
+
 ## Flag Parsing
 
 - `--agent`: create a new agent (ad-hoc mode, skip output routing)

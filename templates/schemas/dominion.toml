@@ -3,7 +3,7 @@
 
 [meta]
 schema_version = 1
-dominion_version = "0.1.0"
+dominion_version = "0.1.1"
 
 [project]
 name = ""                           # detected or user-provided
@@ -64,6 +64,9 @@ message = "Could not find docs. Do NOT read source files or trial-and-error comp
 spec_version = "0.1"
 language = ""                       # detected primary language
 build_system = ""                   # detected build system
+package_manager = ""                # detected package manager (uv, pip, poetry, npm, yarn, pnpm, cargo, go)
+install_command = ""                # canonical install command (e.g. "uv sync", "npm install", "cargo build")
+venv_path = ""                      # expected venv location (e.g. ".venv", "node_modules", "" for system-level langs)
 
 # MCP configuration (detected + recommended)
 [mcps]

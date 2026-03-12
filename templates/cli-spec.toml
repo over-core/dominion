@@ -38,7 +38,7 @@ reads = [
     ".dominion/style.toml",
     ".dominion/agents/*.toml",
     ".claude/agents/*.md",
-    ".claude/settings.json",
+    ".claude/settings.local.json",
     ".dominion/specs/cli-spec.toml",
     "AGENTS.md",
 ]
@@ -48,8 +48,8 @@ Perform these checks in order, report pass/fail for each:
 2. Every .dominion/agents/*.toml has a matching .claude/agents/*.md
 3. Agent .md files contain the expected Dominion header comment
 4. AGENTS.md exists and lists all agents from .dominion/agents/
-5. settings.json exists and contains Dominion CLI permission (Bash(dominion-cli *))
-6. settings.json contains MCP permissions for all 'required' MCPs in agent configs
+5. settings.local.json exists and contains Dominion CLI permission (Bash(dominion-cli *))
+6. settings.local.json contains MCP permissions for all 'required' MCPs in agent configs
 7. CLI implements all commands listed in cli-spec.toml minimum_commands
 8. dominion.toml [documentation.fallback] section exists and has stop-and-ask terminal
 9. CLI spec version >= 0.2, all v0.2 minimum_commands implemented
@@ -62,7 +62,7 @@ Output format:
     [PASS] Agent TOML-MD consistency (8/8)
     [PASS] Agent MD headers
     [PASS] AGENTS.md roster complete
-    [PASS] settings.json permissions
+    [PASS] settings.local.json permissions
     [WARN] MCP permissions — missing: sequential-thinking (optional)
     [PASS] CLI completeness (N/N commands)
     [PASS] Documentation fallback chain
@@ -1016,13 +1016,13 @@ description = "Pre-flight check for auto mode"
 args = [
     { name = "--json", description = "Output as JSON", optional = true },
 ]
-reads = [".dominion/dominion.toml", ".dominion/state.toml", ".claude/settings.json", "registry/registry.toml"]
+reads = [".dominion/dominion.toml", ".dominion/state.toml", ".claude/settings.local.json", "registry/registry.toml"]
 writes = [".dominion/state.toml"]
 behavior = """
 1. Read dominion.toml [autonomy] — verify section exists with valid circuit breaker values
 2. Read dominion.toml [mcps] — get installed MCPs list
 3. Cross-reference installed MCPs against registry.toml safe_read_tools
-4. Check .claude/settings.json — verify each safe_read_tool is in permissions.allow
+4. Check .claude/settings.local.json — verify each safe_read_tool is in permissions.allow
 5. For each installed MCP: attempt a lightweight probe (list tools or similar)
 6. Write [[mcp_status]] entries to state.toml with availability results
 

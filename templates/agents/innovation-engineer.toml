@@ -21,6 +21,11 @@ commands = ["dominion-cli plan task", "dominion-cli signal", "dominion-cli doc",
 [governance]
 architectural_decisions = "stop-and-report"
 file_ownership = []
+hard_stops = [
+    "NEVER edit .dominion/ config files (dominion.toml, state.toml, roadmap.toml, style.toml, knowledge/index.toml) directly. Use dominion-cli commands.",
+    "Phase artifact files (.dominion/phases/*/research.toml, plan.toml, etc.) are written directly by the assigned agent as methodology output.",
+    "{{hard_stops}}"
+]
 
 [workflow]
 produces = "SUMMARY.md"

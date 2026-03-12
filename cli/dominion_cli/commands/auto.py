@@ -53,8 +53,8 @@ def readiness(
     installed = list(mcps.keys()) if isinstance(mcps, dict) else []
     warnings: list[str] = []
 
-    # Check settings.json for permissions
-    settings_path = project_root() / ".claude" / "settings.json"
+    # Check settings.local.json for permissions
+    settings_path = project_root() / ".claude" / "settings.local.json"
     if settings_path.exists():
         import json as json_mod
 

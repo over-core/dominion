@@ -15,6 +15,14 @@ Before starting, check the lock:
 - If `.dominion/state.toml` `[lock].session_id` is set and not expired, warn: "Pipeline is locked by session {id} since {locked_at}. Use /dominion:quick for lightweight tasks, or force-unlock if the session is stale."
 </IMPORTANT>
 
+## Execution Modes
+
+Execution supports two modes:
+- **Parallel** (default): `Agent(isolation: "worktree")` per task, concurrent within wave
+- **Serial** (fallback): orchestrator executes tasks directly if parallel fails
+
+Fallback triggers automatically after 2 agent spawn failures. See [task-execution.md](references/task-execution.md) for the full fallback protocol.
+
 ## Pre-check
 
 1. Read `.dominion/state.toml` — get current phase, check lock

@@ -31,7 +31,7 @@ For each existing `.claude/agents/*.md`:
 
 ## Settings Analysis
 
-If `.claude/settings.json` exists:
+If `.claude/settings.local.json` exists:
 1. Parse MCP permissions — which MCPs have which operations allowed
 2. Parse tool allow-lists — what's auto-approved
 3. Identify permissions Dominion would add vs what already exists

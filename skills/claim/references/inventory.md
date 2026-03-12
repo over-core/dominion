@@ -10,7 +10,7 @@ Check each of these and record: exists (yes/no), size, last modified.
 
 1. `CLAUDE.md` — read and record section headings (lines starting with `#` or `##`)
 2. `AGENTS.md` — read and record listed agents
-3. `.claude/settings.json` — read and record MCP permissions, tool allow-lists
+3. `.claude/settings.local.json` — read and record MCP permissions, tool allow-lists
 4. `.claude/settings.local.json` — check existence (user-local overrides)
 
 ### Agent Files
@@ -23,7 +23,7 @@ Check each of these and record: exists (yes/no), size, last modified.
 
 ### Hooks
 
-6. Check for hookify rules: Glob `.claude/hookify.*.local.md`. Also read `.claude/settings.json` for native `"hooks"` config. Check `.claude/hooks/` for hook scripts.
+6. Check for hookify rules: Glob `.claude/hookify.*.local.md`. Also read `.claude/settings.local.json` for native `"hooks"` config. Check `.claude/hooks/` for hook scripts.
    - List all hook files/rules
    - Record trigger events and rule descriptions
 
@@ -43,7 +43,7 @@ Check each of these and record: exists (yes/no), size, last modified.
 ### MCPs
 
 11. Detect currently available MCPs by checking which `mcp__*` tools are loaded
-12. Read `.claude/settings.json` for configured MCP permissions
+12. Read `.claude/settings.local.json` for configured MCP permissions
 13. Cross-reference against [registry.toml](../../../registry/registry.toml)
 
 ### Project Analysis

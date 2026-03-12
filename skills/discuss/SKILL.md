@@ -12,6 +12,11 @@ This skill requires Dominion to be initialized. Check that `.dominion/dominion.t
 If it does not, tell the user: "Run /dominion:init first."
 </IMPORTANT>
 
+## Agent Dispatch: INLINE
+
+Read `.claude/agents/advisor.md`. Adopt the Advisor's startup sequence and methodology.
+See @templates/references/agent-dispatch.md for the inline dispatch protocol.
+
 ## Pre-check
 
 1. Read `.dominion/state.toml` — check position.phase and position.step

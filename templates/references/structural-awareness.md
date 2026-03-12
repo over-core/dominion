@@ -12,13 +12,13 @@ An autonomous role with defined capabilities, tool access, and governance rules.
 - `.dominion/agents/{role}.toml` — configuration (model, tools, governance, workflow)
 - `.claude/agents/{role}.md` — generated instructions (from TOML by Secretary)
 - Entry in `AGENTS.md` — auto-generated roster
-- Permissions in `.claude/settings.json` — MCP and tool access
+- Permissions in `.claude/settings.local.json` — MCP and tool access
 
 **To create:**
 1. Write `.dominion/agents/{role}.toml` (use existing agent TOMLs as reference)
 2. If adding methodology: follow [agent-methodology-design.md](agent-methodology-design.md) for `[methodology]`, `[methodology.tool_routing]`, `[methodology.methods]`, and `[research_lens]` sections
 3. Run `dominion-cli agents generate` — generates .md and updates AGENTS.md
-4. Update `.claude/settings.json` with required MCP permissions
+4. Update `.claude/settings.local.json` with required MCP permissions
 5. Run `dominion-cli doc generate` to regenerate DOMINION.md
 
 **When to create vs extend:**
@@ -79,7 +79,7 @@ A behavioral guard that runs on specific triggers (pre-commit, tool calls, etc.)
 
 **Composed of:**
 - Hookify rule: `.claude/hookify.{name}.local.md` — declarative markdown with YAML frontmatter (preferred, requires hookify plugin)
-- OR native hook: config in `.claude/settings.json` under `"hooks"` key, optional script in `.claude/hooks/`
+- OR native hook: config in `.claude/settings.local.json` under `"hooks"` key, optional script in `.claude/hooks/`
 
 **To create:**
 1. Define architecture: what behavior to guard, trigger event, warn vs block action (Dominion pipeline Steps 1-5)
@@ -106,7 +106,7 @@ When creating any new building block, verify:
 - [ ] References resolve: all markdown link references point to existing files
 - [ ] AGENTS.md updated: if agents changed, run `dominion-cli agents generate`
 - [ ] DOMINION.md updated: if skills, agents, or config changed, run `dominion-cli doc generate`
-- [ ] settings.json updated: if new MCP permissions needed
+- [ ] settings.local.json updated: if new MCP permissions needed
 - [ ] Validate passes: run `dominion-cli validate`
 
 ## Extensibility

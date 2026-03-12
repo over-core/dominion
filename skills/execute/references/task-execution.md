@@ -2,6 +2,18 @@
 
 Wave execution protocol for parallel Developer agents.
 
+## Pre-Flight: Environment Check
+
+Before the first wave, verify the project environment:
+
+1. Read `dominion.toml [cli].venv_path` — if non-empty, check that the venv directory exists
+2. If missing: create it using the detected package manager:
+   - uv: `uv venv {venv_path}`
+   - pip/poetry: `python -m venv {venv_path}`
+   - npm/yarn/pnpm: `{install_command}` (creates node_modules)
+3. Run `dominion.toml [cli].install_command` to ensure dependencies are installed
+4. If venv creation fails: warn the user and continue (some tasks may not need it)
+
 ## Developer Methodology
 
 Each Developer agent follows a 7-phase execution cycle per task:
@@ -52,32 +64,47 @@ Exceptions:
 - Quick mode: tests-after is acceptable when speed matters. Write them, but the order is relaxed.
 - Infrastructure/config tasks: where executable tests are impractical, verify_command serves as the test.
 
-## Worktree Setup
-
-For each task in the wave:
-```bash
-git worktree add .worktrees/dominion-{task-id} -b dominion/{task-id}
-```
-
-Verify worktree creation succeeded. If it fails (branch already exists), offer to clean up stale worktrees.
-
 ## Agent Spawning
 
-For each task, spawn a Developer agent with:
-```bash
-claude --agent developer --working-directory .worktrees/dominion-{task-id}
+For each task in the wave, spawn a Developer agent with worktree isolation:
+
+```
+Agent(
+  isolation: "worktree",
+  prompt: "<full content of .claude/agents/{role}.md>\n\n<task prompt below>",
+  description: "execute task {task-id} — {role}"
+)
 ```
 
-Provide the agent with a prompt containing:
-1. Task details: id, title, description
-2. File ownership: which files/directories the task may modify
-3. Acceptance criteria: the verifiable done conditions
-4. Verify command: the shell command to run for validation
-5. Upstream handoff notes: from completed upstream tasks (if any)
-6. Signal protocol: how to raise blockers/warnings
-7. Knowledge refs: relevant `.dominion/knowledge/` files from plan.toml `knowledge_refs` (if any)
+The SDK manages the worktree lifecycle:
+- Creates an isolated copy in `.claude/worktrees/` (SDK-managed path, already gitignored by Claude Code)
+- Agent gets full permissions in the isolated copy
+- On completion: SDK returns the worktree path and branch name
+- Worktree auto-cleaned if agent made no changes
+
+Include in each agent's prompt:
+1. The full content of `.claude/agents/{role}.md` (behavioral instructions)
+2. Task details: id, title, description
+3. File ownership: which files/directories the task may modify
+4. Acceptance criteria: the verifiable done conditions
+5. Verify command: the shell command to run for validation
+6. Upstream handoff notes: from completed upstream tasks (if any)
+7. Signal protocol: how to raise blockers/warnings
+8. Knowledge refs: relevant `.dominion/knowledge/` files from plan.toml `knowledge_refs` (if any)
 
 **All wave agents are spawned concurrently.** Do not wait for one to finish before starting the next.
+
+## Execution Mode Fallback
+
+If an agent spawn fails (permission denied, timeout, or error):
+1. Increment the failure counter for this wave
+2. If failures >= 2: **SWITCH to serial mode**
+   - Log: "Parallel execution unavailable. Switching to serial."
+   - Execute remaining tasks directly in main context, one at a time
+   - Read the assigned agent's `.claude/agents/{role}.md` and follow the methodology inline
+3. If context consumed > 50% on spawn failures: **HALT**
+   - Run: `dominion-cli state checkpoint`
+   - Report to user: "Context budget exhausted by agent failures. Checkpoint saved."
 
 ## Monitoring
 
@@ -122,9 +149,9 @@ When all agents in the wave have finished:
 
 ## Merge Protocol
 
-For each completed task (in dependency order):
+For each completed task (in dependency order), merge the branch returned by the Agent tool:
 ```bash
-git merge --no-ff dominion/{task-id} -m "merge: task {task-id} — {title}"
+git merge --no-ff {branch-name} -m "merge: task {task-id} — {title}"
 ```
 
 - If merge conflict: **HALT**. Present the conflict to the user. Do NOT auto-resolve.
@@ -132,11 +159,9 @@ git merge --no-ff dominion/{task-id} -m "merge: task {task-id} — {title}"
 
 ## Worktree Cleanup
 
-After all merges for the wave:
-```bash
-git worktree remove .worktrees/dominion-{task-id}
-git branch -d dominion/{task-id}
-```
+The SDK auto-cleans worktrees that made no changes. For worktrees with changes:
+- After successful merge: `git worktree remove {worktree-path}` and `git branch -d {branch-name}`
+- The worktree path and branch name are returned by the Agent tool on completion
 
 ## Inter-Wave Checkpoint
 

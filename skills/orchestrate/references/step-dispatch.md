@@ -4,15 +4,17 @@ Protocol for dispatching pipeline steps to their skills.
 
 ## Dispatch Map
 
-| Step     | Skill               | Agent Role  | Produces               |
-|----------|----------------------|-------------|------------------------|
-| discuss  | /dominion:discuss    | Advisor     | intent.md              |
-| explore  | /dominion:explore    | Researcher  | research.toml          |
-| plan     | /dominion:plan       | Architect   | plan.toml              |
-| execute  | /dominion:execute    | Developer   | progress.toml, summaries |
-| test     | /dominion:test       | Tester      | test-report.toml       |
-| review   | /dominion:review     | Reviewer    | review.toml            |
-| improve  | /dominion:improve    | Advisor     | improvements.toml, knowledge |
+| Step     | Skill               | Agent Role  | Dispatch  | Produces               |
+|----------|----------------------|-------------|-----------|------------------------|
+| discuss  | /dominion:discuss    | Advisor     | inline    | intent.md              |
+| explore  | /dominion:explore    | Researcher  | subagent  | research.toml          |
+| plan     | /dominion:plan       | Architect   | subagent  | plan.toml              |
+| execute  | /dominion:execute    | Developer   | worktree  | progress.toml, summaries |
+| test     | /dominion:test       | Tester      | subagent  | test-report.toml       |
+| review   | /dominion:review     | Reviewer    | subagent  | review.toml            |
+| improve  | /dominion:improve    | Advisor     | inline    | improvements.toml, knowledge |
+
+See [agent-dispatch.md](../../../templates/references/agent-dispatch.md) for the full dispatch protocol per mode.
 
 ## Profile-Aware Dispatch
 

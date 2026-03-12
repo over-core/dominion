@@ -67,6 +67,14 @@ TERMINAL: Stop and ask. Never read library source code.
 - {any pet peeves from wizard}
 ```
 
+If ADRs are enabled in style.toml `[documentation].adr_enabled`:
+```markdown
+### ADRs
+- Location: {adr_path from style.toml}
+- Format: Nygard (Title, Status, Context, Decision, Consequences)
+- Architect decides when ADRs are needed, Technical Writer may draft
+```
+
 ### Section 6: Quality Gates (10-15 lines)
 ```markdown
 ## Quality Gates
@@ -74,7 +82,17 @@ Before committing, run:
 {pre_commit commands from style.toml, per language}
 ```
 
-### Section 7: Decision Framework (10-15 lines)
+### Section 7: Dependencies (5-10 lines)
+```markdown
+## Dependencies
+Package manager: {package_manager from dominion.toml}
+Install: {install_command from dominion.toml}
+NEVER install packages globally. Use project-local {venv_path} only.
+```
+
+If `package_manager` is empty (no package manager detected), skip this section.
+
+### Section 8: Decision Framework (10-15 lines)
 ```markdown
 ## Decision Framework
 - **Decide autonomously:** formatting, variable naming, test structure
@@ -82,7 +100,7 @@ Before committing, run:
 - **STOP and ask:** architectural decisions, new dependencies, wire format changes, security concerns
 ```
 
-### Section 8: Dominion Integration (10-15 lines)
+### Section 9: Dominion Integration (20-30 lines)
 ```markdown
 ## Dominion
 - Agent roster: see AGENTS.md
@@ -90,13 +108,28 @@ Before committing, run:
 - CLI: dominion-cli (run `dominion-cli --help`)
 - Current state: `dominion-cli state resume`
 - Documentation chain: {first → second → ... → STOP AND ASK}
+
+### Pipeline Orchestration
+You are the orchestrator. When a Dominion skill names an agent, dispatch it — don't execute the methodology inline unless the dispatch mode is "inline".
+
+| Step     | Agent      | Dispatch  | Context Passed                         |
+|----------|------------|-----------|----------------------------------------|
+| discuss  | Advisor    | inline    | roadmap, prior review, backlog         |
+| explore  | Researcher | subagent  | intent.md, prior research              |
+| plan     | Architect  | subagent  | research.toml, roadmap                 |
+| execute  | Developer  | worktree  | plan.toml task, file_ownership         |
+| test     | Tester     | subagent  | plan.toml, progress.toml               |
+| review   | Reviewer   | subagent  | all phase artifacts                    |
+| improve  | Advisor    | inline    | review.toml, metrics.toml              |
+
+Do NOT substitute Claude Code built-in subagent types (Explore, Plan) for Dominion agents.
 ```
 
 ## Phase 2: Section-by-Section Walkthrough
 
 Present each section to the user one at a time:
 ```
-Section N/8: {title}
+Section N/9: {title}
   {section content}
 
   [approve / edit / skip]

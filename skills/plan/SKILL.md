@@ -12,6 +12,13 @@ This skill requires research.toml for the current phase.
 Check `.dominion/phases/{N}/research.toml` exists. If not, tell the user: "Run /dominion:explore first."
 </IMPORTANT>
 
+## Agent Dispatch: SUBAGENT
+
+Spawn the Architect agent via the Agent tool.
+Include behavioral instructions from `.claude/agents/architect.md` in the prompt.
+Pass: research.toml content, phase number, active specialist list, roadmap context.
+See @templates/references/agent-dispatch.md for the subagent dispatch protocol.
+
 ## Pre-check
 
 1. Read `.dominion/state.toml` — get current phase number

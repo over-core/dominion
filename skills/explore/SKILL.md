@@ -12,6 +12,13 @@ This skill requires an active phase. Check `.dominion/state.toml` — position.p
 If phase is 0, tell the user: "No active phase. Run /dominion:discuss first."
 </IMPORTANT>
 
+## Agent Dispatch: SUBAGENT
+
+Spawn the Researcher agent via the Agent tool.
+Include behavioral instructions from `.claude/agents/researcher.md` in the prompt.
+Pass: intent.md content, phase number, active specialist list.
+See @templates/references/agent-dispatch.md for the subagent dispatch protocol.
+
 ## Pre-check
 
 1. Read `.dominion/state.toml` — get current phase number

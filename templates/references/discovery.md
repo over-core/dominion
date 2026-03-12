@@ -23,6 +23,21 @@ For detected languages, also check:
 
 Record the primary language (most files or explicit build system).
 
+### Package Manager Detection
+
+Determine the active package manager from lock files:
+- `uv.lock` → uv (install: `uv sync`)
+- `poetry.lock` → poetry (install: `poetry install`)
+- `Pipfile.lock` → pipenv (install: `pipenv install`)
+- `requirements.txt` (no lock file) → pip (install: `pip install -r requirements.txt`)
+- `package-lock.json` → npm (install: `npm install`)
+- `yarn.lock` → yarn (install: `yarn install`)
+- `pnpm-lock.yaml` → pnpm (install: `pnpm install`)
+- `Cargo.lock` → cargo (install: `cargo build`)
+- `go.sum` → go (install: `go mod download`)
+
+Record: `package_manager`, `install_command`, and `venv_path` (`.venv` for Python, `node_modules` for JS, empty for Rust/Go).
+
 ## Phase 3: Framework Detection
 
 Reference: [frameworks.toml](../../data/detection/frameworks.toml)
@@ -104,7 +119,7 @@ Check for existing PR/MR templates:
 ## Phase 7: Existing Claude Code Setup
 
 - Check for `CLAUDE.md` — record existence, rough size, section headings
-- Check for `.claude/` directory — agents/, settings.json, hooks/
+- Check for `.claude/` directory — agents/, settings.local.json, hooks/
 - Check for `AGENTS.md`
 - If existing setup found: warn user that v0.1 creates fresh (merge is v0.7 `dominion claim`)
 

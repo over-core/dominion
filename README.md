@@ -2,7 +2,7 @@
 
 > Your AI development team, generated from your codebase.
 
-**v0.1.0** | MIT License | Claude Code Plugin
+**v0.1.1** | MIT License | Claude Code Plugin
 
 Dominion is a Claude Code plugin that analyzes your project and generates a complete AI development methodology — specialized agents, curated tools, governance rules, code conventions, git workflow, and a CLI toolkit — all committed to git. The plugin is the author; the artifacts are the runtime. Dominion is needed to create and evolve the setup, but a cloned repo works without it. New developers get best practices on `git clone`. The methodology improves itself after every development phase.
 
@@ -28,7 +28,7 @@ Run `/dominion:init` once and Dominion generates the following in your project:
 │   ├── architect.md
 │   ├── developer.md
 │   └── ...
-├── settings.json              # Permissions and tool access
+├── settings.local.json        # Permissions and tool access
 └── commands/
     └── dominion-cli/        # CLI toolkit (54 commands)
 
@@ -239,7 +239,7 @@ Detection results drive specialist agent activation, convention generation, and 
 /plugin marketplace add over-core/dominion
 
 # Install the plugin
-/plugin install dominion@dominion
+/plugin install dominion
 ```
 
 ### Initialize Your Project
@@ -340,6 +340,7 @@ This is not a traditional codebase. There is almost no application code. The pro
 
 | Version | Highlights |
 |---------|------------|
+| 0.1.1 | Stabilization — agent dispatch protocol, execution resilience, governance fixes, dependency management |
 | 0.1.0 | Initial release — 14 skills, 18 agents, 54 CLI commands, 7-step pipeline, auto mode, brownfield claim, improvement loop |
 
 ## License

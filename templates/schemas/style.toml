@@ -22,6 +22,12 @@ schema_version = 1
 # doc_comments = "all-public"
 # tracing = "async-io"
 
+# Documentation conventions
+[documentation]
+adr_enabled = false                 # true | false — record Architecture Decision Records
+adr_path = "docs/adr"              # directory for ADR files
+adr_format = "nygard"              # nygard | custom
+
 # Free-text preferences
 [taste]
 dos = []                            # "Prefer iterators over loops", etc.

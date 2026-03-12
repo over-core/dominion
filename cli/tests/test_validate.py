@@ -43,7 +43,7 @@ class TestValidate:
         check_names = {c["name"] for c in data["checks"]}
         assert "TOML integrity" in check_names
         assert "Agent TOML-MD consistency" in check_names
-        assert "settings.json permissions" in check_names
+        assert "settings.local.json permissions" in check_names
 
     def test_validate_missing_dominion_toml(self, tmp_dominion: Path) -> None:
         """Removing dominion.toml should cause a failure."""
@@ -64,12 +64,12 @@ class TestValidate:
         assert result.exit_code == 1
 
     def test_validate_missing_settings_json(self, tmp_dominion: Path) -> None:
-        """Removing settings.json should cause a failure."""
-        (tmp_dominion / ".claude" / "settings.json").unlink()
+        """Removing settings.local.json should cause a failure."""
+        (tmp_dominion / ".claude" / "settings.local.json").unlink()
         result = runner.invoke(app, ["validate", "--json"])
         data = json.loads(result.stdout)
         check_map = {c["name"]: c for c in data["checks"]}
-        assert check_map["settings.json permissions"]["status"] == "fail"
+        assert check_map["settings.local.json permissions"]["status"] == "fail"
         assert result.exit_code == 1
 
     def test_validate_missing_agent_md(self, tmp_dominion: Path) -> None:

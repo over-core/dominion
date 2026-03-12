@@ -22,7 +22,7 @@ If no flags:
    - For skill requests: check existing `.dominion/skills/` — check for procedure overlap
    - For knowledge: check `.dominion/knowledge/index.toml` — check for topic overlap
    - For CLI commands: read `.dominion/specs/cli-spec.toml` — check for command overlap
-   - For hooks: check for existing hookify rules (`.claude/hookify.*.local.md`) and native hooks in `.claude/settings.json` `"hooks"` config — check for event/pattern overlap
+   - For hooks: check for existing hookify rules (`.claude/hookify.*.local.md`) and native hooks in `.claude/settings.local.json` `"hooks"` config — check for event/pattern overlap
 3. Follow [overlap-check.md](overlap-check.md) for overlap detection logic
 
 If significant overlap found:
@@ -62,7 +62,7 @@ Present the proposal:
 Proposed {type}: {name}
   Purpose: {description}
   Files to create: {list}
-  Wiring needed: {AGENTS.md, settings.json, etc.}
+  Wiring needed: {AGENTS.md, settings.local.json, etc.}
 
 {Show draft content for review}
 ```
@@ -111,7 +111,7 @@ For each output type, follow the creation steps from [structural-awareness.md](.
 ### Agent
 1. Write `.dominion/agents/{role}.toml`
 2. Run `dominion-cli agents generate`
-3. Update `.claude/settings.json` with required permissions
+3. Update `.claude/settings.local.json` with required permissions
 4. Run `dominion-cli doc generate` to regenerate DOMINION.md
 
 ### Skill
@@ -145,7 +145,7 @@ After writing, run the eval loop: create test cases (use positive/negative trigg
 After skill-creator completes, the Secretary places the validated files:
 1. Move skill files to `.dominion/skills/{name}.md` (and `references/` if created)
 2. Run `dominion-cli doc generate` to regenerate DOMINION.md
-3. Update `.claude/settings.json` if the skill needs permissions
+3. Update `.claude/settings.local.json` if the skill needs permissions
 
 **If skill-creator is NOT installed:**
 

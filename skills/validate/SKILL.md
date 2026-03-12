@@ -26,7 +26,7 @@ dominion validate
   [PASS] TOML integrity
   [PASS] Agent TOML-MD consistency (8/8)
   [PASS] AGENTS.md roster complete
-  [WARN] settings.json — missing optional: sequential-thinking
+  [WARN] settings.local.json — missing optional: sequential-thinking
   [PASS] CLI completeness (8/8 commands)
   [PASS] Documentation fallback chain
   [PASS] CLAUDE.md exists

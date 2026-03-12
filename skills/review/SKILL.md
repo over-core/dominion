@@ -12,6 +12,13 @@ This skill requires test-report.toml for the current phase.
 Check `.dominion/phases/{N}/test-report.toml` exists. If not, tell the user: "Run /dominion:test first."
 </IMPORTANT>
 
+## Agent Dispatch: SUBAGENT
+
+Spawn the Reviewer agent via the Agent tool.
+Include behavioral instructions from `.claude/agents/reviewer.md` in the prompt.
+Pass: all phase artifacts (plan.toml, progress.toml, test-report.toml, summaries).
+See @templates/references/agent-dispatch.md for the subagent dispatch protocol.
+
 ## Pre-check
 
 1. Read `.dominion/state.toml` — get current phase number

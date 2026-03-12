@@ -21,6 +21,11 @@ commands = ["dominion-cli plan task", "dominion-cli plan wave", "dominion-cli pl
 [governance]
 architectural_decisions = "owns"
 file_ownership = []
+hard_stops = [
+    "NEVER edit .dominion/ config files (dominion.toml, state.toml, roadmap.toml, style.toml, knowledge/index.toml) directly. Use dominion-cli commands.",
+    "Phase artifact files (.dominion/phases/*/research.toml, plan.toml, etc.) are written directly by the assigned agent as methodology output.",
+    "{{hard_stops}}"
+]
 
 [workflow]
 produces = "plan.toml"
@@ -116,3 +121,53 @@ purpose = "Estimate per-task token cost. Split tasks exceeding 80% of budget. Pr
 name = "Design Independence Check (Axiomatic Design)"
 source = "Nam P. Suh, MIT"
 purpose = "During task decomposition, verify task boundaries maintain functional independence. If a task output change forces changes in non-dependent tasks, revise boundaries. Applied when innovation-engineer specialist_referral is present in findings."
+
+# Routing rules: which agent to assign per task type during Specialist Routing phase
+[[methodology.routing_rules]]
+role = "database-engineer"
+triggers = ["schema design", "migrations", "query optimization", "indexing", "ORM models", "database configuration"]
+
+[[methodology.routing_rules]]
+role = "api-designer"
+triggers = ["API contracts", "endpoint design", "REST/GraphQL/gRPC", "schema validation", "API versioning", "OpenAPI spec"]
+
+[[methodology.routing_rules]]
+role = "security-auditor"
+triggers = ["authentication", "authorization", "crypto", "injection prevention", "dependency audit", "permission boundaries"]
+
+[[methodology.routing_rules]]
+role = "devops"
+triggers = ["CI/CD pipelines", "Docker/container configs", "infrastructure-as-code", "tooling setup", "build system changes"]
+
+[[methodology.routing_rules]]
+role = "technical-writer"
+triggers = ["documentation", "ADRs", "changelogs", "API docs", "README updates", "onboarding guides"]
+
+[[methodology.routing_rules]]
+role = "release-manager"
+triggers = ["versioning", "release tags", "publish workflows", "migration guides", "changelog generation"]
+
+[[methodology.routing_rules]]
+role = "analyst"
+triggers = ["performance analysis", "metrics collection", "benchmarking", "profiling", "cost analysis"]
+
+[[methodology.routing_rules]]
+role = "observability-engineer"
+triggers = ["monitoring", "logging", "tracing", "SLOs", "alerting", "dashboards"]
+
+[[methodology.routing_rules]]
+role = "cloud-engineer"
+triggers = ["cloud service config", "infrastructure dependencies", "cost/quota", "service accounts", "cloud-specific APIs"]
+
+[[methodology.routing_rules]]
+role = "frontend-engineer"
+triggers = ["UI components", "state management", "accessibility", "responsive layout", "CSS/styling"]
+
+[[methodology.routing_rules]]
+role = "innovation-engineer"
+triggers = ["contradiction resolution", "inventive problem-solving"]
+note = "opt-in only — user_requested trigger"
+
+[[methodology.routing_rules]]
+role = "secretary"
+triggers = ["agent configs", "AGENTS.md", "DOMINION.md", "settings.local.json", "governance files"]

@@ -266,8 +266,8 @@ def tmp_dominion(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         "| developer | claude-sonnet-4-20250514 | Implement planned tasks |\n"
     )
 
-    # .claude/settings.json with CLI permission
-    (project_root / ".claude" / "settings.json").write_text(
+    # .claude/settings.local.json with CLI permission
+    (project_root / ".claude" / "settings.local.json").write_text(
         json.dumps({
             "permissions": {
                 "allow": ["Bash(dominion-cli *)"],

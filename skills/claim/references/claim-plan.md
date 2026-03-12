@@ -12,7 +12,7 @@ Present in this order:
 Will preserve (no changes needed):
   ✓ CLAUDE.md — {N} user-written sections kept intact
   ✓ .claude/agents/{name}.md — kept as custom agent
-  ✓ .claude/settings.json — all permissions preserved
+  ✓ .claude/settings.local.json — all permissions preserved
   ✓ .githooks/ — existing hooks preserved
 ```
 
@@ -66,7 +66,7 @@ Some questions still need your input:
 Auto-detected sections (from existing setup + codebase analysis):
 - Code style → confirmed from existing CLAUDE.md rules and codebase
 - Git workflow → confirmed from existing config and hooks
-- Tools → confirmed from settings.json
+- Tools → confirmed from settings.local.json
 - Taste → extracted from existing CLAUDE.md rules
 
 ## Approval

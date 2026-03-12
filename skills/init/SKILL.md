@@ -45,6 +45,18 @@ Based on discovery results, run the wizard:
 
 Output: user-approved configuration choices.
 
+## Step 2b: User Profile
+
+If the wizard collected an experience level (Section 11) and `~/.claude/.dominion/user-profile.toml` does not already exist:
+
+1. Ask the user: "Save your experience level to a cross-project profile at `~/.claude/.dominion/user-profile.toml`? This lets future Dominion projects remember your preferences. [Y/n]"
+2. If Y: create the directory and file using [user-profile.toml](../../templates/schemas/user-profile.toml) as schema, populated with experience_level
+3. If N: skip — the experience level is still stored locally in `.dominion/state.toml`
+
+<IMPORTANT>
+This writes outside the project directory. Always ask the user first. Never write silently.
+</IMPORTANT>
+
 ## Step 3: Generate Project Config
 
 Create the `.dominion/` directory structure:
@@ -75,16 +87,17 @@ Follow [agents-md-generation.md](../../templates/references/agents-md-generation
 - Read all `.dominion/agents/*.toml`
 - Generate `AGENTS.md` at project root
 
-## Step 6: Generate settings.json
+## Step 6: Generate settings.local.json
 
 Follow [settings-generation.md](../../templates/references/settings-generation.md):
-- Extend `.claude/settings.json` with Dominion permissions
+- Extend `.claude/settings.local.json` with Dominion permissions and native hooks
 - Configure serena project activation with detected LSPs
 
 ## Step 7: Generate Hooks
 
 Follow [hooks-generation.md](../../templates/references/hooks-generation.md):
-- Create hookify governance rules for source-diving prevention
+- Create hookify governance rules (source-diving prevention, session-end checkpoint)
+- Native hooks (blocker warning, session-start resume) are generated in Step 6 via settings-generation.md
 
 ## Step 8: Generate CLAUDE.md
 
@@ -107,15 +120,17 @@ After each generation step, verify expected files exist. Fail loudly if missing.
 - Verify each TOML parses.
 - FAIL if count mismatch or any unparseable.
 
-### After Step 6 (settings.json):
-- Read `.claude/settings.json`, verify JSON parses.
+### After Step 6 (settings.local.json):
+- Read `.claude/settings.local.json`, verify JSON parses.
 - Check it contains `dominion-cli` in allowed tools.
+- Check it contains `"hooks"` config with `PreToolUse` and `SessionStart` entries.
+- Verify `.claude/hooks/warn-blocker.sh` and `.claude/hooks/session-start.sh` exist and are executable.
 - FAIL if missing or malformed.
 
 ### After Step 7 (Hooks):
-- Glob: `.claude/hookify.*.local.md` — expect 4 files
+- Glob: `.claude/hookify.*.local.md` — expect 2 files
 - Read each, verify YAML frontmatter has `event:` field
-- FAIL if fewer than 4 or any malformed.
+- FAIL if fewer than 2 or any malformed.
 
 ### After Step 9 (CLI):
 - Run `dominion-cli --version` — verify exit code 0 and version matches
@@ -190,7 +205,7 @@ Dominion initialized successfully.
 Generated:
   .dominion/          Project config, agent definitions, CLI spec
   .claude/agents/     8 agent instruction files
-  .claude/settings.json  MCP permissions (extended)
+  .claude/settings.local.json  MCP permissions + native hooks (extended)
   CLAUDE.md           Project instructions (you own this now)
   AGENTS.md           Agent roster (auto-generated)
   DOMINION.md           Project overview and Dominion cheatsheet

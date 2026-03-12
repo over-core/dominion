@@ -66,10 +66,10 @@ For each Dominion section:
 
 Present the merged CLAUDE.md as a diff for final approval before writing.
 
-### 6. Update settings.json
+### 6. Update settings.local.json
 
 Follow [settings-generation.md](../../../templates/references/settings-generation.md):
-- Read existing settings.json
+- Read existing settings.local.json
 - Add Dominion MCP permissions (extend, never remove existing)
 - Add Dominion CLI tool permission: `Bash(dominion-cli *)`
 

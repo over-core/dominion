@@ -54,6 +54,14 @@ For each task, determine:
 
 Dependencies should be minimal — prefer independent tasks that can run in parallel.
 
+### Dependency Verification Rules
+
+After building the dependency graph, verify:
+1. **Build/install dependencies**: if a task creates source files that another task's build or install step needs (e.g., `pip install -e .` requires the package source directory), add the dependency explicitly
+2. **Editable installs**: for `pip install -e`, `npm link`, or similar development installs, the package source directory must exist — add a dependency on the task that creates it
+3. **Schema → consumer**: if a task defines a schema/type/interface and another task imports it, the defining task must complete first
+4. **No circular dependencies**: the dependency DAG must be acyclic. If you find a cycle, restructure tasks to break it
+
 ## Specialist Routing
 
 Assign the right agent to each task using specialist referrals from research:

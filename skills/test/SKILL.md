@@ -12,6 +12,13 @@ This skill requires execution to be complete. Check `.dominion/state.toml` — p
 Check `.dominion/phases/{N}/progress.toml` exists. If not, tell the user: "Run /dominion:execute first."
 </IMPORTANT>
 
+## Agent Dispatch: SUBAGENT
+
+Spawn the Tester agent via the Agent tool.
+Include behavioral instructions from `.claude/agents/tester.md` in the prompt.
+Pass: plan.toml content, progress.toml content, phase number.
+See @templates/references/agent-dispatch.md for the subagent dispatch protocol.
+
 ## Pre-check
 
 1. Read `.dominion/state.toml` — get current phase number

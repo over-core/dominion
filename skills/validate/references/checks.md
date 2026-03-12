@@ -25,15 +25,15 @@ Fail: list missing or headerless .md files
 Pass: AGENTS.md exists and lists all agents
 Fail: missing or incomplete roster
 
-## Check 4: settings.json Permissions
+## Check 4: settings.local.json Permissions
 
-- Verify `.claude/settings.json` exists
+- Verify `.claude/settings.local.json` exists
 - Verify it contains `Bash(dominion-cli *)` permission
 - For each agent's required MCPs, verify the MCP's read permissions are listed
 
 Pass: all required permissions present
 Warn: optional MCP permissions missing (list which)
-Fail: settings.json missing or missing required permissions
+Fail: settings.local.json missing or missing required permissions
 
 ## Check 5: CLI Completeness
 
@@ -118,15 +118,17 @@ Fail: workflow configured but hooks missing or not executable
 
 ## Check 13: Session Lifecycle Hooks
 
-- Verify governance hooks exist — check EITHER:
-  - Hookify rules: `.claude/hookify.dominion-session-start.local.md` and `.claude/hookify.dominion-session-end.local.md` exist
-  - OR native hooks: `.claude/settings.json` contains `"hooks"` config with `SessionStart` and `Stop` entries
+- Verify governance hooks exist — check ALL:
+  - Hookify rule: `.claude/hookify.dominion-session-end.local.md` exists (session-end checkpoint)
+  - Native hook: `.claude/settings.local.json` contains `"hooks"` config with `SessionStart` entry (session-start resume)
+  - Hook scripts: `.claude/hooks/session-start.sh` and `.claude/hooks/warn-blocker.sh` exist and are executable
 - Session start hook should reference `dominion-cli state resume`
-- Session end hook should reference `dominion-cli state checkpoint`
+- Session end hookify rule should reference `dominion-cli state checkpoint`
+- Source-diving hookify rule: `.claude/hookify.block-source-diving.local.md` exists
 
-Pass: both session hooks present and reference correct commands
+Pass: all session hooks present and reference correct commands
 Warn: no governance hooks found (neither hookify rules nor native hooks configured)
-Fail: partial hooks (one present, one missing)
+Fail: partial hooks (some present, some missing)
 
 ## Check 14: Workflow Configuration
 
@@ -143,9 +145,9 @@ Fail: invalid workflow values
 ## Check 15: MCP Permission Coverage
 
 - Read `registry/registry.toml` (shipped with Dominion, use [registry.toml](../../../registry/registry.toml))
-- Read `.claude/settings.json`
+- Read `.claude/settings.local.json`
 - For each MCP detected as installed:
-  - If MCP has `safe_read_tools` in registry: verify all tools are in settings.json `permissions.allow`
+  - If MCP has `safe_read_tools` in registry: verify all tools are in settings.local.json `permissions.allow`
 
 Pass: all installed MCP read permissions present
 Warn: some optional MCP permissions missing (list which)

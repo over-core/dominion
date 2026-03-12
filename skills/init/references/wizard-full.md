@@ -59,6 +59,18 @@ Example for Python:
 3. "CLI framework: click+rich / typer / argparse?"
 4. "Docstring style: google / numpy / sphinx?"
 
+### Package Manager Confirmation
+
+If discovery detected a package manager:
+```
+Detected package manager: {package_manager} ({install_command})
+Virtual env: {venv_path}
+Correct? [Y / change]
+```
+
+If **change**: ask for the correct package manager, install command, and venv path.
+Store in dominion.toml `[cli].package_manager`, `[cli].install_command`, `[cli].venv_path`.
+
 ## Section 4: Git Workflow
 
 Ask (present detected values as defaults):
@@ -69,6 +81,23 @@ Ask (present detected values as defaults):
 5. "Release workflow?" → semver / calver / custom / none yet
 6. "Any git pet peeves?" → free text → style.toml [taste] or CLAUDE.md
 7. "Include AI co-author trailers in commits? [Y/n]" → dominion.toml [workflow.ai_co_author]
+
+**ADR (Architecture Decision Records):**
+8. "Should the Architect record ADRs? [Y/n]" (default: Y)
+
+If Y:
+9. "Location? [docs/adr]" → allow custom path
+   Default: `docs/adr/NNNN-short-title.md`, Nygard format (Title, Status, Context, Decision, Consequences)
+
+Store ADR config in style.toml:
+```toml
+[documentation]
+adr_enabled = true
+adr_path = "docs/adr"
+adr_format = "nygard"
+```
+
+If N: skip, set `adr_enabled = false`.
 
 Store answers in dominion.toml:
 ```toml
@@ -93,6 +122,8 @@ Generate a shell script that:
 - Runs fast test validation if configured (style.toml [language.{lang}.test_command])
 - Validates commit message format if commit_format != "free-form"
 - Exits non-zero on any failure
+
+Do NOT use `2>/dev/null` on formatter/linter checks. Developers need to see WHY a check failed. Only suppress stderr for existence checks (`command -v`, `which`).
 
 If existing pre-commit tooling was detected (Phase 6e), do NOT generate — warn user and skip.
 

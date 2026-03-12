@@ -95,8 +95,8 @@ def validate(
     else:
         checks.append({"name": "AGENTS.md roster complete", "status": "fail", "detail": "AGENTS.md not found"})
 
-    # 5. settings.json exists with CLI permission
-    settings_path = root / ".claude" / "settings.json"
+    # 5. settings.local.json exists with CLI permission
+    settings_path = root / ".claude" / "settings.local.json"
     if settings_path.exists():
         try:
             with open(settings_path) as f:
@@ -104,17 +104,17 @@ def validate(
             perms = settings.get("permissions", {}).get("allow", [])
             has_cli = any("dominion-cli" in p for p in perms)
             if has_cli:
-                checks.append({"name": "settings.json permissions", "status": "pass", "detail": ""})
+                checks.append({"name": "settings.local.json permissions", "status": "pass", "detail": ""})
             else:
                 checks.append({
-                    "name": "settings.json permissions",
+                    "name": "settings.local.json permissions",
                     "status": "fail",
                     "detail": "Missing Bash(dominion-cli *) permission",
                 })
         except (json_mod.JSONDecodeError, KeyError):
-            checks.append({"name": "settings.json permissions", "status": "fail", "detail": "Malformed settings.json"})
+            checks.append({"name": "settings.local.json permissions", "status": "fail", "detail": "Malformed settings.local.json"})
     else:
-        checks.append({"name": "settings.json permissions", "status": "fail", "detail": "settings.json not found"})
+        checks.append({"name": "settings.local.json permissions", "status": "fail", "detail": "settings.local.json not found"})
 
     # 6. MCP permissions for required MCPs
     mcp_warnings: list[str] = []
@@ -154,10 +154,17 @@ def validate(
     dom_toml = read_toml_optional(dom_dir / "dominion.toml")
     if dom_toml and dom_toml.get("documentation", {}).get("fallback"):
         fallback = dom_toml["documentation"]["fallback"]
-        has_terminal = any(
-            f.get("action") == "stop-and-ask" for f in fallback
-            if isinstance(f, dict)
-        )
+        if isinstance(fallback, dict):
+            # Single table: [documentation.fallback]
+            has_terminal = fallback.get("action") == "stop-and-ask"
+        elif isinstance(fallback, list):
+            # Array of tables: [[documentation.fallback]]
+            has_terminal = any(
+                f.get("action") == "stop-and-ask" for f in fallback
+                if isinstance(f, dict)
+            )
+        else:
+            has_terminal = False
         if has_terminal:
             checks.append({"name": "Documentation fallback chain", "status": "pass", "detail": ""})
         else:
