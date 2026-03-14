@@ -3,7 +3,7 @@
 
 [meta]
 schema_version = 1
-dominion_version = "0.1.1"
+dominion_version = "0.2.2"
 
 [project]
 name = ""                           # detected or user-provided
@@ -107,3 +107,8 @@ merge_strategy = ""                # squash | rebase | merge
 review_process = ""                # all | major-only | agents-review
 release_workflow = ""              # semver | calver | custom | none
 ai_co_author = true                # true | false — include Co-Authored-By trailer in commits
+
+# Auto mode configuration
+[auto]
+halt_on_severity = "critical"      # critical | warning | none — halt pipeline when review findings >= this severity
+max_fix_attempts = 1               # max auto-fix attempts before halting (0 = no auto-fix)

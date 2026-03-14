@@ -30,7 +30,7 @@ serena = { enabled = true }
 echovault = { enabled = true }
 
 [agents]
-active = ["security-auditor"]
+active = ["security-auditor", "architect", "analyst", "reviewer"]
 
 [documentation]
 fallback = [
@@ -38,6 +38,13 @@ fallback = [
     { source = "web", action = "search" },
     { source = "human", action = "stop-and-ask" },
 ]
+
+[autonomy]
+mode = "interactive"
+
+[auto]
+halt_on_severity = "critical"
+max_fix_attempts = 1
 
 [budget]
 mode = "performance"
@@ -99,27 +106,27 @@ hard_stops = ["No ungraded findings", "Use mcp__dominion__* tools only"]
 
 [[methodology.sections]]
 id = "core"
-file = "sections/core.md"
+file = "core.md"
 always_include = true
 
 [[methodology.sections]]
 id = "protocol-greenfield"
-file = "sections/protocol-greenfield.md"
+file = "protocol-greenfield.md"
 conditions = { phase_type = ["greenfield", "new-feature"] }
 
 [[methodology.sections]]
 id = "lang-python"
-file = "sections/lang-python.md"
+file = "lang-python.md"
 conditions = { languages = ["python"] }
 
 [[methodology.sections]]
 id = "tools-serena"
-file = "sections/tools-serena.md"
+file = "tools-serena.md"
 conditions = { tools_available = ["serena"] }
 
 [[methodology.sections]]
 id = "specialist-security"
-file = "sections/specialist-security.md"
+file = "specialist-security.md"
 conditions = { agents_active = ["security-auditor"] }
 """
 
@@ -139,18 +146,58 @@ hard_stops = ["Never modify files outside task scope", "Use mcp__dominion__* too
 
 [[methodology.sections]]
 id = "core"
-file = "sections/core.md"
+file = "core.md"
 always_include = true
 
 [[methodology.sections]]
 id = "protocol-implement"
-file = "sections/protocol-implement.md"
+file = "protocol-implement.md"
 conditions = { task_type = ["new-code", "modify"] }
 
 [[methodology.sections]]
 id = "protocol-tdd"
-file = "sections/protocol-tdd.md"
+file = "protocol-tdd.md"
 conditions = { testing_style = ["tdd"] }
+"""
+
+ARCHITECT_TOML = """\
+[agent]
+name = "Architect"
+role = "architect"
+model = "opus"
+purpose = "Translate research into executable plans"
+
+[tools.mcp]
+dominion = ["agent_start", "agent_submit"]
+
+[[methodology.sections]]
+id = "core"
+file = "core.md"
+always_include = true
+"""
+
+ANALYST_TOML = """\
+[agent]
+name = "Analyst"
+role = "analyst"
+model = "sonnet"
+purpose = "Performance analysis and metrics"
+
+[tools.mcp]
+dominion = ["agent_start", "agent_submit"]
+
+[[methodology.sections]]
+id = "core"
+file = "core.md"
+always_include = true
+"""
+
+USER_PROFILE_TOML = """\
+[user]
+experience_level = "intermediate"
+
+[sessions]
+count = 5
 """
 
 KNOWLEDGE_INDEX_TOML = """\
@@ -190,35 +237,48 @@ def dom_root(tmp_path: Path) -> Path:
     (dom / "style.toml").write_text(STYLE_TOML)
     (dom / "roadmap.toml").write_text(ROADMAP_TOML)
 
-    # Agents
+    # Agents — each agent is a directory with agent.toml + flat .md sections
     agents_dir = dom / "agents"
     agents_dir.mkdir()
-    (agents_dir / "researcher.toml").write_text(RESEARCHER_TOML)
-    (agents_dir / "developer.toml").write_text(DEVELOPER_TOML)
 
-    # Agent methodology sections
-    researcher_sections = agents_dir / "researcher" / "sections"
-    researcher_sections.mkdir(parents=True)
-    (researcher_sections / "core.md").write_text(
+    researcher_dir = agents_dir / "researcher"
+    researcher_dir.mkdir()
+    (researcher_dir / "agent.toml").write_text(RESEARCHER_TOML)
+    (researcher_dir / "core.md").write_text(
         "# Researcher\n\nYou are the Researcher agent.\n"
     )
-    (researcher_sections / "lang-python.md").write_text(
+    (researcher_dir / "lang-python.md").write_text(
         "## Python Research\n\nUse pytest patterns.\n"
     )
-    (researcher_sections / "tools-serena.md").write_text(
+    (researcher_dir / "tools-serena.md").write_text(
         "## Serena Workflow\n\nUse serena for symbol analysis.\n"
     )
-    (researcher_sections / "specialist-security.md").write_text(
+    (researcher_dir / "specialist-security.md").write_text(
         "## Security Research\n\nInclude threat analysis.\n"
     )
 
-    developer_sections = agents_dir / "developer" / "sections"
-    developer_sections.mkdir(parents=True)
-    (developer_sections / "core.md").write_text(
+    developer_dir = agents_dir / "developer"
+    developer_dir.mkdir()
+    (developer_dir / "agent.toml").write_text(DEVELOPER_TOML)
+    (developer_dir / "core.md").write_text(
         "# Developer\n\nYou are the Developer agent.\n"
     )
-    (developer_sections / "protocol-tdd.md").write_text(
+    (developer_dir / "protocol-tdd.md").write_text(
         "## TDD Protocol\n\nWrite tests first.\n"
+    )
+
+    architect_dir = agents_dir / "architect"
+    architect_dir.mkdir()
+    (architect_dir / "agent.toml").write_text(ARCHITECT_TOML)
+    (architect_dir / "core.md").write_text(
+        "# Architect\n\nYou are the Architect agent.\n"
+    )
+
+    analyst_dir = agents_dir / "analyst"
+    analyst_dir.mkdir()
+    (analyst_dir / "agent.toml").write_text(ANALYST_TOML)
+    (analyst_dir / "core.md").write_text(
+        "# Analyst\n\nYou are the Analyst agent.\n"
     )
 
     # Knowledge
@@ -228,6 +288,9 @@ def dom_root(tmp_path: Path) -> Path:
     (knowledge_dir / "auth-patterns.md").write_text(
         "# Auth Patterns\n\nJWT-based authentication.\n"
     )
+
+    # User profile
+    (dom / "user-profile.toml").write_text(USER_PROFILE_TOML)
 
     # Memory (empty directory)
     (dom / "memory").mkdir()
@@ -250,10 +313,18 @@ def dom_root(tmp_path: Path) -> Path:
     (claude_agents_dir / "developer.md").write_text(
         "<!-- Dominion agent: developer -->\n# Developer\n"
     )
+    (claude_agents_dir / "architect.md").write_text(
+        "<!-- Dominion agent: architect -->\n# Architect\n"
+    )
+    (claude_agents_dir / "analyst.md").write_text(
+        "<!-- Dominion agent: analyst -->\n# Analyst\n"
+    )
 
     # AGENTS.md
     (project_root / "AGENTS.md").write_text(
-        "# Agents\n\n## researcher\nDescription: Research\n\n## developer\nDescription: Develop\n"
+        "# Agents\n\n## researcher\nDescription: Research\n\n## developer\n"
+        "Description: Develop\n\n## architect\nDescription: Plan\n\n## analyst\n"
+        "Description: Analyze\n"
     )
 
     # .mcp.json

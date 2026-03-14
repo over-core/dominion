@@ -7,6 +7,7 @@ import logging
 from pathlib import Path
 
 from ..server import mcp
+from ..core.complexity import COMPLEXITY_LEVELS
 from ..core.config import find_dominion_root
 from ..core.pipeline import (
     get_help,
@@ -15,6 +16,7 @@ from ..core.pipeline import (
     get_pipeline_status,
     get_step_dispatch,
 )
+from ..core.state import update_position
 
 logger = logging.getLogger(__name__)
 
@@ -35,14 +37,26 @@ def _error(message: str) -> str:
 
 
 @mcp.tool()
-async def pipeline_next() -> str:
-    """Returns next action: spawn_agent, user_checkpoint, panel, or complete."""
+async def pipeline_next(complexity_level: str | None = None) -> str:
+    """Returns next action: spawn_agent, user_checkpoint, panel, or complete.
+
+    Optionally set complexity_level during the discuss step to adapt pipeline
+    depth. Valid levels: trivial, moderate, complex, major.
+    """
     try:
         dom_root = _get_root()
     except ValueError:
         return _error("Run /dominion:onboard first — .dominion/ not found")
 
     try:
+        if complexity_level is not None:
+            if complexity_level not in COMPLEXITY_LEVELS:
+                return _error(
+                    f"Invalid complexity_level '{complexity_level}'. "
+                    f"Valid levels: {', '.join(COMPLEXITY_LEVELS)}"
+                )
+            await update_position(dom_root, complexity_level=complexity_level)
+
         result = get_next_action(dom_root)
         return json.dumps(result)
     except Exception as exc:

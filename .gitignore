@@ -13,6 +13,9 @@ dist/
 # Worktrees (generated during execution)
 .worktrees/
 
+# Serena
+.serena/
+
 # OS
 .DS_Store
 Thumbs.db

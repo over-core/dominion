@@ -7,9 +7,9 @@ Generate all Dominion artifacts from detection results and interview answers.
 Create the `.dominion/` directory tree:
 ```bash
 mkdir -p .dominion/agents
-mkdir -p .dominion/specs
 mkdir -p .dominion/knowledge
 mkdir -p .dominion/memory
+mkdir -p .dominion/signals
 mkdir -p .dominion/phases
 ```
 
@@ -19,7 +19,9 @@ Generate these files from detection results + interview answers:
 - `.dominion/dominion.toml` — from [dominion.toml](../../../templates/schemas/dominion.toml), filled with project data
 - `.dominion/style.toml` — from [style.toml](../../../templates/schemas/style.toml), filled with convention choices
 - `.dominion/roadmap.toml` — from [roadmap.toml](../../../templates/schemas/roadmap.toml), filled with user's roadmap
-- `.dominion/knowledge/index.toml` — minimal initial index (empty hot cache)
+- `.dominion/user-profile.toml` — from [user-profile.toml](../../../templates/schemas/user-profile.toml), filled with experience_level from interview
+- `.dominion/knowledge/index.toml` — initial index with structural-awareness entry
+- `.dominion/knowledge/structural-awareness.md` — copy from [structural-awareness.md](../data/structural-awareness.md)
 
 Verify each TOML parses: `python3 -c "import tomllib; tomllib.load(open('{file}','rb'))"`
 
@@ -27,12 +29,12 @@ FAIL if any file is missing or unparseable. Do not proceed.
 
 ## Step 3: Generate Agents
 
-Follow [agent-generation.md](../../../templates/references/agent-generation.md):
+Follow [agent-generation.md](agent-generation.md):
 1. Customize agent TOMLs from templates → write to `.dominion/agents/`
 2. Render agent .md files → write to `.claude/agents/`
 
 Verify:
-- Glob: `.dominion/agents/*.toml` — expect at least 9 files (core agents including Security Auditor)
+- Glob: `.dominion/agents/*/agent.toml` — expect at least 9 files (core agents including Security Auditor)
 - Glob: `.claude/agents/*.md` — expect matching count
 - Each TOML parses cleanly
 
@@ -102,9 +104,12 @@ Before committing, run:
 {pre_commit commands from style.toml}
 
 ## Dependencies
-Package manager: {package_manager}
-Install: {install_command}
-NEVER install packages globally.
+Package manager: {dev_profile.name}
+Install: `{dev_profile.install}`
+Add dependency: `{dev_profile.add}`
+Run: `{dev_profile.run}`
+NEVER: {dev_profile.prohibited — list each prohibited command}
+{if dev_profile.venv_required: "Virtual environment at {dev_profile.venv_path} — always use `{dev_profile.run}` prefix"}
 
 ## Decision Framework
 - **Decide autonomously:** formatting, variable naming, test structure
@@ -136,9 +141,9 @@ Merge with existing entries — never overwrite other MCP servers.
 
 ## Step 7: Generate settings.local.json
 
-Follow [settings-generation.md](../../../templates/references/settings-generation.md):
+Follow [settings-generation.md](settings-generation.md):
 - Extend `.claude/settings.local.json` with Dominion permissions and native hooks
-- Replace `dominion-cli` permission with `dominion-mcp` MCP tool permissions:
+- Add MCP tool permissions:
   ```json
   {
     "permissions": {
@@ -149,11 +154,23 @@ Follow [settings-generation.md](../../../templates/references/settings-generatio
     }
   }
   ```
+- Auto-derive deny rules from dev profile prohibited commands:
+  ```json
+  {
+    "permissions": {
+      "deny": [
+        "Bash(uv pip install*)",
+        "Bash(pip install*)"
+      ]
+    }
+  }
+  ```
+  For each entry in `dev_profile.prohibited`, add `"Bash({command}*)"` to the deny list.
 - Configure serena project activation with detected LSPs
 
 ## Step 8: Generate Hooks
 
-Follow [hooks-generation.md](../../../templates/references/hooks-generation.md):
+Follow [hooks-generation.md](hooks-generation.md):
 - Create hookify governance rules (source-diving prevention, session-end checkpoint)
 - Native hooks for blocker warning and session-start resume
 
@@ -231,7 +248,7 @@ If `.gitignore` doesn't exist, create it with the above content.
 Generate `DOMINION.md` at project root from [dominion-md.md](../../../templates/dominion-md.md):
 1. Read `dominion.toml` — extract project info, direction, workflow config
 2. Read `roadmap.toml` — extract milestone and phase summary
-3. Read all `.dominion/agents/*.toml` — build agent roster table
+3. Read all `.dominion/agents/*/agent.toml` — build agent roster table
 4. Fill template placeholders
 5. Write to `DOMINION.md` at project root
 
@@ -246,7 +263,7 @@ After generation, verify all expected files exist:
 - `.dominion/state.toml` — TOML parses
 
 ### Agent files:
-- `.dominion/agents/*.toml` — at least 9 files, all parse
+- `.dominion/agents/*/agent.toml` — at least 9 files, all parse
 - `.claude/agents/*.md` — matching count
 
 ### MCP wiring:

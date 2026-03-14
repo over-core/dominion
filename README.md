@@ -2,7 +2,7 @@
 
 > Your AI development team, generated from your codebase.
 
-**v0.2.0** | MIT License | Claude Code Plugin
+**v0.2.2** | MIT License | Claude Code Plugin
 
 Dominion is a Claude Code plugin that analyzes your project and generates a complete AI development methodology — specialized agents, an MCP server, governance hooks, code conventions, and conditional methodology — all committed to git. The plugin is the author; the artifacts are the runtime. Dominion is needed to create and evolve the setup, but a cloned repo works without it. New developers get best practices on `git clone`.
 
@@ -17,9 +17,12 @@ Run `/dominion:onboard` once and Dominion generates the following in your projec
 ├── state.toml                 # Session state (gitignored)
 ├── style.toml                 # Code conventions
 ├── agents/
-│   ├── researcher.toml        # Agent config + methodology section index
-│   ├── researcher/sections/   # Conditional methodology sections
-│   ├── architect.toml
+│   ├── researcher/
+│   │   ├── agent.toml         # Agent config + methodology section index
+│   │   ├── core.md            # Conditional methodology sections (flat)
+│   │   └── ...
+│   ├── architect/
+│   │   └── agent.toml
 │   └── ...
 ├── memory/                    # Per-agent persistent memory
 │   ├── researcher.toml
@@ -241,25 +244,17 @@ skills/                    11 user-facing skills (/dominion:* commands)
 
 templates/
   agents/                  17 agent TOML templates (8 core + 9 specialist)
-  schemas/                 TOML schema definitions
-  references/              Shared reference files
+    {role}/                Agent directory (agent.toml + methodology .md files)
+  schemas/                 TOML schema definitions (20 schemas)
+  agents/_shared/          Shared methodology sections (core, output-format, tools, rubrics)
   hooks/                   Governance hook scripts + settings template
   mcp-spec.toml            MCP tool specification (21 tools)
 
-data/detection/
-  languages.toml           20 languages + 11 package manager dev profiles
-  frameworks.toml          60+ framework detection entries
-  infrastructure.toml      Infrastructure detection entries
-  roles.toml               Specialist role activation rules
-
 mcp/                       dominion-mcp Python package (MCP server)
   dominion_mcp/
-    core/                  9 core modules (config, state, plan, etc.)
+    core/                  12 core modules (config, state, plan, complexity, panel, correction, etc.)
     tools/                 4 tool modules (21 MCP tools total)
-  tests/                   153 tests
-
-registry/
-  registry.toml            Curated MCP, plugin, and LSP evaluations
+  tests/                   201 tests
 
 .claude-plugin/
   plugin.json              Plugin manifest
@@ -270,6 +265,8 @@ registry/
 
 | Version | Highlights |
 |---------|------------|
+| 0.2.2 | Advanced collaboration — panel mode for multi-perspective debates, course correction with severity-based halt, complexity-adaptive pipeline depth |
+| 0.2.1 | Methodology enrichment — complexity detection, skill level adaptation, adaptive requirements, TDD methodology option |
 | 0.2.0 | MCP architecture — CLI replaced by MCP server, conditional methodology, governance hooks, agent memory, pipeline state machine, 5 dispatch modes |
 | 0.1.1 | Stabilization — agent dispatch protocol, execution resilience, governance fixes |
 | 0.1.0 | Initial release — 14 skills, 18 agents, 54 CLI commands, 7-step pipeline |

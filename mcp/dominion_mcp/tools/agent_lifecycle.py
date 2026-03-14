@@ -18,7 +18,17 @@ from ..core.config import (
 )
 from ..core.memory import get_agent_memory
 from ..core.methodology import assemble_methodology, get_budget, get_condition_signals
+from ..core.panel import get_panel_context, get_step_panel_type
 from ..core.state import get_position, raise_blocker, raise_warning
+
+COMMUNICATION_DIRECTIVES: dict[str, str] = {
+    "beginner": (
+        "Explain reasoning at each step. Show output examples. "
+        "Define technical terms. Annotate complex patterns."
+    ),
+    "intermediate": "Balanced detail. Explain non-obvious choices only.",
+    "advanced": "Be terse. Reference method names. Skip obvious explanations.",
+}
 
 logger = logging.getLogger(__name__)
 
@@ -43,16 +53,31 @@ async def agent_start(
     role: str,
     phase_id: int | None = None,
     task_id: str | None = None,
+    mode: str | None = None,
+    panel_topic: str | None = None,
 ) -> str:
-    """Initialize agent session. Returns methodology, assignment, tools, constraints, memory."""
+    """Initialize agent session. Returns methodology, assignment, tools, constraints, memory.
+
+    For panel mode: set mode="panel" with panel_topic to get multi-perspective
+    facilitation context instead of single-agent methodology.
+    """
     try:
         dom_root = _get_root()
     except ValueError:
         return _error("Run /dominion:onboard first — .dominion/ not found")
 
     try:
+        # Panel mode: return combined perspectives + facilitation.
+        if mode == "panel":
+            pos = get_position(dom_root)
+            step = pos.get("step", "discuss")
+            decision_type = get_step_panel_type(step)
+            topic = panel_topic or f"Phase {pos.get('phase', 0)} {step} discussion"
+            panel_ctx = get_panel_context(dom_root, decision_type, topic)
+            return json.dumps(panel_ctx)
+
         # Read agent TOML
-        agent_path = dom_root / "agents" / f"{role}.toml"
+        agent_path = dom_root / "agents" / role / "agent.toml"
         if not agent_path.exists():
             return _error(f"Agent '{role}' not found at {agent_path.name}")
         agent_toml = read_toml(agent_path)
@@ -87,8 +112,12 @@ async def agent_start(
         # Tools from agent TOML
         tools = agent_toml.get("tools", [])
 
-        # Hard stops from agent TOML
-        hard_stops = agent_toml.get("constraints", {}).get("hard_stops", [])
+        # Hard stops from agent TOML [governance] section
+        hard_stops = agent_toml.get("governance", {}).get("hard_stops", [])
+
+        # Skill level communication directive
+        skill_level = signals.get("user_skill_level")
+        communication = COMMUNICATION_DIRECTIVES.get(skill_level or "")
 
         payload = {
             "methodology": methodology,
@@ -106,6 +135,9 @@ async def agent_start(
             },
             "memory": memory,
         }
+
+        if communication:
+            payload["communication"] = communication
 
         return json.dumps(payload)
 
@@ -255,7 +287,7 @@ async def agent_status(role: str | None = None) -> str:
             result["completed"] = completed.get(role)
 
             # Check if agent TOML exists
-            agent_path = dom_root / "agents" / f"{role}.toml"
+            agent_path = dom_root / "agents" / role / "agent.toml"
             result["agent_exists"] = agent_path.exists()
         else:
             result["completed_steps"] = completed

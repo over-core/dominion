@@ -7,10 +7,11 @@ schema_version = 2
 
 [position]
 phase = 0                           # 0 = init complete, no phase started
-step = "idle"                       # idle | discuss | explore | plan | execute | test | review | improve
+step = "idle"                       # idle | discuss | research | plan | execute | audit | review | improve
 wave = 0                            # current wave number, 0 = not in execute
 current_task = ""                   # task id being executed, "" = none
 status = "ready"                    # ready | active | blocked | complete
+complexity_level = ""               # trivial | moderate | complex | major — assessed during discuss
 last_session = ""                   # date of last session
 
 [init]

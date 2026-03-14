@@ -41,13 +41,14 @@ def get_position(dom_root: Path) -> dict:
     status = pos.get("status", "ready")
     last_session = pos.get("last_session", "unknown")
     wave = pos.get("wave", 0)
+    complexity_level = pos.get("complexity_level")
 
     if phase == 0:
         message = "Dominion initialized. No active phase."
     else:
         message = f"Phase {phase}, Step {step}. Status: {status}."
 
-    return {
+    result = {
         "phase": phase,
         "step": step,
         "wave": wave,
@@ -55,6 +56,9 @@ def get_position(dom_root: Path) -> dict:
         "last_session": last_session,
         "message": message,
     }
+    if complexity_level:
+        result["complexity_level"] = complexity_level
+    return result
 
 
 async def update_position(
@@ -64,6 +68,7 @@ async def update_position(
     step: str | None = None,
     wave: int | None = None,
     status: str | None = None,
+    complexity_level: str | None = None,
 ) -> dict:
     """Update pipeline position fields.
 
@@ -80,6 +85,13 @@ async def update_position(
         raise ValueError(
             f"Invalid status '{status}'. Must be one of: {', '.join(VALID_STATUSES)}"
         )
+    if complexity_level is not None and complexity_level not in (
+        "trivial", "moderate", "complex", "major"
+    ):
+        raise ValueError(
+            f"Invalid complexity_level '{complexity_level}'. "
+            "Must be one of: trivial, moderate, complex, major"
+        )
 
     state_path = dom_root / "state.toml"
 
@@ -95,6 +107,8 @@ async def update_position(
             pos["wave"] = wave
         if status is not None:
             pos["status"] = status
+        if complexity_level is not None:
+            pos["complexity_level"] = complexity_level
         return state
 
     updated = await write_toml_locked(state_path, _update)

@@ -3,7 +3,7 @@
 # Used by onboard to generate agent tool references.
 
 [meta]
-spec_version = "0.2"
+spec_version = "0.2.2"
 total_tools = 21
 server_name = "dominion"
 tool_prefix = "mcp__dominion__"
@@ -13,11 +13,13 @@ tool_prefix = "mcp__dominion__"
 [[tools]]
 name = "agent_start"
 type = "read"
-description = "Initialize agent session. Returns methodology, assignment, tools, constraints, memory."
+description = "Initialize agent session. Returns methodology, assignment, tools, constraints, memory. Panel mode returns multi-perspective facilitation context."
 parameters = [
     { name = "role", type = "string", required = true },
     { name = "phase_id", type = "integer", required = false },
     { name = "task_id", type = "string", required = false },
+    { name = "mode", type = "string", required = false },
+    { name = "panel_topic", type = "string", required = false },
 ]
 
 [[tools]]
@@ -53,8 +55,10 @@ parameters = [
 [[tools]]
 name = "pipeline_next"
 type = "read"
-description = "Returns next action: spawn_agent, user_checkpoint, panel, or complete."
-parameters = []
+description = "Returns next action: spawn_agent, user_checkpoint, panel, or complete. Optionally sets complexity level."
+parameters = [
+    { name = "complexity_level", type = "string", required = false },
+]
 
 [[tools]]
 name = "step_dispatch"

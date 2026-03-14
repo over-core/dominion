@@ -57,8 +57,8 @@ def test_find_dominion_root_raises_when_missing(tmp_path: Path) -> None:
 
 def test_dominion_path_resolves_correctly(dom_root: Path) -> None:
     """dominion_path joins parts relative to .dominion/ root."""
-    result = dominion_path(dom_root, "agents", "researcher.toml")
-    assert result == dom_root / "agents" / "researcher.toml"
+    result = dominion_path(dom_root, "agents", "researcher", "agent.toml")
+    assert result == dom_root / "agents" / "researcher" / "agent.toml"
 
 
 def test_dominion_path_single_part(dom_root: Path) -> None:
@@ -200,10 +200,8 @@ def test_write_toml_strips_underscore_keys(tmp_path: Path) -> None:
 
 def test_read_toml_glob_reads_all_files(dom_root: Path) -> None:
     """read_toml_glob reads all TOML files in a directory."""
-    results = read_toml_glob(dom_root / "agents")
-    assert len(results) == 2
-    stems = {r["_file"] for r in results}
-    assert stems == {"developer", "researcher"}
+    results = read_toml_glob(dom_root / "agents", pattern="*/agent.toml")
+    assert len(results) == 4
 
 
 def test_read_toml_glob_returns_empty_for_missing_dir(tmp_path: Path) -> None:
