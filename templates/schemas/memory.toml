@@ -1,0 +1,7 @@
+# Agent memory schema — stored per role in .dominion/memory/{role}.toml
+
+[[entries]]
+type = ""        # correction | preference | discovery
+content = ""     # memory content
+source = ""      # who/what created this (user feedback, agent, phase N)
+created = ""     # ISO 8601 UTC timestamp

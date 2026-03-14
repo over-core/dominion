@@ -1,0 +1,193 @@
+# Dominion MCP Tool Specification
+# Documents all MCP tools exposed by the dominion-mcp server.
+# Used by onboard to generate agent tool references.
+
+[meta]
+spec_version = "0.2"
+total_tools = 21
+server_name = "dominion"
+tool_prefix = "mcp__dominion__"
+
+# === Agent Lifecycle (4 tools) ===
+
+[[tools]]
+name = "agent_start"
+type = "read"
+description = "Initialize agent session. Returns methodology, assignment, tools, constraints, memory."
+parameters = [
+    { name = "role", type = "string", required = true },
+    { name = "phase_id", type = "integer", required = false },
+    { name = "task_id", type = "string", required = false },
+]
+
+[[tools]]
+name = "agent_submit"
+type = "write"
+description = "Submit work artifact. Validates, writes to .dominion/, updates state."
+parameters = [
+    { name = "role", type = "string", required = true },
+    { name = "artifact_type", type = "string", required = true },
+    { name = "content", type = "string", required = true },
+]
+
+[[tools]]
+name = "agent_signal"
+type = "write"
+description = "Send signal: blocker, need-help, scope-change."
+parameters = [
+    { name = "role", type = "string", required = true },
+    { name = "signal_type", type = "string", required = true },
+    { name = "message", type = "string", required = false },
+]
+
+[[tools]]
+name = "agent_status"
+type = "read"
+description = "Current agent status, what's expected next."
+parameters = [
+    { name = "role", type = "string", required = false },
+]
+
+# === Pipeline (5 tools) ===
+
+[[tools]]
+name = "pipeline_next"
+type = "read"
+description = "Returns next action: spawn_agent, user_checkpoint, panel, or complete."
+parameters = []
+
+[[tools]]
+name = "step_dispatch"
+type = "read"
+description = "Returns dispatch mode and agent(s) for a specific step."
+parameters = [
+    { name = "step", type = "string", required = true },
+]
+
+[[tools]]
+name = "phase_status"
+type = "read"
+description = "Current phase, step, active agents, blockers, validation health."
+parameters = []
+
+[[tools]]
+name = "phase_history"
+type = "read"
+description = "What happened in previous phases."
+parameters = [
+    { name = "phase_id", type = "integer", required = false },
+]
+
+[[tools]]
+name = "help"
+type = "read"
+description = "Contextual guidance — current position, next steps, available commands."
+parameters = [
+    { name = "question", type = "string", required = false },
+]
+
+# === Data Reads (7 tools) ===
+
+[[tools]]
+name = "get_config"
+type = "read"
+description = "dominion.toml contents (optionally filtered by section)."
+parameters = [
+    { name = "section", type = "string", required = false },
+]
+
+[[tools]]
+name = "get_style"
+type = "read"
+description = "style.toml contents (conventions, patterns)."
+parameters = [
+    { name = "section", type = "string", required = false },
+]
+
+[[tools]]
+name = "get_plan"
+type = "read"
+description = "plan.toml — tasks, waves, criteria. Returns full plan or single task."
+parameters = [
+    { name = "phase_id", type = "integer", required = false },
+    { name = "task_id", type = "string", required = false },
+]
+
+[[tools]]
+name = "get_progress"
+type = "read"
+description = "progress.toml — task completion status."
+parameters = [
+    { name = "phase_id", type = "integer", required = false },
+]
+
+[[tools]]
+name = "get_knowledge"
+type = "read"
+description = "Specific knowledge file contents."
+parameters = [
+    { name = "file", type = "string", required = true },
+]
+
+[[tools]]
+name = "search_knowledge"
+type = "read"
+description = "Search across knowledge index."
+parameters = [
+    { name = "query", type = "string", required = true },
+]
+
+[[tools]]
+name = "get_roadmap"
+type = "read"
+description = "roadmap.toml — milestones and phases."
+parameters = []
+
+# === Data Writes (5 tools) ===
+
+[[tools]]
+name = "update_progress"
+type = "write"
+description = "Progress tracking during execution."
+parameters = [
+    { name = "task_id", type = "string", required = true },
+    { name = "status", type = "string", required = true },
+    { name = "summary", type = "string", required = false },
+]
+
+[[tools]]
+name = "add_blocker"
+type = "write"
+description = "Register a pipeline blocker."
+parameters = [
+    { name = "description", type = "string", required = true },
+    { name = "severity", type = "string", required = true },
+]
+
+[[tools]]
+name = "resolve_blocker"
+type = "write"
+description = "Mark blocker as resolved."
+parameters = [
+    { name = "blocker_id", type = "string", required = true },
+]
+
+[[tools]]
+name = "save_decision"
+type = "write"
+description = "ADR-style decision record."
+parameters = [
+    { name = "title", type = "string", required = true },
+    { name = "decision", type = "string", required = true },
+    { name = "rationale", type = "string", required = true },
+]
+
+[[tools]]
+name = "save_memory"
+type = "write"
+description = "Save agent-specific memory for future sessions."
+parameters = [
+    { name = "role", type = "string", required = true },
+    { name = "type", type = "string", required = true },
+    { name = "content", type = "string", required = true },
+]

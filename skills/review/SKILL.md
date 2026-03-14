@@ -1,76 +1,19 @@
 ---
 name: review
-description: Reviewer-driven post-phase quality assessment. Produces review.toml with code quality, architecture, and cross-task findings.
+description: Reviewer-driven quality assessment with audit artifact synthesis
 ---
 
 # /dominion:review
 
-Post-phase quality assessment across all phase changes.
+## Dispatch
 
-<IMPORTANT>
-This skill requires test-report.toml for the current phase.
-Check `.dominion/phases/{N}/test-report.toml` exists. If not, tell the user: "Run /dominion:test first."
-</IMPORTANT>
-
-## Agent Dispatch: SUBAGENT
-
-Spawn the Reviewer agent via the Agent tool.
-Include behavioral instructions from `.claude/agents/reviewer.md` in the prompt.
-Pass: all phase artifacts (plan.toml, progress.toml, test-report.toml, summaries).
-See @templates/references/agent-dispatch.md for the subagent dispatch protocol.
-
-## Pre-check
-
-1. Read `.dominion/state.toml` — get current phase number
-2. Verify `.dominion/phases/{N}/test-report.toml` exists
-3. If `.dominion/phases/{N}/review.toml` already exists, warn: "Review already exists for phase {N}. Re-running will overwrite. Continue? [Y/n]"
-
-## Step 1: Code Quality Review
-
-Follow [code-quality.md](references/code-quality.md)
-
-## Step 2: Architecture Check
-
-Follow [architecture-check.md](references/architecture-check.md)
-
-## Step 3: Cross-Task Review
-
-Follow [cross-task-review.md](references/cross-task-review.md)
-
-## Step 4: Improvement Proposals
-
-Follow [improvement-proposals.md](references/improvement-proposals.md)
-
-## Step 5: Metrics Collection
-
-Follow [metrics-collection.md](references/metrics-collection.md)
-
-## Step 6: Write Review
-
-Write `.dominion/phases/{N}/review.toml` using [review.toml](../../templates/schemas/review.toml) as the schema. Populate with findings from Steps 1-3 and proposals from Step 4.
-
-## Step 7: Present Review
-
-Display to the user:
-```
-Review Complete (Phase {N}):
-  Findings: {high} high, {medium} medium, {low} low, {info} info
-  Proposals: {count} improvement proposals
-
-High-severity findings:
-  - {R1}: {title} — {suggestion}
-  - {R2}: {title} — {suggestion}
-
-Categories:
-  Code quality: {count}
-  Architecture: {count}
-  Cross-task: {count}
-```
-
-## Step 8: Update State and Announce
-
-Update state:
-- Run `dominion-cli state update --step review --status complete`
-- Run `dominion-cli state checkpoint`
-
-Announce: "Phase {N} review complete. Run /dominion:improve to review proposals and apply improvements."
+1. Call `mcp__dominion__step_dispatch(step: "review")`
+2. Read the response. If it indicates prerequisites are missing, show them to the user and stop
+3. Based on the response `mode`:
+   - **subagent**: Spawn `Agent(prompt: response.context, description: "review — Reviewer agent")` with model `response.model`
+   - **multi_subagent**: Spawn multiple agents from `response.agents` list, each with their own context and model
+   - **worktree**: Spawn `Agent(isolation: "worktree", prompt: response.context, description: "review — Reviewer agent")` with model `response.model`
+   - **inline**: Handle the review step directly using the returned methodology
+   - **panel**: Load multiple perspectives from `response.agents` and facilitate debate
+4. After agent(s) return, call `mcp__dominion__phase_status()` to verify completion
+5. Show results summary to the user

@@ -1,6 +1,7 @@
 [meta]
-schema_version = 1
+schema_version = 2
 # Levels: full = deep conventions, standard = solid detection + basic conventions, detected = detection only
+# v2: added package_manager_profiles with install/add/run/prohibited/venv/hook_prefix
 
 # === Full: Deep support ===
 
@@ -222,3 +223,139 @@ name = "nim"
 level = "detected"
 indicators = ["*.nimble"]
 file_extensions = [".nim"]
+
+# === Package Manager Dev Profiles ===
+# Detected by lock files. Used to auto-generate safety rules,
+# CLAUDE.md deny sections, settings.local.json permissions, and agent hard_stops.
+
+[[package_manager_profiles]]
+name = "uv"
+language = "python"
+lock_file = "uv.lock"
+install = "uv sync"
+add = "uv add {package}"
+run = "uv run"
+prohibited = ["uv pip install", "pip install", "pip"]
+venv_required = true
+venv_path = ".venv"
+hook_prefix = "uv run"
+
+[[package_manager_profiles]]
+name = "pip"
+language = "python"
+lock_file = "requirements.txt"
+install = "pip install -r requirements.txt"
+add = "pip install {package}"
+run = "python"
+prohibited = ["pip install -g"]
+venv_required = true
+venv_path = ".venv"
+hook_prefix = ""
+
+[[package_manager_profiles]]
+name = "poetry"
+language = "python"
+lock_file = "poetry.lock"
+install = "poetry install"
+add = "poetry add {package}"
+run = "poetry run"
+prohibited = ["pip install", "uv pip install"]
+venv_required = true
+venv_path = ".venv"
+hook_prefix = "poetry run"
+
+[[package_manager_profiles]]
+name = "npm"
+language = "typescript"
+lock_file = "package-lock.json"
+install = "npm install"
+add = "npm install {package}"
+run = "npx"
+prohibited = ["npm install -g"]
+venv_required = false
+venv_path = ""
+hook_prefix = "npx"
+
+[[package_manager_profiles]]
+name = "pnpm"
+language = "typescript"
+lock_file = "pnpm-lock.yaml"
+install = "pnpm install"
+add = "pnpm add {package}"
+run = "pnpm exec"
+prohibited = ["npm install -g", "pnpm add -g"]
+venv_required = false
+venv_path = ""
+hook_prefix = "pnpm exec"
+
+[[package_manager_profiles]]
+name = "yarn"
+language = "typescript"
+lock_file = "yarn.lock"
+install = "yarn install"
+add = "yarn add {package}"
+run = "yarn"
+prohibited = ["npm install -g", "yarn global add"]
+venv_required = false
+venv_path = ""
+hook_prefix = "yarn"
+
+[[package_manager_profiles]]
+name = "bun"
+language = "typescript"
+lock_file = "bun.lockb"
+install = "bun install"
+add = "bun add {package}"
+run = "bun run"
+prohibited = ["npm install -g"]
+venv_required = false
+venv_path = ""
+hook_prefix = "bun run"
+
+[[package_manager_profiles]]
+name = "cargo"
+language = "rust"
+lock_file = "Cargo.lock"
+install = "cargo build"
+add = "cargo add {package}"
+run = "cargo run"
+prohibited = []
+venv_required = false
+venv_path = ""
+hook_prefix = ""
+
+[[package_manager_profiles]]
+name = "go-modules"
+language = "go"
+lock_file = "go.sum"
+install = "go mod download"
+add = "go get {package}"
+run = "go run"
+prohibited = []
+venv_required = false
+venv_path = ""
+hook_prefix = ""
+
+[[package_manager_profiles]]
+name = "maven"
+language = "java"
+lock_file = "pom.xml"
+install = "mvn install"
+add = ""
+run = "mvn exec:java"
+prohibited = []
+venv_required = false
+venv_path = ""
+hook_prefix = ""
+
+[[package_manager_profiles]]
+name = "gradle"
+language = "java"
+lock_file = "gradle.lockfile"
+install = "gradle build"
+add = ""
+run = "gradle run"
+prohibited = []
+venv_required = false
+venv_path = ""
+hook_prefix = ""

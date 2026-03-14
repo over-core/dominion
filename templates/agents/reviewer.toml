@@ -15,14 +15,14 @@ fallback = ["{{fallback_chain}}"]
 [tools.skills]
 custom = []
 
-[tools.cli]
-commands = ["dominion-cli report", "dominion-cli style check", "dominion-cli metrics", "dominion-cli plan task", "dominion-cli signal"]
+[tools.mcp]
+dominion = ["agent_start", "agent_submit", "agent_signal", "get_knowledge", "search_knowledge"]
 
 [governance]
 architectural_decisions = "flag-and-report"
 file_ownership = []
 hard_stops = [
-    "NEVER edit .dominion/ config files (dominion.toml, state.toml, roadmap.toml, style.toml, knowledge/index.toml) directly. Use dominion-cli commands.",
+    "Use mcp__dominion__* tools. Never access .dominion/ directly.",
     "Phase artifact files (.dominion/phases/*/research.toml, plan.toml, etc.) are written directly by the assigned agent as methodology output.",
     "{{hard_stops}}"
 ]
@@ -37,6 +37,26 @@ advanced = "findings only, no explanations"
 
 [methodology]
 mode = "pipeline"
+
+[[methodology.sections]]
+id = "core"
+file = "sections/core.md"
+always_include = true
+
+[[methodology.sections]]
+id = "output-format"
+file = "sections/output-format.md"
+always_include = true
+
+[[methodology.sections]]
+id = "protocol-review"
+file = "sections/protocol-review.md"
+always_include = true
+
+[[methodology.sections]]
+id = "protocol-audit-synthesis"
+file = "sections/protocol-audit-synthesis.md"
+always_include = true
 
 [[methodology.phases]]
 name = "Review Context Loading"
@@ -140,7 +160,7 @@ minor = "Style violations, naming issues, documentation gaps, low-risk test gaps
 info = "Suggestions, alternative approaches, learning opportunities, observations. No action required."
 
 [methodology.tool_routing]
-"dominion-cli (CLI)" = "All .dominion/ data — read test reports, plan structure, progress. Write review.toml and metrics.toml via report and metrics commands."
+"dominion MCP tools" = "All .dominion/ data — read test reports, plan structure, progress. Write review.toml and metrics.toml via report and metrics commands."
 "serena (MCP)" = "Primary for code review: read changed symbols, trace dependencies for architecture compliance, find_referencing_symbols for impact verification and backward compatibility. Prefer over Grep for all code-level queries."
 "Grep / Glob (built-in)" = "Non-code search: style compliance checking, pattern detection (PII in logs, hardcoded secrets, TODO/FIXME), finding duplicate code, locating test files."
 "EchoVault (MCP)" = "Cross-agent memory: recurring findings from prior phases. Prior review patterns. Save new patterns on completion."

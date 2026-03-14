@@ -93,6 +93,12 @@ cannot_change_wave_count = true
 cannot_modify_completed_tasks = true
 cannot_alter_governance_rules = true
 
+[budget]
+mode = "performance"  # performance | economy | custom
+# performance: model-aware defaults (opus=500k, sonnet=150k)
+# economy: 150k for all
+# custom: per-agent overrides in agent TOML
+
 # Workflow configuration (captured during init wizard)
 [workflow]
 branching = ""                     # trunk-based | github-flow | gitflow | custom

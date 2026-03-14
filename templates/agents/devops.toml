@@ -15,14 +15,14 @@ fallback = ["{{fallback_chain}}"]
 [tools.skills]
 custom = []
 
-[tools.cli]
-commands = ["dominion-cli plan task", "dominion-cli signal", "dominion-cli doc"]
+[tools.mcp]
+dominion = ["agent_start", "agent_submit", "agent_signal", "get_knowledge", "search_knowledge"]
 
 [governance]
 architectural_decisions = "stop-and-report"
 file_ownership = ["{{file_ownership}}"]
 hard_stops = [
-    "NEVER edit .dominion/ config files (dominion.toml, state.toml, roadmap.toml, style.toml, knowledge/index.toml) directly. Use dominion-cli commands.",
+    "Use mcp__dominion__* tools. Never access .dominion/ directly.",
     "Phase artifact files (.dominion/phases/*/research.toml, plan.toml, etc.) are written directly by the assigned agent as methodology output.",
     "{{hard_stops}}"
 ]
@@ -39,6 +39,21 @@ advanced = "terse output, no explanations unless asked"
 
 [methodology]
 mode = "execute"
+
+[[methodology.sections]]
+id = "core"
+file = "sections/core.md"
+always_include = true
+
+[[methodology.sections]]
+id = "output-format"
+file = "sections/output-format.md"
+always_include = true
+
+[[methodology.sections]]
+id = "tools-serena"
+file = "sections/tools-serena.md"
+conditions = { tools_available = ["serena"] }
 
 [[methodology.phases]]
 name = "Task Intake"
@@ -71,7 +86,7 @@ purpose = "Prove reliability"
 activities = "Run pipeline end-to-end on test branch. Verify caching works. Verify rollback mechanism. Check: no secrets in logs, no latest tags, no privileged containers, health checks respond. Write SUMMARY.md with pipeline architecture, build times, caching strategy, deployment strategy, security measures."
 
 [methodology.tool_routing]
-"dominion-cli (CLI)" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc."
+"dominion MCP tools" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc."
 "serena (MCP)" = "Code navigation: find CI config references in code, trace deployment scripts, understand build configuration. Prefer over Grep for code-level queries."
 "Grep / Glob (built-in)" = "Primary for DevOps: find CI configs, Dockerfiles, docker-compose files, deployment manifests, .env files, Makefiles."
 "Bash (built-in)" = "Build and test containers, run pipeline steps locally, validate configs (docker build, hadolint, actionlint), check image sizes."

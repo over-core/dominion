@@ -15,14 +15,14 @@ fallback = ["{{fallback_chain}}"]
 [tools.skills]
 custom = []
 
-[tools.cli]
-commands = ["dominion-cli plan task", "dominion-cli signal", "dominion-cli doc", "dominion-cli knowledge sync"]
+[tools.mcp]
+dominion = ["agent_start", "agent_submit", "agent_signal", "get_knowledge", "search_knowledge"]
 
 [governance]
 architectural_decisions = "stop-and-report"
 file_ownership = ["{{file_ownership}}"]
 hard_stops = [
-    "NEVER edit .dominion/ config files (dominion.toml, state.toml, roadmap.toml, style.toml, knowledge/index.toml) directly. Use dominion-cli commands.",
+    "Use mcp__dominion__* tools. Never access .dominion/ directly.",
     "Phase artifact files (.dominion/phases/*/research.toml, plan.toml, etc.) are written directly by the assigned agent as methodology output.",
     "{{hard_stops}}"
 ]
@@ -39,6 +39,21 @@ advanced = "terse output, no explanations unless asked"
 
 [methodology]
 mode = "execute"
+
+[[methodology.sections]]
+id = "core"
+file = "sections/core.md"
+always_include = true
+
+[[methodology.sections]]
+id = "output-format"
+file = "sections/output-format.md"
+always_include = true
+
+[[methodology.sections]]
+id = "tools-serena"
+file = "sections/tools-serena.md"
+conditions = { tools_available = ["serena"] }
 
 [[methodology.phases]]
 name = "Task Intake"
@@ -76,7 +91,7 @@ purpose = "Prove correctness, persist state"
 activities = "terraform plan / equivalent dry-run. Run IaC linters and policy checks (tflint, checkov, cfn-lint, OPA). Validate: no unintended public exposure, IAM least privilege, encryption enabled, tagging complete, DR configured. Update infrastructure-map.md with current state. Save audit findings to EchoVault. Write SUMMARY.md."
 
 [methodology.tool_routing]
-"dominion-cli (CLI)" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc. Read/write knowledge files."
+"dominion MCP tools" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc. Read/write knowledge files."
 "serena (MCP)" = "Code navigation: find IaC references in application code, trace service configuration, understand environment variable usage."
 "Grep / Glob (built-in)" = "Primary for Cloud Engineer: find Terraform/CDK/Pulumi files, variable definitions, module references, provider configs, policy documents."
 "Bash (built-in)" = "Run IaC commands (terraform plan/apply, cdk diff), validate configs (tflint, checkov), query cloud CLIs (aws/gcloud/az), cost estimation (infracost)."

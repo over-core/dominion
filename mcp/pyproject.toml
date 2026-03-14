@@ -1,0 +1,16 @@
+[project]
+name = "dominion-mcp"
+version = "0.2.0"
+requires-python = ">=3.14"
+dependencies = ["mcp>=1.26", "tomli-w"]
+description = "MCP server for Dominion AI development methodology"
+
+[project.scripts]
+dominion-mcp = "dominion_mcp.__main__:main"
+
+[dependency-groups]
+dev = ["pytest", "pytest-asyncio"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

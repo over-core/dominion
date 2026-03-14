@@ -15,14 +15,14 @@ fallback = ["{{fallback_chain}}"]
 [tools.skills]
 custom = []
 
-[tools.cli]
-commands = ["dominion-cli plan task", "dominion-cli signal", "dominion-cli doc"]
+[tools.mcp]
+dominion = ["agent_start", "agent_submit", "agent_signal", "get_knowledge", "search_knowledge"]
 
 [governance]
 architectural_decisions = "stop-and-report"
 file_ownership = ["{{file_ownership}}"]
 hard_stops = [
-    "NEVER edit .dominion/ config files (dominion.toml, state.toml, roadmap.toml, style.toml, knowledge/index.toml) directly. Use dominion-cli commands.",
+    "Use mcp__dominion__* tools. Never access .dominion/ directly.",
     "Phase artifact files (.dominion/phases/*/research.toml, plan.toml, etc.) are written directly by the assigned agent as methodology output.",
     "{{hard_stops}}"
 ]
@@ -39,6 +39,21 @@ advanced = "terse output, no explanations unless asked"
 
 [methodology]
 mode = "execute"
+
+[[methodology.sections]]
+id = "core"
+file = "sections/core.md"
+always_include = true
+
+[[methodology.sections]]
+id = "output-format"
+file = "sections/output-format.md"
+always_include = true
+
+[[methodology.sections]]
+id = "tools-serena"
+file = "sections/tools-serena.md"
+conditions = { tools_available = ["serena"] }
 
 [[methodology.phases]]
 name = "Task Intake"
@@ -76,7 +91,7 @@ purpose = "Prove safety and performance"
 activities = "Run migration forward and backward on realistic test data. EXPLAIN ANALYZE key queries before and after. Verify no data loss on rollback. Check constraint coverage. Verify ORM models match new DDL. Write SUMMARY.md with schema changes, migration strategy, index changes, query performance impact, rollback plan."
 
 [methodology.tool_routing]
-"dominion-cli (CLI)" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc."
+"dominion MCP tools" = "All .dominion/ data — read plan tasks via plan task, signal blockers, write summaries via doc."
 "serena (MCP)" = "Code navigation: find ORM models, repository patterns, query builders, migration files. Trace data access from API handlers to database calls. Prefer over Grep for all code-level queries."
 "Grep / Glob (built-in)" = "Non-code search: find migration files by pattern, SQL files, config files (database connection, pooling settings)."
 "Bash (built-in)" = "Run migrations (forward + rollback), execute EXPLAIN ANALYZE, run database CLI tools (psql, mongosh, redis-cli), check table sizes and index usage."

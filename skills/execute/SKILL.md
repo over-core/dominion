@@ -1,79 +1,20 @@
 ---
 name: execute
-description: Developer-driven wave-by-wave parallel task execution. Manages worktrees, agent spawning, signals, progress tracking. Produces progress.toml and task summaries.
+description: Developer-driven task execution with worktree isolation
 ---
 
 # /dominion:execute
 
-Execute the plan wave by wave with parallel Developer agents.
+## Dispatch
 
-<IMPORTANT>
-This skill requires plan.toml for the current phase. Check `.dominion/phases/{N}/plan.toml` exists.
-If not, tell the user: "Run /dominion:plan first."
-
-Before starting, check the lock:
-- If `.dominion/state.toml` `[lock].session_id` is set and not expired, warn: "Pipeline is locked by session {id} since {locked_at}. Use /dominion:quick for lightweight tasks, or force-unlock if the session is stale."
-</IMPORTANT>
-
-## Execution Modes
-
-Execution supports two modes:
-- **Parallel** (default): `Agent(isolation: "worktree")` per task, concurrent within wave
-- **Serial** (fallback): orchestrator executes tasks directly if parallel fails
-
-Fallback triggers automatically after 2 agent spawn failures. See [task-execution.md](references/task-execution.md) for the full fallback protocol.
-
-## Pre-check
-
-1. Read `.dominion/state.toml` — get current phase, check lock
-2. Verify `.dominion/phases/{N}/plan.toml` exists
-3. Set lock: update state.toml `[lock]` with session_id, locked_at
-
-## Step 1: Assumption Verification
-
-Read `.dominion/phases/{N}/research.toml` — find all assumptions with status "unverified".
-
-For each unverified assumption:
-- Attempt to verify now (read files, check versions, run commands)
-- Update status to "verified" or "false"
-- If any assumption is "false": halt execution, present the false assumption to the user, ask whether to continue, replan, or abort
-
-## Step 2: Initialize Progress
-
-If `.dominion/phases/{N}/progress.toml` does not exist:
-- Create from [progress.toml](../../templates/schemas/progress.toml)
-- Populate phase number, wave structure, and task entries from plan.toml
-
-If progress.toml exists, resume from current state (find first incomplete wave).
-
-## Step 3: Wave Execution
-
-For each wave (starting from the first incomplete wave):
-
-Follow [task-execution.md](references/task-execution.md) for the wave execution protocol:
-1. Set up worktrees for each task in the wave
-2. Spawn Developer agents in parallel
-3. Monitor for signals per [signal-protocol.md](references/signal-protocol.md)
-4. Wait for all agents to complete
-5. Verify SUMMARY.md exists for each task (per [summary-writing.md](references/summary-writing.md))
-6. Merge completed tasks
-7. Clean up worktrees
-8. Update progress.toml
-
-Between waves: inter-wave checkpoint (handled by /dominion:orchestrate if running under it).
-
-## Step 4: Post-Execution Summary
-
-Display to the user:
-```
-Execution Complete (Phase {N}):
-  Waves: {completed}/{total}
-  Tasks: {completed} complete, {failed} failed, {blocked} blocked
-  Blockers: {list or "none"}
-```
-
-## Step 5: Update State
-
-Update state:
-- Run `dominion-cli state update --step execute --status {complete|blocked}`
-- Run `dominion-cli state checkpoint`
+1. Call `mcp__dominion__step_dispatch(step: "execute")`
+2. Read the response. If it indicates prerequisites are missing, show them to the user and stop
+3. Based on the response `mode`:
+   - **subagent**: Spawn `Agent(prompt: response.context, description: "execute — Developer agent")` with model `response.model`
+   - **multi_subagent**: For each agent in `response.agents`, spawn `Agent(isolation: "worktree", prompt: agent.context, description: "execute task {agent.task_id} — {agent.role}")` with model `agent.model`. Run agents within the same wave in parallel. Wait for all to complete before proceeding to the next wave.
+   - **worktree**: Spawn `Agent(isolation: "worktree", prompt: response.context, description: "execute — Developer agent")` with model `response.model`
+   - **inline**: Handle the execute step directly using the returned methodology
+   - **panel**: Load multiple perspectives from `response.agents` and facilitate debate
+4. After agent(s) return, call `mcp__dominion__phase_status()` to verify completion
+5. If `response.next_wave` is present, repeat from step 1 (next wave dispatch)
+6. Show results summary to the user

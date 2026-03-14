@@ -20,11 +20,12 @@ If `.dominion/agents/release-manager.toml` does not exist:
 
 ## Pre-check
 
-1. Read `.dominion/dominion.toml` — verify project is initialized
-2. Check for `.dominion/specs/release-spec.toml`
+1. Call `mcp__dominion__get_config(section: "project")` — verify project is initialized
+2. Call `mcp__dominion__get_config(section: "release")` — check for release spec
    - If missing or empty: follow [bootstrap.md](references/bootstrap.md) to generate it
    - If present: read and validate spec
-3. Create `.dominion/release/` directory if it doesn't exist
+3. Call `mcp__dominion__get_roadmap()` — get current milestone context
+4. Create `.dominion/release/` directory if it doesn't exist
 
 ## Step 1: Prepare Release
 

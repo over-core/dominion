@@ -3,6 +3,13 @@ DOMINION.md
 CLAUDE.md
 docs/
 
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+.venv/
+
 # Worktrees (generated during execution)
 .worktrees/
 

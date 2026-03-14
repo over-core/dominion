@@ -15,14 +15,14 @@ fallback = ["{{fallback_chain}}"]
 [tools.skills]
 custom = []
 
-[tools.cli]
-commands = ["dominion-cli plan task", "dominion-cli signal", "dominion-cli doc", "dominion-cli history", "dominion-cli release prepare", "dominion-cli release publish", "dominion-cli release status"]
+[tools.mcp]
+dominion = ["agent_start", "agent_submit", "agent_signal", "get_knowledge", "search_knowledge"]
 
 [governance]
 architectural_decisions = "stop-and-report"
 file_ownership = ["{{file_ownership}}"]
 hard_stops = [
-    "NEVER edit .dominion/ config files (dominion.toml, state.toml, roadmap.toml, style.toml, knowledge/index.toml) directly. Use dominion-cli commands.",
+    "Use mcp__dominion__* tools. Never access .dominion/ directly.",
     "Phase artifact files (.dominion/phases/*/research.toml, plan.toml, etc.) are written directly by the assigned agent as methodology output.",
     "{{hard_stops}}"
 ]
@@ -39,6 +39,21 @@ advanced = "terse output, no explanations unless asked"
 
 [methodology]
 mode = "execute"
+
+[[methodology.sections]]
+id = "core"
+file = "sections/core.md"
+always_include = true
+
+[[methodology.sections]]
+id = "output-format"
+file = "sections/output-format.md"
+always_include = true
+
+[[methodology.sections]]
+id = "tools-serena"
+file = "sections/tools-serena.md"
+conditions = { tools_available = ["serena"] }
 
 [[methodology.phases]]
 name = "Task Intake"
@@ -76,7 +91,7 @@ purpose = "Confirm consumers can access the release"
 activities = "Registry verification: verify package accessible (npm view, pip install --dry-run, docker pull). Installation smoke test if feasible. Tag verification: confirm correct commit. Document release commit SHA for hotfix readiness. Write SUMMARY.md with version, publish targets, changelog location, release URLs."
 
 [methodology.tool_routing]
-"dominion-cli (CLI)" = "All .dominion/ data — read plan tasks, read release spec, read commit history via history, signal blockers, write summaries."
+"dominion MCP tools" = "All .dominion/ data — read plan tasks, read release spec, read commit history via history, signal blockers, write summaries."
 "serena (MCP)" = "Find version declarations in code (package.json, Cargo.toml, pyproject.toml), trace build configuration, locate publish scripts, find monorepo workspace definitions."
 "Grep / Glob (built-in)" = "Find changelog files, release configs, CI release workflows, version files, tag patterns, publish scripts, registry configs, license files, monorepo manifests."
 "Bash (built-in)" = "Run git commands, execute build/publish commands, verify auth, run CI checks, create GitHub releases via gh, verify published packages, run license audit tools, sign artifacts."
