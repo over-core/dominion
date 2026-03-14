@@ -7,6 +7,8 @@ from pathlib import Path
 from .complexity import get_dispatch_override, get_effective_steps, refine_complexity
 from .config import current_phase, phase_path as get_phase_path, read_toml_optional
 from .correction import assess_verdict, get_correction_action
+from .plan import get_wave_tasks
+from .progress import get_wave_status
 from .state import get_position
 
 PIPELINE_STEPS = ["discuss", "research", "plan", "execute", "audit", "review", "improve"]
@@ -145,6 +147,13 @@ def get_next_action(dom_root: Path) -> dict:
             ),
         }
     elif mode == "worktree":
+        # Execute step: wave-level dispatch with per-task agents.
+        if next_step == "execute":
+            wave_dispatch = _build_execute_wave(dom_root, phase)
+            if wave_dispatch:
+                return wave_dispatch
+
+        # Fallback: single worktree agent.
         agent_role = agents if isinstance(agents, str) else agents[0]
         return {
             "action_type": "spawn_agent",
@@ -169,6 +178,81 @@ def get_next_action(dom_root: Path) -> dict:
                 f"Call mcp__dominion__agent_start(role: '{agent_role}', phase_id: {phase})"
             ),
         }
+
+
+def _build_execute_wave(dom_root: Path, phase: int) -> dict | None:
+    """Build an execute_wave dispatch for the current wave's pending tasks.
+
+    Reads plan.toml and progress.toml. Returns an execute_wave action with
+    one entry per pending task in the current wave, or None if no plan exists
+    (falls back to single-agent worktree dispatch).
+    """
+    pos = get_position(dom_root)
+    wave_num = pos.get("wave", 0)
+
+    # No wave started yet — start wave 1.
+    if wave_num == 0:
+        wave_num = 1
+
+    # Get tasks for this wave from plan.toml.
+    try:
+        wave_tasks = get_wave_tasks(dom_root, wave_num)
+    except (ValueError, FileNotFoundError):
+        return None  # No plan — fall back to single agent.
+
+    if not wave_tasks:
+        # No tasks for this wave — check if there are higher waves.
+        for next_wave in range(wave_num + 1, wave_num + 20):
+            try:
+                next_tasks = get_wave_tasks(dom_root, next_wave)
+            except (ValueError, FileNotFoundError):
+                break
+            if next_tasks:
+                wave_num = next_wave
+                wave_tasks = next_tasks
+                break
+
+    if not wave_tasks:
+        return None  # No tasks in any wave — fall back.
+
+    # Check progress to filter out already-completed tasks.
+    wave_status = get_wave_status(dom_root)
+    completed_ids: set[str] = set()
+    if wave_status.get("wave") == wave_num:
+        for t in wave_status.get("tasks", []):
+            if t.get("status") == "complete":
+                completed_ids.add(t.get("id", ""))
+
+    pending_tasks = [t for t in wave_tasks if t.get("id", "") not in completed_ids]
+
+    if not pending_tasks:
+        return None  # All tasks in wave done — pipeline will advance.
+
+    # Build per-task dispatch entries.
+    task_entries = []
+    for task in pending_tasks:
+        task_id = task.get("id", "")
+        agent_role = task.get("assigned_to", task.get("agent", "developer")).lower()
+        task_model = task.get("model", "sonnet")
+
+        task_entries.append({
+            "task_id": task_id,
+            "agent_role": agent_role,
+            "model": task_model,
+            "isolation": "worktree",
+            "context": (
+                f"Phase {phase}, Wave {wave_num}, Task {task_id}. "
+                f"Call mcp__dominion__agent_start(role: '{agent_role}', "
+                f"task_id: '{task_id}', phase_id: {phase})"
+            ),
+        })
+
+    return {
+        "action_type": "execute_wave",
+        "step": "execute",
+        "wave": wave_num,
+        "tasks": task_entries,
+    }
 
 
 def _next_step(current: str, steps: list[str] | None = None) -> str | None:
