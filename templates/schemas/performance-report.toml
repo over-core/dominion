@@ -1,0 +1,28 @@
+# Dominion Performance Report — Schema Template
+# Analyst output, conditional on performance-relevant code changes
+
+[meta]
+schema_version = 1
+phase = 0
+
+[summary]
+overall_impact = ""                 # positive | neutral | negative | unknown
+key_metric = ""                     # primary metric affected
+recommendation = ""                 # brief recommendation
+
+[[findings]]
+id = ""                             # P1, P2, ...
+category = ""                       # latency | throughput | memory | cpu | startup | bundle-size
+severity = ""                       # high | medium | low
+title = ""                          # short description
+description = ""                    # detailed explanation
+metric_before = ""                  # measured or estimated baseline
+metric_after = ""                   # measured or estimated impact
+suggestion = ""                     # recommended action
+
+[[benchmarks]]
+name = ""                           # benchmark name
+result = ""                         # numeric result
+unit = ""                           # ms | MB | req/s | etc.
+baseline = ""                       # previous value if available
+change = ""                         # +15%, -3%, N/A

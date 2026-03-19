@@ -163,3 +163,63 @@ def test_get_help_with_question(dom_root: Path) -> None:
     result = get_help(dom_root, question="What should I do next?")
     assert "question" in result
     assert "context_for_answer" in result
+
+
+# ---------------------------------------------------------------------------
+# execute_wave dispatch
+# ---------------------------------------------------------------------------
+
+
+def test_execute_wave_dispatch(dom_root_with_plan: Path) -> None:
+    """Execute step with plan.toml returns execute_wave with task list."""
+    from dominion_mcp.core.config import read_toml, write_toml
+
+    # Set position to execute step, wave 1
+    state_path = dom_root_with_plan / "state.toml"
+    state = read_toml(state_path)
+    state["position"]["step"] = "execute"
+    state["position"]["status"] = "active"
+    state["position"]["wave"] = 1
+    write_toml(state_path, state)
+
+    result = get_next_action(dom_root_with_plan)
+    assert result["action_type"] == "execute_wave"
+    assert result["wave"] == 1
+    assert len(result["tasks"]) >= 1
+    assert result["tasks"][0]["isolation"] == "worktree"
+    assert "task_id" in result["tasks"][0]
+    assert "agent_role" in result["tasks"][0]
+    assert "context" in result["tasks"][0]
+
+
+def test_execute_wave_includes_task_ids(dom_root_with_plan: Path) -> None:
+    """Wave tasks have correct task IDs from plan.toml."""
+    from dominion_mcp.core.config import read_toml, write_toml
+
+    state_path = dom_root_with_plan / "state.toml"
+    state = read_toml(state_path)
+    state["position"]["step"] = "execute"
+    state["position"]["status"] = "active"
+    state["position"]["wave"] = 1
+    write_toml(state_path, state)
+
+    result = get_next_action(dom_root_with_plan)
+    task_ids = {t["task_id"] for t in result["tasks"]}
+    # Wave 1 in conftest: 01-01 is complete, 01-02 is active (pending)
+    assert "01-02" in task_ids
+    assert "01-01" not in task_ids  # Already complete, filtered out
+
+
+def test_execute_wave_no_plan_falls_back(dom_root: Path) -> None:
+    """Execute step without plan.toml falls back to single spawn_agent."""
+    from dominion_mcp.core.config import read_toml, write_toml
+
+    state_path = dom_root / "state.toml"
+    state = read_toml(state_path)
+    state["position"]["step"] = "execute"
+    state["position"]["status"] = "active"
+    write_toml(state_path, state)
+
+    result = get_next_action(dom_root)
+    assert result["action_type"] == "spawn_agent"
+    assert result.get("isolation") == "worktree"

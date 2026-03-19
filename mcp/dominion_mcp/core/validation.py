@@ -52,13 +52,13 @@ def _check_agent_toml_md_consistency(dom_root: Path, project_root: Path) -> dict
     """Every .dominion/agents/*.toml has matching .claude/agents/*.md."""
     agents_dir = dom_root / "agents"
     claude_agents_dir = project_root / ".claude" / "agents"
-    agent_tomls = sorted(agents_dir.glob("*.toml")) if agents_dir.is_dir() else []
+    agent_tomls = sorted(agents_dir.glob("*/agent.toml")) if agents_dir.is_dir() else []
 
     missing_md: list[str] = []
     for at in agent_tomls:
-        md = claude_agents_dir / f"{at.stem}.md"
+        md = claude_agents_dir / f"{at.parent.name}.md"
         if not md.exists():
-            missing_md.append(at.stem)
+            missing_md.append(at.parent.name)
 
     total = len(agent_tomls)
     matched = total - len(missing_md)
@@ -76,15 +76,15 @@ def _check_agent_md_headers(dom_root: Path, project_root: Path) -> dict:
     """Agent .md files contain Dominion marker."""
     agents_dir = dom_root / "agents"
     claude_agents_dir = project_root / ".claude" / "agents"
-    agent_tomls = sorted(agents_dir.glob("*.toml")) if agents_dir.is_dir() else []
+    agent_tomls = sorted(agents_dir.glob("*/agent.toml")) if agents_dir.is_dir() else []
 
     bad_headers: list[str] = []
     for at in agent_tomls:
-        md = claude_agents_dir / f"{at.stem}.md"
+        md = claude_agents_dir / f"{at.parent.name}.md"
         if md.exists():
             content = md.read_text()
             if "Dominion" not in content[:200] and "dominion" not in content[:200]:
-                bad_headers.append(at.stem)
+                bad_headers.append(at.parent.name)
 
     if not bad_headers:
         return {"check": "Agent MD headers", "status": "pass", "detail": ""}
@@ -98,12 +98,12 @@ def _check_agents_md(dom_root: Path, project_root: Path) -> dict:
         return {"check": "AGENTS.md roster", "status": "fail", "detail": "AGENTS.md not found"}
 
     agents_dir = dom_root / "agents"
-    agent_tomls = sorted(agents_dir.glob("*.toml")) if agents_dir.is_dir() else []
+    agent_tomls = sorted(agents_dir.glob("*/agent.toml")) if agents_dir.is_dir() else []
     content = agents_md.read_text().lower()
 
     missing: list[str] = []
     for at in agent_tomls:
-        name = at.stem
+        name = at.parent.name
         if name not in content and name.replace("-", " ") not in content:
             missing.append(name)
 
@@ -200,15 +200,16 @@ def _check_methodology_sections(dom_root: Path) -> dict:
     if not agents_dir.is_dir():
         return {"check": "Methodology sections", "status": "warn", "detail": "No agents directory"}
 
-    agent_tomls = sorted(agents_dir.glob("*.toml"))
+    agent_tomls = sorted(agents_dir.glob("*/agent.toml"))
     missing_sections: list[str] = []
     for at in agent_tomls:
-        sections_dir = agents_dir / at.stem / "sections"
-        if not sections_dir.is_dir():
-            missing_sections.append(at.stem)
+        agent_dir = at.parent
+        md_files = list(agent_dir.glob("*.md"))
+        if not md_files:
+            missing_sections.append(agent_dir.name)
 
     if not missing_sections:
-        return {"check": "Methodology sections", "status": "pass", "detail": "All agents have sections"}
+        return {"check": "Methodology sections", "status": "pass", "detail": "All agents have methodology files"}
     if len(missing_sections) == len(agent_tomls):
         return {"check": "Methodology sections", "status": "warn", "detail": "No agents have methodology sections yet"}
     return {

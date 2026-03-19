@@ -10,7 +10,7 @@ List the project root directory. Read key files:
 
 ## Step 2: Language Detection
 
-Reference: [languages.toml](../../../data/detection/languages.toml)
+Reference: [languages.toml](../data/languages.toml)
 
 For each language entry, check if any `indicators` files exist using Glob.
 For detected languages, also check:
@@ -38,9 +38,30 @@ Determine the active package manager from lock files:
 
 Record: `package_manager`, `install_command`, and `venv_path` (`.venv` for Python, `node_modules` for JS, empty for Rust/Go).
 
+### Dev Profile Matching
+
+For each detected package manager, find the matching `[[package_manager_profiles]]` entry in [languages.toml](../data/languages.toml):
+
+1. Match by `lock_file` field against detected lock files from Step 2
+2. Extract the full profile: `name`, `install`, `add`, `run`, `prohibited`, `venv_required`, `venv_path`, `hook_prefix`
+3. If no profile matches, construct a minimal profile from the detected package manager name and install command
+
+Record `dev_profiles` — one per detected package manager — containing:
+- `name` — package manager name (e.g., "uv", "pnpm", "cargo")
+- `language` — associated language
+- `install` — canonical install command
+- `add` — add dependency command
+- `run` — run command prefix
+- `prohibited` — list of prohibited commands (auto-derived safety rules)
+- `venv_required` — whether a virtual environment is required
+- `venv_path` — expected venv location
+- `hook_prefix` — command prefix for hook scripts
+
+These profiles drive auto-generated safety rules in the interview (Phase 2: Present & Confirm) and generation (CLAUDE.md, settings.local.json, agent hard_stops) — no user input needed.
+
 ## Step 3: Framework Detection
 
-Reference: [frameworks.toml](../../../data/detection/frameworks.toml)
+Reference: [frameworks.toml](../data/frameworks.toml)
 
 For each framework entry matching detected languages:
 - Check `detection.cargo_dep` / `detection.pyproject_dep` / `detection.npm_dep` / `detection.go_dep` in the relevant manifest file
@@ -49,7 +70,7 @@ For each framework entry matching detected languages:
 
 ## Step 4: Infrastructure Detection
 
-Reference: [infrastructure.toml](../../../data/detection/infrastructure.toml)
+Reference: [infrastructure.toml](../data/infrastructure.toml)
 
 For each infrastructure entry:
 - Check `detection.files` and `detection.directories` using Glob
@@ -60,7 +81,7 @@ For each infrastructure entry:
 ## Step 5: MCP & Tool Inventory
 
 Detect currently available MCPs by checking which `mcp__*` tools are loaded in the session.
-Cross-reference against [registry.toml](../../../registry/registry.toml):
+Cross-reference against [registry.toml](../data/registry.toml):
 - Categorize each detected MCP (required / recommended / optional)
 - Identify missing required MCPs
 - Identify recommended MCPs that match the detected stack
@@ -142,6 +163,7 @@ Organize detection results as structured data in the conversation context:
 - `detected_frameworks`: list with category, conventions
 - `detected_infrastructure`: list with category, activates_role
 - `detected_mcps`: list with tier, status (installed/missing)
+- `dev_profiles`: list of matched package manager profiles (install, add, run, prohibited, venv, hook_prefix)
 - `git_workflow`: branching, commit_format, merge_strategy, pre_commit_tooling, pr_templates
 - `existing_setup`: what Claude Code artifacts already exist (brownfield indicators)
 - `style_observations`: per-language convention observations

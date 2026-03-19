@@ -17,3 +17,11 @@ description: Post-pipeline retrospective and methodology improvement
    - **panel**: Load multiple perspectives from `response.agents` and facilitate debate
 4. After agent(s) return, call `mcp__dominion__phase_status()` to verify completion
 5. Show results summary to the user
+
+## Creating New Agents
+
+When the improvement involves creating a new agent role, follow agent-methodology-design.md for the methodology design process.
+
+## Creating New Skills
+
+When the improvement involves creating a new skill, follow skill-quality-guide.md for structure, prose style, and acceptance criteria.

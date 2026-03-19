@@ -148,18 +148,113 @@ def curate_sections(sections: list[dict], signals: dict, model: str) -> list[dic
     return result
 
 
+def _serialize_phases(phases: list[dict]) -> str:
+    """Serialize [[methodology.phases]] into markdown."""
+    if not phases:
+        return ""
+    lines = ["## Workflow Phases", ""]
+    for i, phase in enumerate(phases, 1):
+        name = phase.get("name", f"Phase {i}")
+        purpose = phase.get("purpose", "")
+        lines.append(f"### {i}. {name}")
+        if purpose:
+            lines.append(f"**Purpose:** {purpose}")
+
+        # Handle both list and string formats for activities
+        activities = phase.get("key_activities") or phase.get("activities", "")
+        if isinstance(activities, list):
+            for activity in activities:
+                lines.append(f"- {activity}")
+        elif isinstance(activities, str) and activities.strip():
+            for line in activities.strip().split("\n"):
+                stripped = line.strip()
+                if stripped:
+                    if not stripped.startswith("-"):
+                        stripped = f"- {stripped}"
+                    lines.append(stripped)
+        lines.append("")
+    return "\n".join(lines)
+
+
+def _serialize_methods(methods: list[dict]) -> str:
+    """Serialize [[methodology.methods]] into markdown."""
+    if not methods:
+        return ""
+    lines = ["## Methods", ""]
+    for method in methods:
+        name = method.get("name", "")
+        source = method.get("source", "")
+        purpose = method.get("purpose", "")
+        lines.append(f"### {name}")
+        if source:
+            lines.append(f"**Source:** {source}")
+        if purpose:
+            lines.append(f"**Purpose:** {purpose}")
+        lines.append("")
+    return "\n".join(lines)
+
+
+def _serialize_tool_routing(routing: list[dict] | dict) -> str:
+    """Serialize [[methodology.tool_routing]] or [methodology.tool_routing] into markdown."""
+    if not routing:
+        return ""
+    lines = ["## Tool Routing", "", "| Tool | Use For |", "|------|---------|"]
+
+    if isinstance(routing, list):
+        for entry in routing:
+            tool = entry.get("tool", "")
+            use_for = entry.get("use_for", "")
+            lines.append(f"| {tool} | {use_for} |")
+    elif isinstance(routing, dict):
+        for tool, use_for in routing.items():
+            lines.append(f"| {tool} | {use_for} |")
+
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _serialize_routing_rules(rules: list[dict]) -> str:
+    """Serialize [[methodology.routing_rules]] into markdown."""
+    if not rules:
+        return ""
+    lines = ["## Specialist Routing Rules", ""]
+    for rule in rules:
+        role = rule.get("role", "")
+        triggers = rule.get("triggers", [])
+        note = rule.get("note", "")
+        trigger_str = ", ".join(triggers) if isinstance(triggers, list) else str(triggers)
+        lines.append(f"- **{role}**: {trigger_str}")
+        if note:
+            lines.append(f"  ({note})")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _serialize_mode_adaptation(adaptation: dict) -> str:
+    """Serialize [methodology.mode_adaptation] into markdown."""
+    if not adaptation:
+        return ""
+    lines = ["## Mode Adaptation", ""]
+    for mode, description in adaptation.items():
+        lines.append(f"- **{mode}:** {description}")
+    lines.append("")
+    return "\n".join(lines)
+
+
 def assemble_methodology(dom_root: Path, role: str, signals: dict, model: str) -> str:
     """Assemble curated methodology text for an agent.
 
-    1. Read agent TOML for methodology.sections index
-    2. Evaluate conditions against signals with model-aware curation
-    3. Read matching section files
-    4. Concatenate and return
+    1. Read agent TOML for methodology content
+    2. Evaluate section conditions against signals with model-aware curation
+    3. Read matching section .md files
+    4. Serialize TOML-inline methodology (phases, methods, tool routing)
+    5. Concatenate and return
     """
-    agent_toml = read_toml(dom_root / "agents" / f"{role}.toml")
+    agent_toml = read_toml(dom_root / "agents" / role / "agent.toml")
     methodology = agent_toml.get("methodology", {})
     sections = methodology.get("sections", [])
 
+    # Part 1: Conditional section .md files
     selected = curate_sections(sections, signals, model)
 
     parts = []
@@ -168,6 +263,26 @@ def assemble_methodology(dom_root: Path, role: str, signals: dict, model: str) -
         section_path = dom_root / "agents" / role / section_file
         if section_path.exists():
             parts.append(section_path.read_text())
-        # Silently skip missing section files (may not be authored yet)
 
-    return "\n\n".join(parts)
+    # Part 2: TOML-inline methodology content
+    phases = methodology.get("phases", [])
+    if phases:
+        parts.append(_serialize_phases(phases))
+
+    methods = methodology.get("methods", [])
+    if methods:
+        parts.append(_serialize_methods(methods))
+
+    tool_routing = methodology.get("tool_routing", [])
+    if tool_routing:
+        parts.append(_serialize_tool_routing(tool_routing))
+
+    routing_rules = methodology.get("routing_rules", [])
+    if routing_rules:
+        parts.append(_serialize_routing_rules(routing_rules))
+
+    mode_adaptation = methodology.get("mode_adaptation")
+    if mode_adaptation:
+        parts.append(_serialize_mode_adaptation(mode_adaptation))
+
+    return "\n\n".join(part for part in parts if part)

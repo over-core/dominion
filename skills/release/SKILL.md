@@ -9,7 +9,7 @@ Prepare and optionally publish a release using the project's release spec.
 
 <IMPORTANT>
 This skill requires the Release Manager specialized role.
-If `.dominion/agents/release-manager.toml` does not exist:
+If `.dominion/agents/release-manager/agent.toml` does not exist:
   "Release Manager role is not activated. Activate it first with /dominion:improve --agent, or proceed with Advisor-only mode (simpler synopsis, no structured changelog)? [activate / advisor-only]"
 </IMPORTANT>
 

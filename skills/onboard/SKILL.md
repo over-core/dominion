@@ -19,7 +19,7 @@ This skill creates files in the project directory. Before starting:
 
 ## Phase 1: Detection
 
-@references/detection.md
+Followdetection.md
 
 Output: structured detection results in conversation context.
 
@@ -50,13 +50,13 @@ Quality tools:
 
 ## Phase 3: Interview
 
-@references/interview.md
+Followinterview.md
 
 Output: user-approved configuration choices.
 
 ## Phase 4: Generation
 
-@references/generation.md
+Followgeneration.md
 
 ## Phase 5: Confirmation
 

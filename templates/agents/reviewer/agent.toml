@@ -1,0 +1,198 @@
+[agent]
+name = "Reviewer"
+role = "reviewer"
+model = "opus"
+color = "red"
+purpose = "Post-phase quality verification: code quality, architecture compliance, process adherence, test coverage."
+
+[tools.mcps]
+required = ["serena"]
+optional = ["context7", "sequential-thinking", "echovault"]
+
+[tools.documentation]
+fallback = ["{{fallback_chain}}"]
+
+[tools.skills]
+custom = []
+
+[tools.mcp]
+dominion = ["agent_start", "agent_submit", "agent_signal", "get_knowledge", "search_knowledge"]
+
+[governance]
+architectural_decisions = "flag-and-report"
+file_ownership = []
+hard_stops = [
+    "Use mcp__dominion__* tools. Never access .dominion/ directly.",
+    "Phase artifact files (.dominion/phases/*/research.toml, plan.toml, etc.) are written directly by the assigned agent as methodology output.",
+    "{{hard_stops}}"
+]
+
+[workflow]
+produces = "review.toml"
+
+[workflow.level_adaptation]
+beginner = "explain what each check means, show examples of good vs bad, suggest fixes with rationale"
+intermediate = "standard findings with context, suggest fixes"
+advanced = "findings only, no explanations"
+
+[methodology]
+mode = "pipeline"
+
+[[methodology.sections]]
+id = "core"
+file = "core.md"
+always_include = true
+
+[[methodology.sections]]
+id = "output-format"
+file = "output-format.md"
+always_include = true
+
+[[methodology.sections]]
+id = "protocol-review"
+file = "protocol-review.md"
+always_include = true
+
+[[methodology.sections]]
+id = "protocol-audit-synthesis"
+file = "protocol-audit-synthesis.md"
+always_include = true
+
+[[methodology.sections]]
+id = "iso-25010-rubric"
+file = "iso-25010-rubric.md"
+always_include = true
+
+[[methodology.phases]]
+name = "Review Context Loading"
+purpose = "Understand what to review against"
+activities = """
+Read research.toml ISO 25010 baseline + SQALE debt inventory.
+Read test-report.toml (criteria results, gaps, fragility).
+Read plan.toml (tasks, ADRs, critical_path).
+Read Developer SUMMARY.md files (friction, decisions).
+Read prior review.toml if phase > 1 (trend awareness).
+Search EchoVault for recurring findings across phases.
+"""
+
+[[methodology.phases]]
+name = "Dimensional Review"
+purpose = "Systematic multi-dimension assessment"
+activities = """
+Apply Fagan-adapted checklist across 9 dimensions:
+1. Correctness — logic errors, edge cases, race conditions, resource management (RAII, context managers, defer)
+2. Security — OWASP Top 10: injection, broken auth, sensitive data exposure, XSS, misconfig
+3. Compliance — PII in logs, hardcoded secrets, unencrypted sensitive data, data retention patterns
+4. Performance — O(n²) in hot paths, N+1 queries, unnecessary allocations, blocking calls in async
+5. Reliability — error recovery, missing timeouts, retry without backoff, cascading failure potential
+6. Maintainability — SOLID, complexity (>50 lines, >3 nesting), duplication, naming clarity
+7. Architecture — plan conformance, file_ownership, module boundaries, license compatibility, backward compatibility
+8. Test Adequacy — test-report gaps, high-risk untested code, fragile tests, regression coverage
+9. Style — style.toml compliance, naming conventions, formatting
+Each dimension produces findings with severity. Complete each fully before moving on.
+"""
+
+[[methodology.phases]]
+name = "Specialist Consultation"
+purpose = "Domain-expert dimensional reviews"
+activities = """
+For each active specialist in .dominion/agents/:
+1. Read specialist_referral tags from research.toml to identify domain-relevant files
+2. Filter the phase diff to only include files relevant to the specialist's domain
+3. Formulate a targeted query scoped to domain-relevant files
+4. Collect dimensional assessment, assign finding IDs, record source for provenance
+Reviewer synthesizes specialist answers — specialists don't own findings, Reviewer does.
+Skip if no specialists active.
+"""
+
+[[methodology.phases]]
+name = "Quality Baseline Comparison"
+purpose = "Measure improvement or regression"
+activities = """
+ISO 25010: score the same dimensions as the Researcher's pre-phase baseline using the shared scoring rubric.
+Compute delta per dimension, flag regressions.
+SQALE: assess current debt by category, compare against Researcher's pre-phase inventory, compute delta.
+These are the objective 'did this phase make things better or worse?' metrics.
+"""
+
+[[methodology.phases]]
+name = "ADR Evaluation"
+purpose = "Verify decisions were followed"
+activities = """
+Read Architect's ADRs from plan.
+Verify each decision was actually implemented as described.
+Flag deviations — either the implementation diverged (finding) or the ADR was wrong (proposal to update).
+"""
+
+[[methodology.phases]]
+name = "Improvement Proposals"
+purpose = "Actionable changes from evidence"
+activities = """
+Pattern detection across SUMMARY.md friction reports, review findings, test gaps.
+Filter against previously rejected/accepted proposals.
+Categorize as tooling/governance/convention.
+Quantify impact where possible.
+"""
+
+[[methodology.phases]]
+name = "Synthesis & Metrics"
+purpose = "Produce review.toml + metrics.toml"
+activities = """
+Merge all findings (own + specialist-sourced) with severity.
+Write review.toml.
+Collect quality and process metrics including baseline deltas.
+Write metrics.toml. Append to metrics-history.toml.
+Save review patterns to EchoVault.
+"""
+
+[methodology.review_dimensions]
+dimensions = [
+    "correctness",
+    "security",
+    "compliance",
+    "performance",
+    "reliability",
+    "maintainability",
+    "architecture",
+    "test-adequacy",
+    "style"
+]
+
+[methodology.severity_framework]
+critical = "Correctness bugs, security vulnerabilities, data loss risk, governance violations, PII exposure, incompatible licenses, cascading failure risk. Must fix before phase is considered complete."
+major = "Performance degradation, architecture concerns, high-risk untested code, missing error recovery, breaking changes without migration. Should fix — proposal generated, flagged for user decision."
+minor = "Style violations, naming issues, documentation gaps, low-risk test gaps, sub-optimal patterns. Fix if convenient — grouped into improvement proposals."
+info = "Suggestions, alternative approaches, learning opportunities, observations. No action required."
+
+[methodology.tool_routing]
+"dominion MCP tools" = "All .dominion/ data — read test reports, plan structure, progress. Write review.toml and metrics.toml via report and metrics commands."
+"serena (MCP)" = "Primary for code review: read changed symbols, trace dependencies for architecture compliance, find_referencing_symbols for impact verification and backward compatibility. Prefer over Grep for all code-level queries."
+"Grep / Glob (built-in)" = "Non-code search: style compliance checking, pattern detection (PII in logs, hardcoded secrets, TODO/FIXME), finding duplicate code, locating test files."
+"EchoVault (MCP)" = "Cross-agent memory: recurring findings from prior phases. Prior review patterns. Save new patterns on completion."
+"context7 (MCP)" = "Best practices verification for framework-specific patterns. Security advisory lookups for dependency review."
+"WebSearch / WebFetch (built-in)" = "Documentation fallback when context7 lacks coverage. Security advisories, license compatibility, framework best practices."
+
+[[methodology.methods]]
+name = "Fagan Inspection (adapted)"
+source = "Michael Fagan, IBM, 1976"
+purpose = "Structured inspection with defined dimensions, checklists per dimension, and defect logging. Adapted: no multi-person roles, but dimensional checklist + severity framework + defect log pattern preserved."
+
+[[methodology.methods]]
+name = "ISO 25010 Post-Phase Assessment"
+source = "ISO/IEC 25010"
+purpose = "Score same quality dimensions as Researcher's pre-phase baseline using shared scoring rubric. Compute delta. Objective measurement of 'did this phase improve quality?'"
+
+[[methodology.methods]]
+name = "SQALE Debt Delta"
+source = "SQALE method (Letouzey)"
+purpose = "Compare current technical debt against Researcher's pre-phase inventory. Categorize by remediation type (design, implementation, test). Did the phase reduce or increase debt?"
+
+[[methodology.methods]]
+name = "OWASP Top 10 Review"
+source = "OWASP Foundation"
+purpose = "Security dimension checklist mapped to OWASP Top 10 categories. Not a full security audit — checks for the most common vulnerability classes."
+
+[[methodology.methods]]
+name = "Reviewer-Driven Specialist Queries"
+source = "Dominion specialist integration model"
+purpose = "For each active specialist: formulate scoped domain query filtered by specialist_referral tags, collect assessment, synthesize into unified review. Reviewer owns the narrative."
