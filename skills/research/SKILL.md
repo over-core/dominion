@@ -1,19 +1,23 @@
 ---
 name: research
-description: Researcher-driven codebase analysis for the current phase
+description: Run the research step — codebase analysis producing structured findings
 ---
 
 # /dominion:research
 
-## Dispatch
+Run the research step standalone. Auto-creates a phase if none is active.
 
-1. Call `mcp__dominion__step_dispatch(step: "research")`
-2. Read the response. If it indicates prerequisites are missing, show them to the user and stop
-3. Based on the response `mode`:
-   - **subagent**: Spawn `Agent(prompt: response.context, description: "research — Researcher agent")` with model `response.model`
-   - **multi_subagent**: Spawn multiple agents from `response.agents` list, each with their own context and model
-   - **worktree**: Spawn `Agent(isolation: "worktree", prompt: response.context, description: "research — Researcher agent")` with model `response.model`
-   - **inline**: Handle the research step directly using the returned methodology
-   - **panel**: Load multiple perspectives from `response.agents` and facilitate debate
-4. After agent(s) return, call `mcp__dominion__phase_status()` to verify completion
-5. Show results summary to the user
+## Steps
+
+1. Call `mcp__dominion__get_progress()`
+2. If no active phase:
+   - Ask user for intent (or use argument if provided)
+   - Call `mcp__dominion__assess_complexity_tool(intent)` → present, allow override
+   - Call `mcp__dominion__start_phase(intent, complexity)`
+3. Call `mcp__dominion__prepare_step(phase, "research")` → get path + dispatch
+4. Read CLAUDE.md from returned path
+5. Dispatch by thread type:
+   - B-Thread (moderate): spawn single Researcher agent
+   - P-Thread (complex/major): for each agent, call `prepare_step(phase, "research", role=role)`, Read each CLAUDE.md, spawn all in parallel
+6. After all agents return: call `mcp__dominion__advance_step(phase, "research")`
+7. Report: "Research complete. Run /dominion:plan to continue."
