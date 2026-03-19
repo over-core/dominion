@@ -68,26 +68,26 @@ For each framework entry matching detected languages:
 - Check `detection.files` if specified
 - Record detected frameworks with their `category` and `conventions`
 
-## Step 4: Infrastructure Detection
+## Step 4: MCP Detection (v0.3.0)
 
-Reference: [infrastructure.toml](../data/infrastructure.toml)
+Read the project's `.mcp.json` file (if exists). Match known server names against configured entries:
+- `serena` → code navigation
+- `exa` → web search
+- `context7` → library docs
+- `echovault` → cross-session memory
+- `sequential-thinking` → reasoning chains
 
-For each infrastructure entry:
-- Check `detection.files` and `detection.directories` using Glob
-- Check `detection.file_extensions` if specified
-- For pattern-based detection (`detection.patterns`), use Grep on relevant config files
-- Record `activates_role` for specialized role recommendations
+Store in config.toml `[tools].available`. Tool directives and hooks are ONLY generated for detected MCPs.
 
-## Step 5: MCP & Tool Inventory
+## Step 5: Git Platform Detection (v0.3.0)
 
-Detect currently available MCPs by checking which `mcp__*` tools are loaded in the session.
-Cross-reference against [registry.toml](../data/registry.toml):
-- Categorize each detected MCP (required / recommended / optional)
-- Identify missing required MCPs
-- Identify recommended MCPs that match the detected stack
-- Note any unknown/custom MCPs (preserve, do not recommend removing)
+Read `git remote -v` and detect platform from remote URL:
+- `github.com` → `git_platform = "github"` (uses `gh` CLI)
+- `gitlab.com` or self-hosted GitLab → `git_platform = "gitlab"` (uses `glab` CLI)
+- `bitbucket.org` → `git_platform = "bitbucket"`
+- Other → `git_platform = "other"`
 
-Check for LSP plugins relevant to detected languages (from registry lsps section).
+Store in config.toml `[project].git_platform`. Used by ship skill for PR creation.
 
 ## Step 6: Git Workflow Detection
 

@@ -1,79 +1,68 @@
-# Agent Generation
+# Agent Generation (v0.3.0)
 
-## Step 1: Customize Agent TOMLs
+## Step 1: Deploy Agent TOMLs
 
-For each agent template in [agents/](../agents/):
+Read `skills/onboard/data/agents.toml` roster. For each agent, generate a flat `.toml` file:
 
-1. Read the template
-2. Replace placeholder values (`{{...}}`) with discovery results:
-   - `{{required_mcps}}` — MCPs marked required for this agent's affinity (from registry)
-   - `{{optional_mcps}}` — MCPs marked optional/recommended for this agent's affinity
-   - `{{fallback_chain}}` — documentation sources from dominion.toml [documentation.sources], ordered by priority
-   - `{{pre_commit_commands}}` — from style.toml per-language pre_commit arrays
-   - `{{file_ownership}}` — empty for now (populated by Architect during planning)
-   - `{{hard_stops}}` — from dominion.toml [project.constraints.hard_rules] + defaults
-   - `{{testing_styles}}` — detected from test frameworks (property-based if proptest/hypothesis found, e2e if playwright/cypress found, etc.)
-   - `{{security_scope}}` — language-specific security concerns (from security-auditor.toml template)
-3. Write customized TOML to `.dominion/agents/{role}/agent.toml`
+Write to `.dominion/agents/{role}.toml`:
 
-## Step 2: Deploy Methodology Sections
+```toml
+[agent]
+name = "{name}"
+role = "{role}"
+model = "{model}"
+purpose = "{purpose}"
 
-For each agent, copy methodology .md files flat into the agent's runtime directory from two sources:
+[tools.mcps]
+preferred = [{preferred_mcps filtered by config.toml [tools].available}]
+optional = [{optional_mcps filtered by config.toml [tools].available}]
 
-1. **Shared sections** from `templates/agents/_shared/`:
-   ```
-   templates/agents/_shared/*.md → .dominion/agents/{role}/*.md
-   ```
-   Conditional: only copy `tools-exa.md` if exa detected, `specialist-security.md` if security-auditor active, `tools-serena.md` if serena detected.
+[governance]
+hard_stops = [{hard_stops from roster}]
 
-2. **Role-specific sections** from the agent's template directory:
-   ```
-   templates/agents/{role}/*.md → .dominion/agents/{role}/*.md
-   ```
-   Conditional: only copy `lang-python.md`, `lang-typescript.md` if that language was detected.
-
-### Verification
-
-For each `.dominion/agents/{role}/agent.toml`, read its `[[methodology.sections]]` entries. For each entry with `always_include = true`, verify the referenced section file exists in `.dominion/agents/{role}/`. Warn (don't fail) for conditional sections whose conditions may not apply.
-
-## Step 3: Render Agent .md Files
-
-For each customized `.dominion/agents/{role}/agent.toml`, generate a thin stub pointing to MCP:
-
-```markdown
-<!-- Dominion agent: {role} -->
-# {name}
-
-You are a Dominion agent. Call `mcp__dominion__agent_start(role: "{role}")` with the phase_id from your task prompt. Follow the returned methodology exactly. Submit your work via `mcp__dominion__agent_submit()` when complete.
+[workflow]
+produces = "{produces}"
 ```
 
-Same 3-line pattern for ALL 17 agents. No methodology, no tool routing, no governance in the .md file. The MCP server serves conditional methodology dynamically via `agent_start` based on project context, active tools, and phase type.
+Filter MCP lists: only include MCPs that are in `config.toml [tools].available`.
 
-Write each rendered .md to `.claude/agents/{role}.md`.
+All 7 agents deployed by default. ~20 lines each.
 
-## Post-Generation Verification
+## Step 2: Render Agent .md Briefs
 
-After generating all agent files:
+For each agent, generate a thin `.claude/agents/{role}.md`:
 
-### TOML Verification
-For each `.dominion/agents/{role}/agent.toml`:
-1. TOML parses without error
-2. `[governance]` section exists with non-empty `hard_stops` array
-3. `[methodology]` section exists with at least one `[[methodology.sections]]` entry
-4. `[tools.mcps]` section exists
-5. `[tools.mcp]` section exists with `dominion` key
-6. `[workflow]` section exists with non-empty `produces` field
+```markdown
+---
+model: {model}
+---
+# {Name}
+You are a Dominion {role} agent. Your task context is provided in your prompt or in a CLAUDE.md file.
+Follow hard_stops from your context. Submit work via mcp__dominion__submit_work() when complete.
+Summary is REQUIRED.
+```
 
-### Section Verification
-For each `.dominion/agents/{role}/`:
-7. Directory exists
-8. `core.md` exists (always_include)
-9. `output-format.md` exists (always_include)
+Write to `.claude/agents/{role}.md`.
 
-### Agent .md Verification
-For each `.claude/agents/{role}.md`:
-10. File contains "Dominion agent" in first 100 characters
-11. File contains `mcp__dominion__agent_start`
-12. File contains `mcp__dominion__agent_submit`
+## Step 3: Generate AGENTS.md
 
-FAIL if any check fails. List specific agents and missing fields. Do not proceed to AGENTS.md generation until all checks pass.
+Write `.claude/agents/AGENTS.md`:
+
+```markdown
+# Dominion Agents
+Available agents for this project. Each receives context via CLAUDE.md.
+- researcher -- Codebase analysis and research synthesis
+- architect -- Planning, task decomposition, wave design
+- developer -- Implementation + self-verification
+- reviewer -- Cross-cutting code review
+- security-auditor -- Security-focused analysis
+- analyst -- Performance/architecture quantitative analysis
+- innovation-engineer -- Creative contradiction analysis
+```
+
+## Verification
+
+- `.dominion/agents/*.toml` — 7 files, all TOML-parse
+- `.claude/agents/*.md` — 7 files + AGENTS.md
+- Each agent TOML has [agent], [governance], [workflow] sections
+- Each agent TOML is <=25 lines

@@ -1,0 +1,98 @@
+# Dominion v0.3.0 Agent Roster — 7 roles, deployed by onboard
+# Source file: onboard reads this and deploys individual .toml files to .dominion/agents/
+
+[[agents]]
+role = "researcher"
+name = "Researcher"
+model = "opus"
+purpose = "Codebase analysis and research synthesis"
+preferred_mcps = ["serena"]
+optional_mcps = ["exa", "context7", "echovault"]
+hard_stops = [
+    "CONTEXT BUDGET: Serena for code nav (50 tokens) over Read (2000 tokens)",
+    "Always cite file:line for findings",
+    "Grade findings by severity: critical/high/medium/low",
+]
+produces = "findings.toml"
+
+[[agents]]
+role = "architect"
+name = "Architect"
+model = "opus"
+purpose = "Planning, task decomposition, wave design"
+preferred_mcps = ["serena"]
+optional_mcps = ["context7", "echovault"]
+hard_stops = [
+    "CONTEXT BUDGET: Serena for code nav (50 tokens) over Read (2000 tokens)",
+    "No two tasks in the same wave may touch the same files",
+    "Every task must specify files, dependencies, and agent_role",
+]
+produces = "tasks.toml"
+
+[[agents]]
+role = "developer"
+name = "Developer"
+model = "sonnet"
+purpose = "Implementation + self-verification"
+preferred_mcps = ["serena"]
+optional_mcps = ["context7", "exa"]
+hard_stops = [
+    "Run ALL tests before submitting. Never submit broken code.",
+    "One logical commit per task. Never bundle unrelated changes.",
+    "CONTEXT BUDGET: Serena for code nav over Read",
+]
+produces = "summary.md"
+
+[[agents]]
+role = "reviewer"
+name = "Reviewer"
+model = "opus"
+purpose = "Cross-cutting code review (security + performance + architecture)"
+preferred_mcps = ["serena"]
+optional_mcps = ["exa", "context7", "echovault"]
+hard_stops = [
+    "CONTEXT BUDGET: Serena for code nav over Read",
+    "Verdict MUST be go, go-with-warnings, or no-go",
+    "Every finding MUST have severity + category + file reference",
+    "Include retrospective with knowledge_updates (content, tags, summary)",
+]
+produces = "verdict.toml"
+
+[[agents]]
+role = "security-auditor"
+name = "Security Auditor"
+model = "opus"
+purpose = "Deep security analysis"
+preferred_mcps = ["serena"]
+optional_mcps = ["exa", "context7"]
+hard_stops = [
+    "Always cite CWE/CVE when applicable",
+    "Grade by actual exploitability, not theoretical risk",
+]
+produces = "findings.toml"
+
+[[agents]]
+role = "analyst"
+name = "Analyst"
+model = "opus"
+purpose = "Performance/architecture quantitative analysis"
+preferred_mcps = ["serena"]
+optional_mcps = ["exa"]
+hard_stops = [
+    "Quantify claims with measurements or estimates",
+    "Flag N+1 queries, unbounded allocations, missing indexes",
+]
+produces = "findings.toml"
+
+[[agents]]
+role = "innovation-engineer"
+name = "Innovation Engineer"
+model = "opus"
+purpose = "TRIZ/TOC/SIT -- creative contradiction analysis"
+preferred_mcps = ["serena"]
+optional_mcps = ["exa", "context7"]
+hard_stops = [
+    "Identify contradictions: where improving X degrades Y",
+    "Propose resolution strategies, not just observations",
+]
+produces = "findings.toml"

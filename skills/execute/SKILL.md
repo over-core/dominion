@@ -1,18 +1,25 @@
 ---
 name: execute
-description: Developer-driven task execution with parallel worktree isolation
+description: Run the execute step — parallel worktree implementation with wave grouping
 ---
 
 # /dominion:execute
 
-## Dispatch
+Run the execute step standalone. Auto-creates a phase if none is active.
 
-1. Call `mcp__dominion__step_dispatch(step: "execute")`
-2. Read the response. If it indicates prerequisites are missing, show them to the user and stop
-3. Based on the response `mode`:
-   - **execute_wave**: For each task in `response.tasks`, spawn `Agent(isolation: "worktree", prompt: task.context, description: "execute {task.task_id} — {task.agent_role}")` with model `task.model`. Run all tasks within the wave in parallel. Wait for all to complete.
-   - **worktree**: Spawn single `Agent(isolation: "worktree", prompt: response.context, description: "execute — Developer agent")` with model `response.model`
-   - **inline**: Handle the execute step directly using the returned methodology
-4. After agent(s) return, call `mcp__dominion__phase_status()` to verify completion
-5. If more waves remain, call `mcp__dominion__pipeline_next()` again — it returns the next wave
-6. Show results summary to the user
+## Steps
+
+1. Call `mcp__dominion__get_progress()`
+2. If no active phase: auto-create (assess_complexity + start_phase)
+3. Read `plan/output/tasks.toml` → group tasks by wave
+4. For each wave (ascending):
+   a. For each task: call `mcp__dominion__prepare_task(phase, task_id)`
+   b. Read each task CLAUDE.md from returned path
+   c. Spawn `Agent(isolation='worktree', prompt=content, subagent_type=task.agent_role)` for each
+   d. After ALL agents return: **Worktree Merge Protocol**
+      - Merge each branch: `git merge --no-ff {branch} -m "feat: {task_title}"`
+      - On conflict → halt: "Merge conflict. Resolve manually, re-run."
+      - On success → `git branch -d {branch}`
+      - After all merges → next wave from updated HEAD
+5. After all waves: call `mcp__dominion__advance_step(phase, "execute")`
+6. Report: "Execute complete. {N} tasks implemented. Run /dominion:review to continue."

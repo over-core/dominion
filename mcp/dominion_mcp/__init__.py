@@ -1,3 +1,3 @@
-"""Dominion MCP server — methodology engine for AI development."""
+"""Dominion MCP server — context engine for AI development."""
 
-__version__ = "0.2.2"
+__version__ = "0.3.0"

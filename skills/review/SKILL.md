@@ -1,19 +1,28 @@
 ---
 name: review
-description: Reviewer-driven quality assessment with audit artifact synthesis
+description: Run the review step — cross-cutting code review with specialist support
 ---
 
 # /dominion:review
 
-## Dispatch
+Run the review step standalone. Auto-creates a phase if none is active.
 
-1. Call `mcp__dominion__step_dispatch(step: "review")`
-2. Read the response. If it indicates prerequisites are missing, show them to the user and stop
-3. Based on the response `mode`:
-   - **subagent**: Spawn `Agent(prompt: response.context, description: "review — Reviewer agent")` with model `response.model`
-   - **multi_subagent**: Spawn multiple agents from `response.agents` list, each with their own context and model
-   - **worktree**: Spawn `Agent(isolation: "worktree", prompt: response.context, description: "review — Reviewer agent")` with model `response.model`
-   - **inline**: Handle the review step directly using the returned methodology
-   - **panel**: Load multiple perspectives from `response.agents` and facilitate debate
-4. After agent(s) return, call `mcp__dominion__phase_status()` to verify completion
-5. Show results summary to the user
+## Steps
+
+1. Call `mcp__dominion__get_progress()`
+2. If no active phase: auto-create (assess_complexity + start_phase)
+3. Determine review protocol from complexity:
+
+   **Moderate (B-Thread):**
+   - Call `prepare_step(phase, "review")` → single Reviewer
+   - Read CLAUDE.md, spawn Reviewer
+
+   **Complex/Major (two-phase P-Thread):**
+   - Phase 1: call `prepare_step(phase, "review", role="security-auditor")` + `prepare_step(phase, "review", role="analyst")`
+   - Read each CLAUDE.md, spawn specialists in parallel
+   - Phase 2: call `prepare_step(phase, "review")` (regenerates with specialist summaries)
+   - Read CLAUDE.md, spawn Reviewer with enriched brief
+
+4. After Reviewer submits: call `mcp__dominion__advance_step(phase, "review")`
+5. Call `mcp__dominion__quality_gate(phase)` → present verdict
+6. Report: "{verdict}. {blocking_count} blocking, {warning_count} warnings."

@@ -1,43 +1,27 @@
 ---
 name: discuss
-description: Capture user intent — goals, scope, constraints, priorities
+description: Run the discuss step — capture intent, F-Thread panel debate at complex/major
 ---
 
 # /dominion:discuss
 
-## Intent Capture
+Run the discuss step standalone. Auto-creates a phase if none is active.
 
-1. Ask the user to describe what they want to accomplish
-2. Assess complexity from the intent description:
-   - Use `mcp__dominion__pipeline_next(complexity_level: "<assessed_level>")` to record the assessment
-   - **trivial**: single-file fix, typo, rename → pipeline skips directly to execute
-   - **moderate**: feature addition, refactoring → standard pipeline
-   - **complex**: multi-component work, redesign → full pipeline with structured requirements
-   - **major**: architecture-level change → full pipeline with panel debate
+## Steps
 
-## Dispatch
+1. Call `mcp__dominion__get_progress()`
+2. If no active phase: auto-create (assess_complexity + start_phase)
+3. Call `mcp__dominion__prepare_step(phase, "discuss")` → get dispatch
+4. Dispatch by thread type:
 
-1. Call `mcp__dominion__step_dispatch(step: "discuss")`
-2. Read the response. If it indicates prerequisites are missing, show them to the user and stop
-3. Based on the response `mode`:
-   - **inline**: Handle the discuss step directly — capture intent conversationally
-   - **panel**: Call `mcp__dominion__agent_start(role: "architect", mode: "panel", panel_topic: "<user intent>")`. Present panel participants and facilitate multi-perspective debate. Capture the panel recommendation as the discuss output.
-   - **subagent**: Spawn `Agent(prompt: response.context, description: "discuss — agent")` with model `response.model`
-   - **multi_subagent**: Spawn multiple agents from `response.agents` list
-   - **worktree**: Spawn `Agent(isolation: "worktree", prompt: response.context, description: "discuss — agent")` with model `response.model`
+   **F-Thread (complex/major — panel debate):**
+   - Round 1: For each panel agent, call `prepare_step(phase, "discuss", role=role)`, Read CLAUDE.md, spawn in parallel
+   - Round 2: Read all summaries from `discuss/output/summary.md`
+   - Orchestrator synthesizes: "Here are N perspectives: {summaries}. Identify agreement, disagreement, trade-offs."
+   - Submit synthesis: `submit_work(phase, "discuss", "orchestrator", synthesis, summary)`
 
-## Adaptive Requirements (complexity = complex | major)
+   **B-Thread (moderate — no panel):**
+   - Discuss step is not in moderate pipeline. If called standalone at moderate, capture intent directly from conversation.
 
-When complexity is **complex** or **major**, use the structured requirements framework:
-
-1. Follow adaptive-requirements.md
-2. Walk the user through Jobs-to-be-Done, user stories, acceptance criteria
-3. Capture success metrics and risk assessment
-4. Write the structured intent to phase directory via `mcp__dominion__agent_submit`
-
-For **trivial** or **moderate** complexity, capture intent conversationally without the structured framework.
-
-## Completion
-
-1. Call `mcp__dominion__phase_status()` to verify completion
-2. Show results summary to the user
+5. After synthesis: call `mcp__dominion__advance_step(phase, "discuss")`
+6. Report: "Discuss complete. Panel recommendation: {summary}. Run /dominion:research to continue."

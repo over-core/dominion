@@ -1,7 +1,8 @@
-"""Shared fixtures for dominion-mcp tests.
+"""Shared fixtures for dominion-mcp v0.3.0 tests.
 
-Creates a temporary .dominion/ directory structure with sample TOML files
-that mirror a real Dominion project configured for MCP architecture.
+Creates a temporary .dominion/ directory structure with v0.3.0 layout:
+config.toml, state.toml, agents/*.toml, heuristics/*.md, knowledge/,
+phases/ with CLAUDE.md, status files, and output directories.
 """
 
 from __future__ import annotations
@@ -11,401 +12,230 @@ from pathlib import Path
 
 import pytest
 
+from dominion_mcp.core.config import write_toml
+
 
 # ---------------------------------------------------------------------------
-# Minimal TOML content for each fixture file
+# v0.3.0 config.toml
 # ---------------------------------------------------------------------------
 
-DOMINION_TOML = """\
-[project]
-name = "test-project"
-languages = ["python"]
-frameworks = ["fastapi"]
+CONFIG = {
+    "project": {
+        "name": "test-project",
+        "languages": ["python"],
+        "frameworks": ["fastapi"],
+        "direction": "API-first microservices",
+        "git_platform": "github",
+        "test_command": "pytest",
+    },
+    "tools": {
+        "available": ["serena", "context7"],
+    },
+    "agents": {
+        "active": [
+            "researcher", "architect", "developer", "reviewer",
+            "security-auditor", "analyst", "innovation-engineer",
+        ],
+    },
+    "style": {
+        "testing": "tdd",
+        "conventions": ["type hints required", "async by default"],
+    },
+    "user": {
+        "skill_level": "advanced",
+    },
+    "auto": {
+        "halt_on_severity": "critical",
+        "max_retries": 3,
+        "max_iterations": 10,
+    },
+}
 
-[direction]
-mode = "improve"
+# ---------------------------------------------------------------------------
+# v0.3.0 state.toml (with active phase)
+# ---------------------------------------------------------------------------
 
-[tools]
-serena = { enabled = true }
-echovault = { enabled = true }
+STATE = {
+    "position": {
+        "phase": "01",
+        "step": "research",
+        "wave": 0,
+        "status": "active",
+        "complexity_level": "moderate",
+        "last_session": "2026-03-18T09:00:00Z",
+    },
+    "circuit_breaker": {
+        "state": "closed",
+        "retry_count": 0,
+        "iteration_count": 0,
+        "last_findings_hash": "",
+        "same_finding_count": 0,
+    },
+    "completed_tasks": {},
+    "phases": [
+        {
+            "id": "01",
+            "intent": "Add rate limiting",
+            "status": "active",
+            "complexity": "moderate",
+            "started": "2026-03-18T09:00:00Z",
+        },
+    ],
+    "decisions": [],
+}
 
-[agents]
-active = ["security-auditor", "architect", "analyst", "reviewer"]
+# ---------------------------------------------------------------------------
+# v0.3.0 agent TOML (flat files, ~20 lines each)
+# ---------------------------------------------------------------------------
 
-[documentation]
-fallback = [
-    { source = "context7", action = "search" },
-    { source = "web", action = "search" },
-    { source = "human", action = "stop-and-ask" },
-]
-
-[autonomy]
-mode = "interactive"
-
-[auto]
-halt_on_severity = "critical"
-max_fix_attempts = 1
-
-[budget]
-mode = "performance"
-"""
-
-STATE_TOML = """\
-[meta]
-created = "2025-01-01T00:00:00Z"
-version = "0.2.0"
-
-[position]
-phase = 1
-step = "execute"
-wave = 2
-status = "active"
-last_session = "2025-06-01T12:00:00Z"
-
-[init]
-completed = true
-"""
-
-STYLE_TOML = """\
-[commit]
-format = "conventional"
-scope_required = true
-
-[code]
-line_length = 100
-indent = 4
-
-[testing]
-styles = ["tdd"]
-"""
-
-ROADMAP_TOML = """\
-[[milestones]]
-name = "v1.0"
-status = "in-progress"
-
-[[milestones.phases]]
-number = 1
-title = "Foundation"
-status = "active"
-"""
-
-RESEARCHER_TOML = """\
-[agent]
-name = "Researcher"
-role = "researcher"
-model = "opus"
-purpose = "Evidence-graded research and analysis"
-
-[tools.mcp]
-dominion = ["agent_start", "agent_submit", "agent_signal", "get_knowledge", "search_knowledge"]
-
-[governance]
-file_ownership = [".dominion/knowledge/"]
-hard_stops = ["No ungraded findings", "Use mcp__dominion__* tools only"]
-
-[[methodology.sections]]
-id = "core"
-file = "core.md"
-always_include = true
-
-[[methodology.sections]]
-id = "protocol-greenfield"
-file = "protocol-greenfield.md"
-conditions = { phase_type = ["greenfield", "new-feature"] }
-
-[[methodology.sections]]
-id = "lang-python"
-file = "lang-python.md"
-conditions = { languages = ["python"] }
-
-[[methodology.sections]]
-id = "tools-serena"
-file = "tools-serena.md"
-conditions = { tools_available = ["serena"] }
-
-[[methodology.sections]]
-id = "specialist-security"
-file = "specialist-security.md"
-conditions = { agents_active = ["security-auditor"] }
-"""
-
-DEVELOPER_TOML = """\
-[agent]
-name = "Developer"
-role = "developer"
-model = "sonnet"
-purpose = "Implement planned tasks with quality"
-
-[tools.mcp]
-dominion = ["agent_start", "agent_submit", "agent_signal", "get_plan", "update_progress"]
-
-[governance]
-file_ownership = ["src/"]
-hard_stops = ["Never modify files outside task scope", "Use mcp__dominion__* tools only"]
-
-[[methodology.sections]]
-id = "core"
-file = "core.md"
-always_include = true
-
-[[methodology.sections]]
-id = "protocol-implement"
-file = "protocol-implement.md"
-conditions = { task_type = ["new-code", "modify"] }
-
-[[methodology.sections]]
-id = "protocol-tdd"
-file = "protocol-tdd.md"
-conditions = { testing_style = ["tdd"] }
-"""
-
-ARCHITECT_TOML = """\
-[agent]
-name = "Architect"
-role = "architect"
-model = "opus"
-purpose = "Translate research into executable plans"
-
-[tools.mcp]
-dominion = ["agent_start", "agent_submit"]
-
-[[methodology.sections]]
-id = "core"
-file = "core.md"
-always_include = true
-"""
-
-ANALYST_TOML = """\
-[agent]
-name = "Analyst"
-role = "analyst"
-model = "sonnet"
-purpose = "Performance analysis and metrics"
-
-[tools.mcp]
-dominion = ["agent_start", "agent_submit"]
-
-[[methodology.sections]]
-id = "core"
-file = "core.md"
-always_include = true
-"""
-
-USER_PROFILE_TOML = """\
-[user]
-experience_level = "intermediate"
-
-[sessions]
-count = 5
-"""
-
-KNOWLEDGE_INDEX_TOML = """\
-[[entries]]
-file = "auth-patterns.md"
-summary = "Authentication patterns used in the project"
-tags = ["auth", "security"]
-hot = true
-priority = 1
-
-[[entries]]
-file = "api-conventions.md"
-summary = "API naming and versioning conventions"
-tags = ["api", "conventions"]
-hot = false
-"""
+AGENT_TOMLS = {
+    "researcher": {
+        "agent": {"name": "Researcher", "role": "researcher", "model": "opus", "purpose": "Codebase analysis"},
+        "tools": {"mcps": {"preferred": ["serena"], "optional": ["context7"]}},
+        "governance": {"hard_stops": ["Always cite file:line", "Grade by severity"]},
+        "workflow": {"produces": "findings.toml"},
+    },
+    "architect": {
+        "agent": {"name": "Architect", "role": "architect", "model": "opus", "purpose": "Planning and task decomposition"},
+        "tools": {"mcps": {"preferred": ["serena"], "optional": []}},
+        "governance": {"hard_stops": ["No two tasks in same wave touch same files"]},
+        "workflow": {"produces": "tasks.toml"},
+    },
+    "developer": {
+        "agent": {"name": "Developer", "role": "developer", "model": "sonnet", "purpose": "Implementation + self-verification"},
+        "tools": {"mcps": {"preferred": ["serena"], "optional": []}},
+        "governance": {"hard_stops": ["Run ALL tests before submitting"]},
+        "workflow": {"produces": "summary.md"},
+    },
+    "reviewer": {
+        "agent": {"name": "Reviewer", "role": "reviewer", "model": "opus", "purpose": "Cross-cutting code review"},
+        "tools": {"mcps": {"preferred": ["serena"], "optional": []}},
+        "governance": {"hard_stops": ["Verdict MUST be go, go-with-warnings, or no-go"]},
+        "workflow": {"produces": "verdict.toml"},
+    },
+    "security-auditor": {
+        "agent": {"name": "Security Auditor", "role": "security-auditor", "model": "opus", "purpose": "Security analysis"},
+        "tools": {"mcps": {"preferred": ["serena"], "optional": []}},
+        "governance": {"hard_stops": ["Cite CWE/CVE when applicable"]},
+        "workflow": {"produces": "findings.toml"},
+    },
+    "analyst": {
+        "agent": {"name": "Analyst", "role": "analyst", "model": "opus", "purpose": "Performance analysis"},
+        "tools": {"mcps": {"preferred": ["serena"], "optional": []}},
+        "governance": {"hard_stops": ["Quantify claims with measurements"]},
+        "workflow": {"produces": "findings.toml"},
+    },
+    "innovation-engineer": {
+        "agent": {"name": "Innovation Engineer", "role": "innovation-engineer", "model": "opus", "purpose": "Creative contradiction analysis"},
+        "tools": {"mcps": {"preferred": ["serena"], "optional": []}},
+        "governance": {"hard_stops": ["Identify contradictions"]},
+        "workflow": {"produces": "findings.toml"},
+    },
+}
 
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture()
 def dom_root(tmp_path: Path) -> Path:
-    """Create a temporary .dominion/ directory tree.
+    """Create a minimal .dominion/ v0.3.0 directory structure.
 
-    Returns the .dominion/ directory itself (not the project root).
+    Returns the .dominion/ directory.
     """
     project_root = tmp_path / "project"
     project_root.mkdir()
     dom = project_root / ".dominion"
     dom.mkdir()
 
-    # Core config files
-    (dom / "dominion.toml").write_text(DOMINION_TOML)
-    (dom / "state.toml").write_text(STATE_TOML)
-    (dom / "style.toml").write_text(STYLE_TOML)
-    (dom / "roadmap.toml").write_text(ROADMAP_TOML)
+    # Config
+    write_toml(dom / "config.toml", CONFIG)
+    write_toml(dom / "state.toml", STATE)
 
-    # Agents — each agent is a directory with agent.toml + flat .md sections
+    # Agents (flat .toml files)
     agents_dir = dom / "agents"
     agents_dir.mkdir()
+    for role, data in AGENT_TOMLS.items():
+        write_toml(agents_dir / f"{role}.toml", data)
 
-    researcher_dir = agents_dir / "researcher"
-    researcher_dir.mkdir()
-    (researcher_dir / "agent.toml").write_text(RESEARCHER_TOML)
-    (researcher_dir / "core.md").write_text(
-        "# Researcher\n\nYou are the Researcher agent.\n"
-    )
-    (researcher_dir / "lang-python.md").write_text(
-        "## Python Research\n\nUse pytest patterns.\n"
-    )
-    (researcher_dir / "tools-serena.md").write_text(
-        "## Serena Workflow\n\nUse serena for symbol analysis.\n"
-    )
-    (researcher_dir / "specialist-security.md").write_text(
-        "## Security Research\n\nInclude threat analysis.\n"
-    )
-
-    developer_dir = agents_dir / "developer"
-    developer_dir.mkdir()
-    (developer_dir / "agent.toml").write_text(DEVELOPER_TOML)
-    (developer_dir / "core.md").write_text(
-        "# Developer\n\nYou are the Developer agent.\n"
-    )
-    (developer_dir / "protocol-tdd.md").write_text(
-        "## TDD Protocol\n\nWrite tests first.\n"
-    )
-
-    architect_dir = agents_dir / "architect"
-    architect_dir.mkdir()
-    (architect_dir / "agent.toml").write_text(ARCHITECT_TOML)
-    (architect_dir / "core.md").write_text(
-        "# Architect\n\nYou are the Architect agent.\n"
-    )
-
-    analyst_dir = agents_dir / "analyst"
-    analyst_dir.mkdir()
-    (analyst_dir / "agent.toml").write_text(ANALYST_TOML)
-    (analyst_dir / "core.md").write_text(
-        "# Analyst\n\nYou are the Analyst agent.\n"
-    )
+    # Heuristics
+    heuristics_dir = dom / "heuristics"
+    heuristics_dir.mkdir()
+    for step in ("research", "plan", "execute", "review", "discuss"):
+        (heuristics_dir / f"{step}.md").write_text(
+            f"## {step.title()} Heuristics\n\nFocus on quality and correctness.\n"
+        )
 
     # Knowledge
     knowledge_dir = dom / "knowledge"
     knowledge_dir.mkdir()
-    (knowledge_dir / "index.toml").write_text(KNOWLEDGE_INDEX_TOML)
-    (knowledge_dir / "auth-patterns.md").write_text(
-        "# Auth Patterns\n\nJWT-based authentication.\n"
-    )
-
-    # User profile
-    (dom / "user-profile.toml").write_text(USER_PROFILE_TOML)
-
-    # Memory (empty directory)
-    (dom / "memory").mkdir()
-
-    # Signals (empty directory)
-    (dom / "signals").mkdir()
-
-    # Phases
-    (dom / "phases").mkdir()
-    phase1 = dom / "phases" / "1"
-    phase1.mkdir()
-    (phase1 / "summaries").mkdir()
-
-    # .claude/ artifacts
-    claude_agents_dir = project_root / ".claude" / "agents"
-    claude_agents_dir.mkdir(parents=True)
-    (claude_agents_dir / "researcher.md").write_text(
-        "<!-- Dominion agent: researcher -->\n# Researcher\n"
-    )
-    (claude_agents_dir / "developer.md").write_text(
-        "<!-- Dominion agent: developer -->\n# Developer\n"
-    )
-    (claude_agents_dir / "architect.md").write_text(
-        "<!-- Dominion agent: architect -->\n# Architect\n"
-    )
-    (claude_agents_dir / "analyst.md").write_text(
-        "<!-- Dominion agent: analyst -->\n# Analyst\n"
-    )
-
-    # AGENTS.md
-    (project_root / "AGENTS.md").write_text(
-        "# Agents\n\n## researcher\nDescription: Research\n\n## developer\n"
-        "Description: Develop\n\n## architect\nDescription: Plan\n\n## analyst\n"
-        "Description: Analyze\n"
-    )
-
-    # .mcp.json
-    (project_root / ".mcp.json").write_text(
-        json.dumps({"dominion": {"command": "dominion-mcp"}})
-    )
-
-    # .claude/settings.local.json
-    (project_root / ".claude" / "settings.local.json").write_text(
-        json.dumps({
-            "permissions": {
-                "allow": ["mcp__dominion__*"],
+    write_toml(knowledge_dir / "index.toml", {
+        "entries": [
+            {
+                "topic": "auth-patterns",
+                "summary": "Authentication patterns used in this project",
+                "tags": ["research", "execute"],
+                "path": "auth-patterns.md",
+                "referenced_files": ["src/auth/provider.py"],
             },
-        })
-    )
+        ],
+    })
+    (knowledge_dir / "auth-patterns.md").write_text("# Auth Patterns\n\nJWT-based.\n")
+
+    # Phases directory (empty, populated by start_phase)
+    (dom / "phases").mkdir()
 
     return dom
 
 
 @pytest.fixture()
 def dom_root_with_plan(dom_root: Path) -> Path:
-    """Extend dom_root with plan.toml and progress.toml in phase 1."""
-    phase_dir = dom_root / "phases" / "1"
+    """Extend dom_root with a phase 01 directory structure including plan output."""
+    phase_dir = dom_root / "phases" / "01"
+    phase_dir.mkdir(parents=True, exist_ok=True)
+    (phase_dir / "status").write_text("active")
+    (phase_dir / "CLAUDE.md").write_text("# Phase 01: Add rate limiting\n\n## Intent\nAdd rate limiting\n")
 
-    plan_toml = """\
-[[tasks]]
-id = "01-01"
-title = "Set up project structure"
-wave = 1
-assigned_to = "developer"
-model = "sonnet"
-depends_on = []
-file_ownership = ["src/main.py", "pyproject.toml"]
-token_estimate = 50000
-acceptance_criteria = ["Project builds successfully"]
+    # Research step (complete)
+    research_dir = phase_dir / "research"
+    research_dir.mkdir()
+    (research_dir / "status").write_text("complete")
+    (research_dir / "output").mkdir()
+    (research_dir / "output" / "summary.md").write_text(
+        "## researcher\nAPI has no rate limiting. 2 high-severity findings.\n"
+    )
 
-[[tasks]]
-id = "01-02"
-title = "Implement core module"
-wave = 1
-assigned_to = "developer"
-model = "sonnet"
-depends_on = []
-file_ownership = ["src/core.py"]
-token_estimate = 80000
-acceptance_criteria = ["Module passes unit tests"]
+    # Plan step (complete)
+    plan_dir = phase_dir / "plan"
+    plan_dir.mkdir()
+    (plan_dir / "status").write_text("complete")
+    (plan_dir / "output").mkdir()
+    write_toml(plan_dir / "output" / "tasks.toml", {
+        "findings": {
+            "architect": {
+                "total_waves": 2,
+                "total_tasks": 2,
+                "tasks": [
+                    {"task_id": "01", "wave": 1, "title": "Create middleware", "description": "Rate limit middleware", "files": ["src/middleware.py"], "agent_role": "developer", "dependencies": []},
+                    {"task_id": "02", "wave": 2, "title": "Apply to endpoints", "description": "Add decorators", "files": ["src/api.py"], "agent_role": "developer", "dependencies": ["01"]},
+                ],
+            },
+        },
+    })
+    (plan_dir / "output" / "summary.md").write_text(
+        "## architect\n2 tasks across 2 waves.\n"
+    )
 
-[[tasks]]
-id = "01-03"
-title = "Add API endpoints"
-wave = 2
-assigned_to = "developer"
-model = "opus"
-depends_on = ["01-01", "01-02"]
-file_ownership = ["src/api.py"]
-token_estimate = 60000
-acceptance_criteria = ["All endpoints respond"]
-"""
-    (phase_dir / "plan.toml").write_text(plan_toml)
+    # Execute and review dirs (pending)
+    for step in ("execute", "review"):
+        d = phase_dir / step
+        d.mkdir()
+        (d / "status").write_text("pending")
+        (d / "output").mkdir()
 
-    progress_toml = """\
-[[waves]]
-number = 1
-status = "active"
-
-[[waves.tasks]]
-id = "01-01"
-status = "complete"
-
-[[waves.tasks]]
-id = "01-02"
-status = "active"
-
-[[waves]]
-number = 2
-status = "pending"
-
-[[waves.tasks]]
-id = "01-03"
-status = "pending"
-"""
-    (phase_dir / "progress.toml").write_text(progress_toml)
+    # Tasks dir
+    (phase_dir / "tasks").mkdir()
 
     return dom_root

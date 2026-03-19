@@ -1,0 +1,1 @@
+Now review the 0.3.0 plan and find where it has weak points - something not wired together, it is not clear how to implement something, the requirement is written and usage is not defined, the artifact usage is unclear, etc. Expand this list of flaws as you see fit and do quality check. Brainstorming and sequential thinking
