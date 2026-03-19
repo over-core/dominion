@@ -1,79 +1,83 @@
 ---
 name: onboard
-description: Analyze project and generate AI development methodology with MCP server configuration
+description: Analyze project and generate AI development context engine with MCP server configuration
 ---
 
 # /dominion:onboard
 
-Analyze the project and generate a complete AI development methodology with MCP server wiring.
+Analyze the project and generate a complete AI development context engine with MCP wiring.
 
 <IMPORTANT>
-This skill creates files in the project directory. Before starting:
+Before starting:
 1. Confirm you are in the correct project root directory
 2. Check if `.dominion/` already exists:
-   - If yes AND `.mcp.json` has a `dominion` entry: redirect to `/dominion:improve`. Say: "Dominion is already onboarded. Use /dominion:improve for changes."
+   - If yes AND `.mcp.json` has a `dominion` entry: "Dominion is already onboarded. Use /dominion:improve for changes, or delete .dominion/ to re-onboard."
    - If yes but no `.mcp.json` dominion entry: warn: "Found .dominion/ but no MCP wiring. Re-running will regenerate configs. Continue? [Y/n]"
-   - If no: proceed (greenfield or brownfield)
+   - If no: proceed
 3. MCP is NOT available during onboard — this skill creates `.mcp.json`. All data access is direct file reads.
+4. v0.3.0 requires re-onboard. Existing .dominion/ from v0.2.x is not compatible.
 </IMPORTANT>
 
 ## Phase 1: Detection
 
-Followdetection.md
+Follow detection.md
 
-Output: structured detection results in conversation context.
+Output: languages, frameworks, MCPs, git platform, test command, dev profiles.
 
 ## Phase 2: Assessment
 
-Present findings to the user:
+Present findings:
 ```
 Project Analysis:
   Languages:      {list with primary marked}
   Frameworks:     {list by category}
   Package manager: {name} ({install_command})
-  Infrastructure: {list}
-  Project shape:  {monorepo/workspace/single}
+  Test command:    {detected or "not detected"}
+  Git platform:   {github/gitlab/bitbucket/other}
 
 Existing setup:
   .dominion/      {exists/missing}
   CLAUDE.md       {exists/missing}
-  .claude/        {exists/missing — list agents/, settings, hooks}
-  .mcp.json       {exists/missing}
-  AGENTS.md       {exists/missing}
+  .mcp.json       {detected MCPs or "missing"}
 
-Quality tools:
-  Formatters:     {per language}
-  Linters:        {per language}
-  Test runners:   {per language}
-  Pre-commit:     {framework or "none"}
+Available MCPs:
+  {list detected MCPs: serena, context7, exa, echovault, etc.}
 ```
 
 ## Phase 3: Interview
 
-Followinterview.md
-
-Output: user-approved configuration choices.
+Follow interview.md (8 questions: direction, testing, conventions, skill level, etc.)
 
 ## Phase 4: Generation
 
-Followgeneration.md
+Follow generation.md — creates all artifacts:
+1. `.dominion/config.toml` — merged config
+2. `.dominion/agents/*.toml` — 7 flat agent configs
+3. `.dominion/heuristics/*.md` — 5 step heuristics
+4. `.dominion/knowledge/index.toml` — empty index
+5. `.claude/agents/*.md` — thin agent briefs
+6. `.claude/hooks/` — block-dominion-writes, session-start, prefer-serena
+7. `.claude/settings.local.json` — permissions + hooks
+8. `.mcp.json` — MCP server registration
+9. `CLAUDE.md` — project instructions (60-100 lines)
 
 ## Phase 5: Confirmation
 
-Present to the user:
 ```
-Dominion onboarded successfully.
+Dominion v0.3.0 onboarded successfully.
 
 Generated:
-  .dominion/              Project config, agent definitions, methodology sections
-  .claude/agents/         {N} agent instruction files (thin MCP dispatchers)
-  .claude/settings.local.json  MCP permissions + governance hooks (extended)
-  .claude/hooks/          Governance hook scripts
-  .mcp.json               MCP server configuration (dominion-mcp)
-  CLAUDE.md               Project instructions (you own this now)
-  AGENTS.md               Agent roster (thin 3-line dispatch entries)
+  .dominion/config.toml        Project config (languages, frameworks, agents)
+  .dominion/agents/             7 agent configs (~20 lines each)
+  .dominion/heuristics/         5 step heuristics (customizable)
+  .dominion/knowledge/          Knowledge index (grows during pipeline runs)
+  .claude/agents/               7 agent briefs + AGENTS.md
+  .claude/settings.local.json   MCP permissions + hooks
+  .claude/hooks/                Governance hooks
+  .mcp.json                     MCP server config
+  CLAUDE.md                     Project instructions (you own this now)
 
 IMPORTANT: Restart your Claude Code session now.
   .mcp.json was created — Claude Code must restart to load the MCP server.
-  After restart, all /dominion:* commands will use MCP tools for data access.
+  After restart, run /dominion:orchestrate to start a pipeline.
 ```

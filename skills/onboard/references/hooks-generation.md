@@ -1,52 +1,85 @@
-# Hookify Governance Rules
+# Hooks Generation (v0.3.0)
 
-Generate hookify rules using `/hookify:writing-rules` with the exact specifications below.
-Native Claude Code hooks (Rules 2 & 3) are generated in settings-generation.md, not here.
+Generate hook scripts in `.claude/hooks/` and register in settings.local.json.
 
-## Prerequisites
+v0.3.0 change: agents CAN read `.dominion/` (CLAUDE.md, knowledge). Only WRITES are blocked.
 
-Check hookify is installed: look for `/hookify` in available skills.
-If NOT installed: STOP. "Install hookify: /plugin marketplace install hookify"
+## Hook 1: Block .dominion/ Writes
 
-## Rule 1: Block Source Diving (hookify)
+Prevents agents from writing to `.dominion/` directly. Must use MCP tools.
 
-Invoke `/hookify:writing-rules` and request a rule with these exact parameters:
-- **Name:** block-source-diving
-- **Event:** all (must intercept Read tool, which `file` event does not cover)
-- **Condition:** tool is Read AND file path matches library directories
-- **Pattern:** file path matches `(node_modules|\.venv|vendor|site-packages|dist-packages|\.cargo/registry)`
-- **Action:** block
-- **Message:**
-  BLOCKED: Do not read library source code.
-  Use documentation fallback chain from dominion.toml [documentation.sources].
-  Terminal: Stop and ask the user.
+Write `.claude/hooks/block-dominion-writes.sh`:
+```bash
+#!/bin/sh
+INPUT=$(cat)
+FILE=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.path // ""')
+case "$FILE" in
+  */.dominion/*)
+    echo '{"decision":"block","reason":"Cannot write to .dominion/ directly. Use MCP tools: submit_work(), save_knowledge(), signal_blocker()."}'
+    ;;
+esac
+exit 0
+```
 
-## Rule 2: Warn on Active Blocker (native hook)
+Register in settings.local.json:
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {"matcher": "Edit", "hooks": [{"type": "command", "command": ".claude/hooks/block-dominion-writes.sh"}]},
+      {"matcher": "Write", "hooks": [{"type": "command", "command": ".claude/hooks/block-dominion-writes.sh"}]}
+    ]
+  }
+}
+```
 
-**Not generated here.** This rule requires reading `.dominion/state.toml` content at runtime, which hookify conditions cannot express. Generated as a native Claude Code hook in [settings-generation.md](settings-generation.md) under the Hooks section.
+## Hook 2: Session Start (auto-resume)
 
-## Rule 3: Session Start — Auto-Resume (native hook)
+Outputs pipeline state for instant context recovery. Critical for ralph-loop.
 
-**Not generated here.** This rule requires checking `.dominion/state.toml` existence at runtime, which hookify conditions cannot express. Generated as a native Claude Code hook in [settings-generation.md](settings-generation.md) under the Hooks section.
+Write `.claude/hooks/session-start.sh`:
+```bash
+#!/bin/sh
+[ -f ".dominion/state.toml" ] || exit 0
+PHASE=$(grep '^phase = ' .dominion/state.toml 2>/dev/null | head -1 | cut -d'"' -f2 || echo "00")
+STEP=$(grep '^step = ' .dominion/state.toml 2>/dev/null | head -1 | cut -d'"' -f2 || echo "idle")
+STATUS=$(grep '^status = ' .dominion/state.toml 2>/dev/null | head -1 | cut -d'"' -f2 || echo "ready")
+if [ "$STEP" != "idle" ]; then
+  echo "{\"systemMessage\":\"Dominion pipeline active: phase ${PHASE}, step ${STEP}, status ${STATUS}. Run /dominion:status for details.\"}"
+fi
+exit 0
+```
 
-## Rule 4: Session End — Auto-Checkpoint (hookify)
+Register as SessionStart hook in settings.local.json.
 
-Invoke `/hookify:writing-rules` and request a rule with these exact parameters:
-- **Name:** dominion-session-end
-- **Event:** stop
-- **Action:** command that runs `dominion-cli state checkpoint`
-- **Behavior:** non-blocking, fail silently. The CLI command exits gracefully if no `.dominion/` directory exists.
+## Hook 3: Prefer Serena (conditional)
 
-## Verification
+Only generate if Serena is detected in config.toml [tools].available.
 
-After creating each hookify rule, verify:
-1. Read the generated `.claude/hookify.{name}.local.md` file
-2. Check the YAML frontmatter has a valid `event:` field
-3. Valid hookify events: `bash`, `file`, `stop`, `prompt`, `all`
-4. If event is invalid: delete the rule file and re-invoke `/hookify:writing-rules`
+Write `.claude/hooks/prefer-serena.sh`:
+```bash
+#!/bin/sh
+INPUT=$(cat)
+FILE=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""')
+case "$FILE" in
+  *.py|*.ts|*.js|*.tsx|*.jsx|*.rs|*.go|*.java|*.cpp|*.c|*.rb)
+    echo '{"systemMessage":"CONTEXT BUDGET: Reading source file (~2000 tokens). Consider Serena find_symbol/get_symbols_overview (~50 tokens) unless you need the entire file."}'
+    ;;
+esac
+exit 0
+```
 
-Expected hookify files (2):
-- `.claude/hookify.block-source-diving.local.md`
-- `.claude/hookify.dominion-session-end.local.md`
+Register as PreToolUse:Read hook. Does NOT block — just reminds.
 
-Native hooks (Rules 2 & 3) are verified as part of settings verification, not here.
+## Post-Generation
+
+Make all hook scripts executable:
+```bash
+chmod +x .claude/hooks/*.sh
+```
+
+## NOT Generated (removed in v0.3.0)
+
+- ~~hookify source-diving rule~~ — plugin paths don't match target project
+- ~~block-dominion-access.sh (read blocking)~~ — agents now read .dominion/ freely
+- ~~dominion-cli references~~ — CLI removed in v0.2.0
