@@ -85,9 +85,9 @@ def test_project_root_returns_parent(dom_root: Path) -> None:
 
 
 def test_current_phase_reads_from_state(dom_root: Path) -> None:
-    """current_phase reads phase number from state.toml position."""
+    """current_phase reads phase from state.toml position."""
     phase = current_phase(dom_root)
-    assert phase == 1
+    assert phase == "01"
 
 
 def test_current_phase_returns_zero_without_state(tmp_path: Path) -> None:
@@ -112,7 +112,7 @@ def test_phase_path_with_explicit_phase(dom_root: Path) -> None:
 def test_phase_path_reads_current_phase(dom_root: Path) -> None:
     """phase_path without phase argument uses current_phase."""
     result = phase_path(dom_root)
-    assert result == dom_root / "phases" / "1"
+    assert result == dom_root / "phases" / "01"
 
 
 # ---------------------------------------------------------------------------
@@ -122,7 +122,7 @@ def test_phase_path_reads_current_phase(dom_root: Path) -> None:
 
 def test_read_toml_valid_file(dom_root: Path) -> None:
     """read_toml returns dict from valid TOML file."""
-    data = read_toml(dom_root / "dominion.toml")
+    data = read_toml(dom_root / "config.toml")
     assert data["project"]["name"] == "test-project"
     assert data["project"]["languages"] == ["python"]
 
@@ -156,7 +156,7 @@ def test_read_toml_optional_returns_dict_for_existing(dom_root: Path) -> None:
     """read_toml_optional returns parsed dict when file exists."""
     result = read_toml_optional(dom_root / "state.toml")
     assert result is not None
-    assert result["position"]["phase"] == 1
+    assert result["position"]["phase"] == "01"
 
 
 def test_read_toml_optional_raises_on_malformed(tmp_path: Path) -> None:
@@ -200,8 +200,8 @@ def test_write_toml_strips_underscore_keys(tmp_path: Path) -> None:
 
 def test_read_toml_glob_reads_all_files(dom_root: Path) -> None:
     """read_toml_glob reads all TOML files in a directory."""
-    results = read_toml_glob(dom_root / "agents", pattern="*/agent.toml")
-    assert len(results) == 4
+    results = read_toml_glob(dom_root / "agents")
+    assert len(results) == 7  # 7 agents in v0.3.0
 
 
 def test_read_toml_glob_returns_empty_for_missing_dir(tmp_path: Path) -> None:
