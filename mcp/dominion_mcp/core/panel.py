@@ -1,24 +1,14 @@
-"""Panel mode — multi-perspective debate for strategic decisions."""
+"""Panel mode — F-Thread multi-perspective debate for discuss step.
+
+v0.3.0: Simplified from methodology-based panel to configuration-only.
+Panel context is now assembled by prepare.py into CLAUDE.md, not here.
+"""
 
 from __future__ import annotations
 
-from pathlib import Path
-
-from .config import read_toml_optional
-from .methodology import assemble_methodology, get_condition_signals
-
 PANEL_CONFIGURATIONS: dict[str, list[str]] = {
-    "architecture": ["architect", "security-auditor", "analyst"],
-    "feature_strategy": ["architect", "innovation-engineer", "reviewer"],
-    "performance": ["analyst", "architect"],
-    "retrospective": ["reviewer", "innovation-engineer", "analyst"],
-    "security": ["security-auditor", "architect", "reviewer"],
-    "creative": ["innovation-engineer", "architect", "analyst"],
-}
-
-STEP_PANEL_TYPES: dict[str, str] = {
-    "discuss": "architecture",
-    "improve": "retrospective",
+    "architecture": ["architect", "security-auditor", "innovation-engineer"],
+    "architecture-full": ["architect", "security-auditor", "innovation-engineer", "analyst"],
 }
 
 FACILITATION_TEMPLATE = """\
@@ -44,71 +34,17 @@ Do NOT seek false consensus. Real dissent is more valuable than polite agreement
 
 
 def get_panel_participants(
-    decision_type: str, active_agents: list[str]
+    complexity: str, active_agents: list[str]
 ) -> list[str]:
-    """Return panel participant roles filtered to active agents.
-
-    Raises ValueError for unknown decision types.
-    """
-    if decision_type not in PANEL_CONFIGURATIONS:
-        raise ValueError(
-            f"Unknown panel decision type '{decision_type}'. "
-            f"Valid types: {', '.join(PANEL_CONFIGURATIONS)}"
-        )
-
-    configured = PANEL_CONFIGURATIONS[decision_type]
+    """Return panel participant roles for discuss step, filtered to active agents."""
+    config_key = "architecture-full" if complexity == "major" else "architecture"
+    configured = PANEL_CONFIGURATIONS[config_key]
     return [role for role in configured if role in active_agents]
 
 
-def get_panel_context(
-    dom_root: Path, decision_type: str, topic: str
-) -> dict:
-    """Build panel facilitation context with combined methodology.
-
-    Returns dict with decision_type, topic, participants, methodology
-    excerpts per role, facilitation instructions, and output format.
-    """
-    dominion = read_toml_optional(dom_root / "dominion.toml") or {}
-    active = dominion.get("agents", {}).get("active", [])
-
-    participants = get_panel_participants(decision_type, active)
-
-    if len(participants) < 2:
-        # Fall back to all configured participants if too few are active.
-        participants = list(PANEL_CONFIGURATIONS[decision_type])
-
-    signals = get_condition_signals(dom_root)
-
-    # Assemble methodology excerpts for each participant.
-    perspectives: dict[str, str] = {}
-    for role in participants:
-        agent_path = dom_root / "agents" / role / "agent.toml"
-        if agent_path.exists():
-            model = "opus"  # Panel always uses Opus-level curation
-            perspectives[role] = assemble_methodology(dom_root, role, signals, model)
-
-    facilitation = FACILITATION_TEMPLATE.format(
+def get_facilitation_prompt(topic: str, participants: list[str]) -> str:
+    """Generate facilitation prompt for F-Thread panel."""
+    return FACILITATION_TEMPLATE.format(
         topic=topic,
         participants=", ".join(participants),
     )
-
-    return {
-        "decision_type": decision_type,
-        "topic": topic,
-        "participants": participants,
-        "perspectives": perspectives,
-        "facilitation": facilitation,
-        "output_format": {
-            "recommendation": "str — panel consensus",
-            "dissents": "list[str] — minority positions with rationale",
-            "trade_offs": "list[str] — key trade-offs identified",
-        },
-    }
-
-
-def get_step_panel_type(step: str) -> str:
-    """Map pipeline step to panel decision type.
-
-    Returns "architecture" as default for unmapped steps.
-    """
-    return STEP_PANEL_TYPES.get(step, "architecture")
