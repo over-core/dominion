@@ -1,7 +1,7 @@
 {
   "name": "dominion",
-  "version": "0.2.2",
-  "description": "AI development methodology engine — generates specialized agents, MCP server, governance hooks, and curated methodology from your codebase.",
+  "version": "0.3.0",
+  "description": "AI development context engine — generates specialized agents, MCP server, governance hooks, and project-specific context from your codebase.",
   "author": {
     "name": "over-core"
   },
