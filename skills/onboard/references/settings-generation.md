@@ -175,8 +175,41 @@ Merge with existing `env` — if user already has `CLAUDE_AUTOCOMPACT_PCT_OVERRI
 - If existing `hooks`: merge hook entries — never overwrite.
 - If existing `env`: merge env entries — never overwrite user values.
 
+## Recommend rtk
+
+rtk is a transparent CLI proxy — agents do NOT need to know about it. Once installed and
+initialized, a PreToolUse hook rewrites Bash commands (e.g., `git status` → `rtk git status`)
+before execution. Agents see compressed output without any changes to their behavior.
+
+Setup is GLOBAL (`~/.claude/settings.json`) — do NOT run `rtk init --global` during onboard.
+Instead, recommend the user sets it up themselves.
+
+During Phase 5 (Confirmation), add:
+```
+{if rtk not installed:}
+Recommended: Install rtk for 60-90% token savings on Bash output.
+  brew install rtk  # or: curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+  rtk init --global
+  Transparent — agents don't need any changes. Works across all sessions and subagents.
+
+{if rtk installed but not initialized:}
+Recommended: Run `rtk init --global` to enable auto-rewrite hook for all sessions.
+```
+
 ## Configure Serena Project
 
 If serena is installed:
 1. Call `mcp__serena__activate_project` with the project root path
 2. Note detected LSP backends for each detected language
+3. Recommend adding `--project` flag to Serena MCP config for auto-activation:
+   ```json
+   "serena": {
+     "command": "uvx",
+     "args": ["--from", "git+https://github.com/oraios/serena", "serena",
+              "start-mcp-server", "--project", "."]
+   }
+   ```
+
+NOTE: Serena does not work in worktree-isolated agents (upstream: Claude Code #32220,
+Serena #805/#895). Worktree agents fall back to Read for code navigation.
+Accept higher token usage for worktree agents until upstream fixes land.
