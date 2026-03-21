@@ -75,6 +75,9 @@ e. **Execute step — wave loop:**
      - Spawn architect agent WITHOUT `isolation='worktree'` (direct commit to branch)
      - After stub task completes, verify stubs committed
      - All subsequent worktrees branch from this updated HEAD
+   - **Before spawning worktree agents:** verify current branch with `git branch --show-current`.
+     Include in each agent's prompt: "Your worktree MUST branch from `{current_branch}` at HEAD.
+     Verify with `git log --oneline -1` that your branch includes the Wave 0 stubs."
    - **Wave 1+ (implementation):**
      - For each task: call `prepare_task(phase, task_id)`, Read CLAUDE.md
      - Spawn in **batches of 4-5 agents** maximum per batch: `Agent(isolation='worktree', prompt=content, subagent_type=task.agent_role)`
@@ -82,7 +85,10 @@ e. **Execute step — wave loop:**
        - Verify all agents created worktrees (check for worktreePath in output)
        - If any agent failed to create a worktree, retry that agent once
        - Clean up failed worktree artifacts: `rm -rf .claude/worktrees/{failed_branch}`
+       - Extract `total_tokens` from each agent's output; accumulate in a tokens list: `[{role, task, tokens}]`
      - **Worktree Merge Protocol** (after all batch agents return):
+       0. Pre-merge check: `git diff --name-only {branch} $(git branch --show-current)` — verify changed files are a subset of the agent's assignment. If unexpected files appear, halt and report.
+       0a. Clean worktree before merge: `git -C {worktree_path} clean -fd` to remove untracked files that could leak into the merge.
        1. Squash-merge each branch: `git merge --squash {branch} && git commit -m "feat({scope}): {task_title}"`
        2. On conflict → C-Thread halt: "Merge conflict in {files}. Resolve manually, re-run."
        3. On success → `git branch -d {branch}` cleanup
@@ -127,11 +133,12 @@ When quality_gate returns action="retry":
 After review go/go-with-warnings:
 1. Read review output for retrospective.knowledge_updates
 2. Call `save_knowledge()` for each entry with content, tags, summary
-3. Call `mcp__dominion__generate_phase_report(phase)` → present metrics to user:
+3. Call `mcp__dominion__generate_phase_report(phase, tokens=accumulated_tokens_list)` → present metrics to user:
    "Phase {phase} complete:
     - {tasks_total} tasks across {waves} waves
     - {findings_by_severity} review findings
-    - {retry_count} retries"
+    - {retry_count} retries
+    - {tokens.total} total tokens across {tokens.agents_spawned} agents"
 4. If --auto: intent self-assessment
    - Read phase CLAUDE.md intent
    - Compare to execute + review summaries

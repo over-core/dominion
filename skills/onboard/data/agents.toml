@@ -5,7 +5,7 @@
 role = "researcher"
 name = "Researcher"
 model = "opus"
-purpose = "Codebase analysis and research synthesis"
+purpose = "Deep codebase analysis, framework usage audit, and research synthesis. Analyzes dependency structure, detects idiomatic patterns and anti-patterns, and produces prescriptive guidance for developer agents."
 preferred_mcps = ["serena"]
 optional_mcps = ["exa", "context7", "echovault"]
 hard_stops = [
@@ -19,8 +19,8 @@ produces = "findings.toml"
 role = "architect"
 name = "Architect"
 model = "opus"
-purpose = "Planning, task decomposition, wave design"
-preferred_mcps = ["serena"]
+purpose = "Task decomposition, wave design, and framework-aware planning. References research findings to specify which dependencies and patterns each task should use."
+preferred_mcps = ["serena", "exa"]
 optional_mcps = ["context7", "echovault"]
 hard_stops = [
     "CONTEXT BUDGET: Serena for code nav (50 tokens) over Read (2000 tokens)",
@@ -33,9 +33,9 @@ produces = "tasks.toml"
 role = "developer"
 name = "Developer"
 model = "sonnet"
-purpose = "Implementation + self-verification"
-preferred_mcps = ["serena"]
-optional_mcps = ["context7", "exa"]
+purpose = "Implementation with TDD and self-verification. Follows existing codebase patterns and knowledge entries for idiomatic framework usage. Verifies API signatures before assuming."
+preferred_mcps = ["serena", "exa", "context7"]
+optional_mcps = []
 hard_stops = [
     "Run ALL tests before submitting. Never submit broken code.",
     "One logical commit per task. Never bundle unrelated changes.",
@@ -48,7 +48,7 @@ produces = "summary.md"
 role = "reviewer"
 name = "Reviewer"
 model = "opus"
-purpose = "Cross-cutting code review (security + performance + architecture)"
+purpose = "Cross-cutting code review across security, performance, and architecture. Validates framework usage against knowledge entries, flags AI-generated anti-patterns, and produces retrospective knowledge updates."
 preferred_mcps = ["serena"]
 optional_mcps = ["exa", "context7", "echovault"]
 hard_stops = [
@@ -64,12 +64,13 @@ produces = "verdict.toml"
 role = "security-auditor"
 name = "Security Auditor"
 model = "opus"
-purpose = "Deep security analysis"
+purpose = "Deep security analysis using OWASP Top 10 (2025), CWE pattern matching, and dependency vulnerability scanning. Grades by actual exploitability, traces auth boundaries, and checks for secrets leakage."
 preferred_mcps = ["serena"]
 optional_mcps = ["exa", "context7"]
 hard_stops = [
     "Always cite CWE/CVE when applicable",
     "Grade by actual exploitability, not theoretical risk",
+    "You may create temporary analysis scripts but must NOT modify source code files",
 ]
 produces = "findings.toml"
 
@@ -77,12 +78,13 @@ produces = "findings.toml"
 role = "analyst"
 name = "Analyst"
 model = "opus"
-purpose = "Performance/architecture quantitative analysis"
+purpose = "Quantitative performance and architecture analysis. Detects N+1 queries, unbounded allocations, missing indexes, and scalability bottlenecks. Every claim backed by measurements or estimates."
 preferred_mcps = ["serena"]
 optional_mcps = ["exa"]
 hard_stops = [
     "Quantify claims with measurements or estimates",
     "Flag N+1 queries, unbounded allocations, missing indexes",
+    "You may create temporary analysis scripts but must NOT modify source code files",
 ]
 produces = "findings.toml"
 
@@ -90,7 +92,7 @@ produces = "findings.toml"
 role = "innovation-engineer"
 name = "Innovation Engineer"
 model = "opus"
-purpose = "TRIZ/TOC/SIT -- creative contradiction analysis"
+purpose = "Systematic innovation using TRIZ (40 inventive principles, contradiction matrix), TOC (constraint identification), SIT (subtraction/division/task unification), first principles reasoning, and SCAMPER. Identifies contradictions and proposes resolution strategies."
 preferred_mcps = ["serena"]
 optional_mcps = ["exa", "context7"]
 hard_stops = [

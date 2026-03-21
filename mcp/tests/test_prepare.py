@@ -90,6 +90,22 @@ def test_read_heuristics(dom_root: Path):
     assert "Heuristics" in h
 
 
+def test_read_heuristics_with_role(dom_root: Path):
+    """Role-keyed heuristic should be appended after step heuristic."""
+    h = read_heuristics(dom_root, "review", role="security-auditor")
+    assert h is not None
+    assert "Review Heuristics" in h
+    assert "Security Auditor" in h
+    assert "OWASP" in h
+
+
+def test_read_heuristics_role_only(dom_root: Path):
+    """If step heuristic missing but role exists, return role heuristic."""
+    h = read_heuristics(dom_root, "nonexistent", role="security-auditor")
+    assert h is not None
+    assert "Security Auditor" in h
+
+
 def test_read_heuristics_missing(dom_root: Path):
     assert read_heuristics(dom_root, "nonexistent") is None
 

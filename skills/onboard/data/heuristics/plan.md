@@ -31,6 +31,27 @@ Produce tasks.toml with tasks array:
 - Each task: task_id, wave, title, description, files, agent_role, dependencies
 - Summary: rationale for decomposition, stubs created, and wave structure (REQUIRED)
 
+### Acceptance Criteria
+- Every task MUST include acceptance criteria beyond "tests pass"
+- Include: expected behavior, edge cases to handle, integration points to verify
+- Example: "Function handles empty input by returning [], not raising. Validates email format before DB insert. Returns 400 with error detail on invalid input."
+
+### Task Sizing
+- Target 50-200 lines of code per task
+- If a task would produce >300 LOC, decompose into subtasks
+- If a task touches >5 files, consider splitting by concern
+- Single-file tasks are ideal for parallel execution
+
+### Risk Assessment
+- Flag tasks that touch authentication, payment, data migration, or public APIs as high-risk
+- High-risk tasks should have: more specific acceptance criteria, explicit edge case list, recommendation for reviewer focus
+
+### Framework-Aware Task Descriptions
+- Reference detected framework patterns from research findings in task descriptions
+- Specify which dependency/pattern each task should use (e.g., "use dependency-injector Container, follow existing pattern in app/containers.py")
+- If a dependency is declared but unused, note in the task whether new code should adopt it
+- Include knowledge entry references where relevant — developers see these in their briefs
+
 ### Rules
 - No two tasks in the same wave may touch the same files
 - Every task must specify files, dependencies, and agent_role

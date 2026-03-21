@@ -79,6 +79,13 @@ Read the project's `.mcp.json` file (if exists). Match known server names agains
 
 Store in config.toml `[tools].available`. Tool directives and hooks are ONLY generated for detected MCPs.
 
+## Step 4b: CLI Tool Detection
+
+Check for recommended CLI tools that improve agent efficiency:
+- `rtk --version` → rtk (token compression proxy for Bash output)
+
+If rtk is installed, record in config.toml `[tools].cli_tools`. If not installed, add to recommendations with install command from registry.toml.
+
 ## Step 5: Git Platform Detection (v0.3.0)
 
 Read `git remote -v` and detect platform from remote URL:
@@ -163,6 +170,7 @@ Organize detection results as structured data in the conversation context:
 - `detected_frameworks`: list with category, conventions
 - `detected_infrastructure`: list with category, activates_role
 - `detected_mcps`: list with tier, status (installed/missing)
+- `detected_cli_tools`: list with name, status (installed/missing), version
 - `dev_profiles`: list of matched package manager profiles (install, add, run, prohibited, venv, hook_prefix)
 - `git_workflow`: branching, commit_format, merge_strategy, pre_commit_tooling, pr_templates
 - `existing_setup`: what Claude Code artifacts already exist (brownfield indicators)

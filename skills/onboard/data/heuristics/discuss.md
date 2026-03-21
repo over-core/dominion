@@ -30,6 +30,20 @@ If the user's intent references a design document, spec, or detailed plan:
 4. Identify risks and trade-offs from your perspective
 5. Submit via submit_work with your perspective as content
 
+### Requirements Elicitation
+- Apply the 5 Whys: ask "why" behind the stated intent to uncover root motivation
+- Check INVEST criteria: is the intent Independent, Negotiable, Valuable, Estimable, Small, Testable?
+- Identify implicit requirements: error handling, logging, backwards compatibility, migration
+
+### Feasibility Analysis
+- Can this be built with existing dependencies, or does it require new ones?
+- Are there integration risks with existing systems?
+- What's the blast radius if this goes wrong?
+
+### Prior Art Check
+- Search the codebase for similar implementations — avoid reinventing
+- Check git history for related past work that was reverted or abandoned
+
 ### Output
 Produce structured perspective:
 - recommendation: your position on the topic

@@ -117,9 +117,9 @@ async def quality_gate(phase: str) -> dict:
     if not findings:
         return {"verdict": "go", "blocking_findings": [], "warning_findings": [], "action": "proceed", "retry_count": 0, "same_finding": False}
 
-    # Collect all items across role namespaces, deduplicate
-    all_items: list[dict] = []
-    seen: set[str] = set()
+    # Collect all items across role namespaces, deduplicate (prefer latest —
+    # cross-cutting reviewer entries overwrite stale specialist entries)
+    all_items_map: dict[str, dict] = {}
     verdict = "go"
 
     for role_key, role_data in findings.items():
@@ -129,9 +129,9 @@ async def quality_gate(phase: str) -> dict:
             verdict = role_data["verdict"]
         for item in role_data.get("items", []):
             dedup_key = f"{item.get('category', '')}|{item.get('file', '')}|{item.get('description', '')}"
-            if dedup_key not in seen:
-                seen.add(dedup_key)
-                all_items.append(item)
+            all_items_map[dedup_key] = item
+
+    all_items = list(all_items_map.values())
 
     # Classify — filter out findings marked as verified-fixed by main reviewer
     blocking = [
@@ -273,14 +273,15 @@ async def advance_step(phase: str, step: str) -> dict:
 
 
 @mcp.tool()
-async def generate_phase_report(phase: str) -> dict:
+async def generate_phase_report(phase: str, tokens: list[dict] | None = None) -> dict:
     """Generate pipeline metrics from phase filesystem data.
 
     Computes task/wave counts, review findings by severity, circuit breaker
-    retry count, and agent roles spawned. Writes report.toml to phase directory.
+    retry count, agent roles spawned, and token usage. Writes report.toml to phase directory.
 
     Args:
         phase: Phase ID.
+        tokens: Optional list of per-agent token records [{role, task, tokens}].
     """
     try:
         dom_root = find_dominion_root()
@@ -333,6 +334,16 @@ async def generate_phase_report(phase: str) -> dict:
             intent = p.get("intent", "")
             break
 
+    # Token usage
+    tokens_data: dict = {}
+    if tokens:
+        total_tokens = sum(t.get("tokens", 0) for t in tokens)
+        tokens_data = {
+            "total": total_tokens,
+            "agents_spawned": len(tokens),
+            "per_agent": tokens,
+        }
+
     report = {
         "phase": phase,
         "intent": intent,
@@ -344,6 +355,7 @@ async def generate_phase_report(phase: str) -> dict:
         "agent_roles": list(set(agent_roles)),
         "findings_by_severity": findings_by_severity,
         "retry_count": cb.get("retry_count", 0),
+        "tokens": tokens_data,
     }
 
     # Write report.toml

@@ -119,6 +119,20 @@ safe_read_tools = [
     "mcp__echovault__memory_context",
 ]
 
+# === CLI Tools ===
+
+[cli_tools.rtk]
+tier = "recommended"
+critical = false
+category = "token-efficiency"
+rating = 4.5
+platforms = ["linux", "macos"]
+agent_affinity = ["all"]
+install_command = "brew install rtk  # or: curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh"
+notes = "Compresses Bash output by 60-90% before it reaches the LLM. Transparent hook rewrites commands (git, npm, cargo, pytest, etc.) to rtk equivalents. Single Rust binary, <10ms overhead. Especially valuable for worktree agents that fall back to Bash for code navigation."
+missing_consequence = "Agents consume full terminal output — higher token usage on git, test runners, and build tools"
+setup_command = "rtk init --global"
+
 # === Plugins ===
 
 [plugins.superpowers]
