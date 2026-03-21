@@ -1,4 +1,4 @@
-"""Tests for v0.3.0 complexity detection module."""
+"""Tests for v0.4.0 complexity detection module."""
 
 from pathlib import Path
 
@@ -69,11 +69,35 @@ def test_assess_has_reasoning():
     assert "keywords_matched" in result
 
 
+def test_assess_specified_with_design_doc():
+    result = assess_complexity("implement per design doc", has_design_doc=True)
+    assert result["complexity"] == "specified"
+
+
+def test_assess_design_doc_no_override_for_major():
+    result = assess_complexity("rewrite the entire backend", has_design_doc=True)
+    assert result["complexity"] == "major"
+
+
+def test_assess_design_doc_no_override_for_complex():
+    result = assess_complexity("redesign the data pipeline", has_design_doc=True)
+    assert result["complexity"] == "complex"
+
+
+def test_assess_design_doc_false_gives_moderate():
+    result = assess_complexity("add endpoint", has_design_doc=False)
+    assert result["complexity"] == "moderate"
+
+
 # -- get_pipeline ------------------------------------------------------------
 
 
 def test_pipeline_trivial():
     assert get_pipeline("trivial") == ["execute"]
+
+
+def test_pipeline_specified():
+    assert get_pipeline("specified") == ["plan", "execute", "review"]
 
 
 def test_pipeline_moderate():
@@ -128,6 +152,24 @@ def test_dispatch_discuss_complex():
     assert thread == "F-Thread"
 
 
+def test_dispatch_plan_specified():
+    thread, agents = get_dispatch("plan", "specified", ["architect"])
+    assert thread == "B-Thread"
+    assert agents[0]["role"] == "architect"
+
+
+def test_dispatch_execute_specified():
+    thread, agents = get_dispatch("execute", "specified", ["developer"])
+    assert thread == "B-Thread"  # degrades: only 1 agent
+    assert agents[0]["role"] == "developer"
+
+
+def test_dispatch_review_specified():
+    thread, agents = get_dispatch("review", "specified", ["reviewer"])
+    assert thread == "B-Thread"
+    assert agents[0]["role"] == "reviewer"
+
+
 def test_dispatch_degrades_to_bthread():
     """P-Thread with 1 active agent degrades to B-Thread."""
     thread, agents = get_dispatch("research", "complex", ["researcher"])
@@ -149,8 +191,8 @@ def test_dispatch_invalid_step_complexity():
 # -- DISPATCH_TABLE ----------------------------------------------------------
 
 
-def test_dispatch_table_has_15_entries():
-    assert len(DISPATCH_TABLE) == 15
+def test_dispatch_table_has_18_entries():
+    assert len(DISPATCH_TABLE) == 18
 
 
 def test_all_roles_in_dispatch_are_valid():

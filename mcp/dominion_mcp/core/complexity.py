@@ -1,7 +1,9 @@
-"""Complexity detection, pipeline profiles, and dispatch table for v0.3.0.
+"""Complexity detection, pipeline profiles, and dispatch table for v0.4.0.
 
 Assesses task complexity from intent keywords, maps (step, complexity) to
 thread types and agent roles, and refines complexity post-research.
+
+v0.4.0: Added "specified" level for tasks with comprehensive design docs.
 """
 
 from __future__ import annotations
@@ -11,7 +13,7 @@ from pathlib import Path
 
 from .config import read_toml_optional
 
-COMPLEXITY_LEVELS = ("trivial", "moderate", "complex", "major")
+COMPLEXITY_LEVELS = ("trivial", "specified", "moderate", "complex", "major")
 
 # ---------------------------------------------------------------------------
 # Pipeline profiles per complexity
@@ -19,6 +21,7 @@ COMPLEXITY_LEVELS = ("trivial", "moderate", "complex", "major")
 
 PIPELINE_PROFILES: dict[str, list[str]] = {
     "trivial": ["execute"],
+    "specified": ["plan", "execute", "review"],
     "moderate": ["research", "plan", "execute", "review"],
     "complex": ["discuss", "research", "plan", "execute", "review"],
     "major": ["discuss", "research", "plan", "execute", "review"],
@@ -33,15 +36,18 @@ DISPATCH_TABLE: dict[tuple[str, str], tuple[str, list[tuple[str, str]]]] = {
     ("research", "complex"): ("P-Thread", [("researcher", "opus"), ("innovation-engineer", "opus"), ("security-auditor", "opus")]),
     ("research", "major"): ("P-Thread", [("researcher", "opus"), ("innovation-engineer", "opus"), ("security-auditor", "opus")]),
 
+    ("plan", "specified"): ("B-Thread", [("architect", "opus")]),
     ("plan", "moderate"): ("B-Thread", [("architect", "opus")]),
     ("plan", "complex"): ("B-Thread", [("architect", "opus")]),
     ("plan", "major"): ("B-Thread", [("architect", "opus")]),
 
     ("execute", "trivial"): ("Z-Thread", [("developer", "sonnet")]),
+    ("execute", "specified"): ("P-Thread", [("developer", "sonnet")]),
     ("execute", "moderate"): ("P-Thread", [("developer", "sonnet")]),
     ("execute", "complex"): ("P-Thread", [("developer", "sonnet")]),
     ("execute", "major"): ("P-Thread", [("developer", "sonnet")]),
 
+    ("review", "specified"): ("B-Thread", [("reviewer", "opus")]),
     ("review", "moderate"): ("B-Thread", [("reviewer", "opus")]),
     ("review", "complex"): ("P-Thread", [("reviewer", "opus"), ("security-auditor", "opus"), ("analyst", "opus")]),
     ("review", "major"): ("P-Thread", [("reviewer", "opus"), ("security-auditor", "opus"), ("analyst", "opus")]),
@@ -127,11 +133,14 @@ _COMPLEX_PATTERNS = re.compile(
 )
 
 
-def assess_complexity(intent: str) -> dict:
+def assess_complexity(intent: str, *, has_design_doc: bool = False) -> dict:
     """Pre-research complexity assessment from intent text.
 
     Returns dict with complexity, reasoning, keywords_matched.
     Conservative default is "moderate" for ambiguous inputs.
+
+    When has_design_doc is True and no escalation keywords match, returns
+    "specified" instead of "moderate" — skipping discuss and research steps.
     """
     keywords: list[str] = []
 
@@ -160,6 +169,13 @@ def assess_complexity(intent: str) -> dict:
             "complexity": "trivial",
             "reasoning": "Intent indicates a simple, localized change",
             "keywords_matched": keywords,
+        }
+
+    if has_design_doc:
+        return {
+            "complexity": "specified",
+            "reasoning": "Design document available — spec-driven implementation (plan, execute, review)",
+            "keywords_matched": [],
         }
 
     return {

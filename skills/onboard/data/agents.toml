@@ -40,6 +40,7 @@ hard_stops = [
     "Run ALL tests before submitting. Never submit broken code.",
     "One logical commit per task. Never bundle unrelated changes.",
     "CONTEXT BUDGET: Serena for code nav over Read",
+    "You may ONLY modify files listed in your assignment. If you need types from another task, write the import and trust the merge.",
 ]
 produces = "summary.md"
 

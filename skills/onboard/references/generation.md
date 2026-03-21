@@ -109,6 +109,12 @@ Add: `{add_command}`
 Run: `{run_command}`
 NEVER: {prohibited commands}
 
+## Dominion Agents
+Agent definitions in `.claude/agents/`. When spawning agents with the Agent tool, pass the role
+name as subagent_type (e.g., "developer", "reviewer"). These resolve to local agent files
+with pipeline-specific instructions and correct model assignments.
+Do NOT substitute plugin agents — Dominion agents are purpose-built for this pipeline.
+
 ## Decision Framework
 - **Decide autonomously:** formatting, variable naming, test structure
 - **Flag and continue:** minor deviations, non-blocking issues
@@ -134,7 +140,26 @@ If `.mcp.json` exists, MERGE the dominion entry — never overwrite other server
 
 Follow [settings-generation.md](settings-generation.md) and [hooks-generation.md](hooks-generation.md).
 
-## Step 10: Install dominion-mcp
+## Step 10: VSCode worktree exclusions (if applicable)
+
+If `.vscode/` exists OR the project uses VSCode (check for `.vscode/settings.json`):
+
+Read `.vscode/settings.json` if it exists, merge these keys (never overwrite existing values):
+
+```json
+{
+  "files.watcherExclude": { "**/.claude/worktrees/**": true },
+  "files.exclude": { "**/.claude/worktrees/**": true },
+  "search.exclude": { "**/.claude/worktrees/**": true }
+}
+```
+
+If `.vscode/settings.json` doesn't exist but `.vscode/` does, create it with just these entries.
+If `.vscode/` doesn't exist, skip this step.
+
+This prevents VSCode from tracking thousands of worktree files during pipeline execution.
+
+## Step 11: Install dominion-mcp
 
 Check: `command -v dominion-mcp`. If not installed: `uv tool install {plugin_mcp_path}`.
 
