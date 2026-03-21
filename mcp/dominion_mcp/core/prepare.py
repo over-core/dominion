@@ -362,12 +362,17 @@ def filter_knowledge_by_files(
 # ---------------------------------------------------------------------------
 
 
-def read_heuristics(dom_root: Path, step: str) -> str | None:
-    """Read heuristics file for a step. Returns None if not found."""
-    path = dom_root / "heuristics" / f"{step}.md"
-    if not path.exists():
-        return None
-    return path.read_text()
+def read_heuristics(dom_root: Path, step: str, role: str | None = None) -> str | None:
+    """Read heuristics for a step, optionally appending role-specific heuristics."""
+    parts: list[str] = []
+    step_path = dom_root / "heuristics" / f"{step}.md"
+    if step_path.exists():
+        parts.append(step_path.read_text())
+    if role:
+        role_path = dom_root / "heuristics" / f"{role}.md"
+        if role_path.exists():
+            parts.append(role_path.read_text())
+    return "\n\n".join(parts) if parts else None
 
 
 def read_agent_toml(dom_root: Path, role: str) -> dict:

@@ -147,7 +147,7 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
 
     # Read inputs
     agent_toml = read_agent_toml(dom_root, target_role)
-    heuristics = read_heuristics(dom_root, step)
+    heuristics = read_heuristics(dom_root, step, role=target_role)
     knowledge_index = read_knowledge_index(dom_root)
     knowledge_entries = filter_knowledge_by_step(knowledge_index, step)
     decisions = get_decisions(dom_root)
@@ -273,7 +273,7 @@ async def prepare_task(
     # Read inputs
     agent_role = task.get("agent_role", "developer")
     agent_toml = read_agent_toml(dom_root, agent_role)
-    heuristics = read_heuristics(dom_root, "execute")
+    heuristics = read_heuristics(dom_root, "execute", role=agent_role)
 
     research_summary = read_summary(dom_root, phase, "research")
     plan_summary = read_summary(dom_root, phase, "plan")

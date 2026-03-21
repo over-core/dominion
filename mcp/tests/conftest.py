@@ -167,6 +167,10 @@ def dom_root(tmp_path: Path) -> Path:
         (heuristics_dir / f"{step}.md").write_text(
             f"## {step.title()} Heuristics\n\nFocus on quality and correctness.\n"
         )
+    # Role-specific heuristic (for testing role-keyed loading)
+    (heuristics_dir / "security-auditor.md").write_text(
+        "## Security Auditor\n\nOWASP Top 10 checklist. Grade by exploitability.\n"
+    )
 
     # Knowledge
     knowledge_dir = dom / "knowledge"
