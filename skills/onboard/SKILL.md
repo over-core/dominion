@@ -42,6 +42,9 @@ Existing setup:
 
 Available MCPs:
   {list detected MCPs: serena, context7, exa, echovault, etc.}
+
+CLI tools:
+  rtk             {installed (v0.x.x) / not installed — recommend}
 ```
 
 ## Phase 3: Interview
@@ -79,5 +82,18 @@ Generated:
 
 IMPORTANT: Restart your Claude Code session now.
   .mcp.json was created — Claude Code must restart to load the MCP server.
-  After restart, run /dominion:orchestrate to start a pipeline.
+
+Suggested first run — seed project knowledge:
+  /dominion:orchestrate "Analyze codebase: document framework usage patterns,
+  flag dependency anti-patterns, identify security concerns, and produce
+  an improvement plan with prioritized recommendations"
+
+  This runs the pipeline in analysis mode — no code changes, just knowledge seeding.
+  Findings are saved as knowledge entries for all future pipeline runs.
+  Developers will see framework-specific coding guidance in their briefs.
+
+{if rtk not installed:}
+Recommended: Install rtk for 60-90% token savings on Bash output.
+  brew install rtk && rtk init --global
+  Reduces token cost across all agents, especially worktree agents without Serena.
 ```
