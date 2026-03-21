@@ -112,6 +112,34 @@ async def test_quality_gate_filters_verified_fixed(_patch_dom_root: Path):
 
 
 @pytest.mark.asyncio
+async def test_quality_gate_reviewer_overwrites_stale_specialist(_patch_dom_root: Path):
+    """Cross-cutting reviewer verdict should overwrite stale specialist finding."""
+    from dominion_mcp.tools.progress import quality_gate
+
+    dom = _patch_dom_root
+    review_output = dom / "phases" / "01" / "review" / "output"
+    write_toml(review_output / "verdict.toml", {
+        "findings": {
+            "security-auditor": {
+                "items": [
+                    {"severity": "critical", "category": "security", "file": "a.py", "description": "SQL injection"},
+                ],
+            },
+            "reviewer": {
+                "verdict": "go-with-warnings",
+                "items": [
+                    {"severity": "critical", "category": "security", "file": "a.py", "description": "SQL injection", "action": "verified-fixed"},
+                ],
+            },
+        },
+    })
+
+    result = await quality_gate("01")
+    assert len(result["blocking_findings"]) == 0
+    assert result["action"] == "proceed"
+
+
+@pytest.mark.asyncio
 async def test_quality_gate_blocks_unfixed_findings(_patch_dom_root: Path):
     """Unfixed critical findings should still block."""
     from dominion_mcp.tools.progress import quality_gate
