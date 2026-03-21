@@ -16,7 +16,7 @@ from .config import read_toml, read_toml_optional
 # ---------------------------------------------------------------------------
 
 _TOOL_DIRECTIVES: dict[str, str] = {
-    "serena": "Code navigation: Serena (find_symbol, get_symbols_overview). Read only for non-code files.",
+    "serena": "MANDATORY: Use Serena for ALL code navigation (find_symbol, get_symbols_overview, search_for_pattern). Use Read ONLY for non-code files (markdown, config, JSON, YAML). NEVER use Read for .py/.ts/.js/.rs/.go/.java/.cpp files.",
     "context7": "Documentation: Context7 (resolve-library-id → query-docs) for library docs.",
     "exa": "Search: Exa (web_search_exa) for broader search, recent content, examples.",
     "echovault": "Memory: EchoVault for cross-session decisions. Check before re-deciding.",

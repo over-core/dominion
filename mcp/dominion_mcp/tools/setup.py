@@ -51,7 +51,7 @@ async def start_phase(intent: str, complexity: str) -> dict:
         intent: What the user wants to accomplish.
         complexity: trivial | moderate | complex | major.
     """
-    valid = ("trivial", "moderate", "complex", "major")
+    valid = ("trivial", "specified", "moderate", "complex", "major")
     if complexity not in valid:
         return {"error": f"Invalid complexity '{complexity}'. Must be one of: {', '.join(valid)}"}
 
@@ -200,11 +200,12 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
         thread_type = "B-Thread"
         agents = [{"role": target_role, "model": "opus"}]
 
-    # Override model from agent TOML if specified
+    # Override model from agent TOML if specified + add agent_path
     for agent in agents:
         agent_conf = read_agent_toml(dom_root, agent["role"])
         if agent_conf.get("agent", {}).get("model"):
             agent["model"] = agent_conf["agent"]["model"]
+        agent["agent_path"] = f".claude/agents/{agent['role']}.md"
 
     return {
         "claude_md_path": str(path.relative_to(dom_root.parent)),

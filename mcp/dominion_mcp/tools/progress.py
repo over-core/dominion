@@ -133,8 +133,12 @@ async def quality_gate(phase: str) -> dict:
                 seen.add(dedup_key)
                 all_items.append(item)
 
-    # Classify
-    blocking = [i for i in all_items if i.get("severity") in ("critical", "high") and i.get("action") != "warn"]
+    # Classify — filter out findings marked as verified-fixed by main reviewer
+    blocking = [
+        i for i in all_items
+        if i.get("severity") in ("critical", "high")
+        and i.get("action") not in ("warn", "verified-fixed")
+    ]
     warnings = [i for i in all_items if i not in blocking]
 
     # Read config for halt_on_severity
@@ -193,13 +197,17 @@ async def quality_gate(phase: str) -> dict:
 
 
 @mcp.tool()
-async def assess_complexity_tool(intent: str) -> dict:
+async def assess_complexity_tool(intent: str, has_design_doc: bool = False) -> dict:
     """Keyword-based complexity classification.
+
+    When has_design_doc is True, returns "specified" for tasks with comprehensive
+    design documents — skipping discuss and research steps.
 
     Args:
         intent: User's intent description.
+        has_design_doc: Whether a design document/spec is available for this task.
     """
-    return _assess(intent)
+    return _assess(intent, has_design_doc=has_design_doc)
 
 
 @mcp.tool()
@@ -226,17 +234,19 @@ async def advance_step(phase: str, step: str) -> dict:
     if not step_dir.exists():
         return {"error": f"Step '{step}' not found in phase {phase}."}
 
-    # Verify submissions exist
-    output_dir = step_dir / "output"
-    if not output_dir.exists() or not any(output_dir.iterdir()):
-        return {"error": f"No submissions for step '{step}'. Output directory is empty."}
-
-    # For execute step, verify all tasks complete
+    # For execute step, check task completions (tasks write to tasks/{id}/output/, not step/output/)
     if step == "execute":
         task_statuses = scan_task_statuses(dom_root, phase)
-        incomplete = [t for t, s in task_statuses.items() if s not in ("complete",)]
+        if not task_statuses:
+            return {"error": f"No tasks found for execute step in phase {phase}."}
+        incomplete = [t for t, s in task_statuses.items() if s != "complete"]
         if incomplete:
             return {"error": f"Tasks not complete: {', '.join(incomplete)}. Cannot advance execute step."}
+    else:
+        # Other steps write to step/output/
+        output_dir = step_dir / "output"
+        if not output_dir.exists() or not any(output_dir.iterdir()):
+            return {"error": f"No submissions for step '{step}'. Output directory is empty."}
 
     # Mark step as complete
     write_status(step_dir / "status", "complete")
@@ -260,6 +270,88 @@ async def advance_step(phase: str, step: str) -> dict:
         await update_position(dom_root, step="idle", status="complete")
         await update_phase_status(dom_root, phase, "complete")
         return {"status": "advanced", "from_step": step, "to_step": "idle"}
+
+
+@mcp.tool()
+async def generate_phase_report(phase: str) -> dict:
+    """Generate pipeline metrics from phase filesystem data.
+
+    Computes task/wave counts, review findings by severity, circuit breaker
+    retry count, and agent roles spawned. Writes report.toml to phase directory.
+
+    Args:
+        phase: Phase ID.
+    """
+    try:
+        dom_root = find_dominion_root()
+    except ValueError:
+        return {"error": ".dominion/ directory not found."}
+
+    phase_dir = dom_root / "phases" / phase
+    if not phase_dir.exists():
+        return {"error": f"Phase {phase} not found."}
+
+    # Task and wave metrics
+    tasks_path = phase_dir / "plan" / "output" / "tasks.toml"
+    tasks_data = read_toml_optional(tasks_path)
+    task_list: list[dict] = []
+    if tasks_data:
+        for role_data in tasks_data.get("findings", {}).values():
+            if isinstance(role_data, dict):
+                for t in role_data.get("tasks", []):
+                    task_list.append(t)
+
+    waves = {t.get("wave", 1) for t in task_list}
+    agent_roles = [t.get("agent_role", "developer") for t in task_list]
+
+    # Task completion status
+    task_statuses = scan_task_statuses(dom_root, phase)
+    completed_tasks = sum(1 for s in task_statuses.values() if s == "complete")
+    failed_tasks = sum(1 for s in task_statuses.values() if s not in ("complete", "pending"))
+
+    # Review findings
+    verdict_path = phase_dir / "review" / "output" / "verdict.toml"
+    verdict_data = read_toml_optional(verdict_path)
+    findings_by_severity: dict[str, int] = {}
+    if verdict_data:
+        for role_data in verdict_data.get("findings", {}).values():
+            if isinstance(role_data, dict):
+                for item in role_data.get("items", []):
+                    sev = item.get("severity", "unknown")
+                    findings_by_severity[sev] = findings_by_severity.get(sev, 0) + 1
+
+    # Circuit breaker state
+    cb = get_circuit_breaker(dom_root)
+
+    # Phase intent
+    pos = get_position(dom_root)
+    state = read_toml_optional(dom_root / "state.toml") or {}
+    phase_entries = state.get("phases", [])
+    intent = ""
+    for p in phase_entries:
+        if p.get("id") == phase:
+            intent = p.get("intent", "")
+            break
+
+    report = {
+        "phase": phase,
+        "intent": intent,
+        "complexity": pos.get("complexity_level", "moderate"),
+        "tasks_total": len(task_list) or len(task_statuses),
+        "tasks_completed": completed_tasks,
+        "tasks_failed": failed_tasks,
+        "waves": len(waves) if waves else 0,
+        "agent_roles": list(set(agent_roles)),
+        "findings_by_severity": findings_by_severity,
+        "retry_count": cb.get("retry_count", 0),
+    }
+
+    # Write report.toml
+    from ..core.config import write_toml
+    report_path = phase_dir / "report.toml"
+    write_toml(report_path, {"report": report})
+
+    return report
 
 
 @mcp.tool()
