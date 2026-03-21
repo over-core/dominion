@@ -34,6 +34,8 @@ For each agent, generate a thin `.claude/agents/{role}.md`:
 
 ```markdown
 ---
+name: {role}
+description: {purpose}
 model: {model}
 ---
 # {Name}
