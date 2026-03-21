@@ -55,6 +55,7 @@ hard_stops = [
     "Verdict MUST be go, go-with-warnings, or no-go",
     "Every finding MUST have severity + category + file reference",
     "Include retrospective with knowledge_updates (content, tags, summary)",
+    "Flag hidden Unicode (zero-width joiners, RTL overrides, homoglyphs) in reviewed code",
 ]
 produces = "verdict.toml"
 
