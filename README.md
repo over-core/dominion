@@ -2,7 +2,7 @@
 
 > Your AI development team, generated from your codebase.
 
-**v0.4.2** | MIT License | Claude Code Plugin
+**v0.4.3** | MIT License | Claude Code Plugin
 
 Dominion is a Claude Code plugin that analyzes your project and generates a complete AI development context — specialized agents, an MCP server, governance hooks, and code conventions — all committed to git. The plugin is the author; the artifacts are the runtime. Dominion is needed to create and evolve the setup, but a cloned repo works without it. New developers get the full context on `git clone`.
 
@@ -245,6 +245,7 @@ mcp/                       dominion-mcp Python package (MCP server)
 
 | Version | Highlights |
 |---------|------------|
+| 0.4.3 | Field test remediation — quality gate structural dedup (finding_id + category\|file), full worktree lifecycle (cleanup, base verification, pre-review purge), interface contracts for cross-task visibility, full-content knowledge injection, report revision pass, integration validation, submission resilience |
 | 0.4.2 | Concerns remediation — quality gate dedup, worktree branch verification, relaxed file ownership for reviewer/analyst, rtk recommendation, Serena `--project` flag, enriched agent heuristics with methodology and engineering practices |
 | 0.4.0 | Pipeline hardening — stubs-first TDD, specified complexity level, post-mortem fixes from production use |
 | 0.3.0 | Context engine architecture — filesystem-based context delivery, MCP as context preparer, heuristics replace conditional methodology, 11 tools (down from 21) |

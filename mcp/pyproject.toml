@@ -1,6 +1,6 @@
 [project]
 name = "dominion-mcp"
-version = "0.4.2"
+version = "0.4.3"
 requires-python = ">=3.14"
 dependencies = ["mcp>=1.26", "tomli-w"]
 description = "MCP server for Dominion AI development context engine"

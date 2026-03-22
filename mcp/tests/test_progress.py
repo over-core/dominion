@@ -162,6 +162,117 @@ async def test_quality_gate_blocks_unfixed_findings(_patch_dom_root: Path):
     assert result["action"] == "halt"
 
 
+# -- quality_gate v0.4.3 dedup improvements --------------------------------
+
+
+@pytest.mark.asyncio
+async def test_quality_gate_dedup_different_descriptions(_patch_dom_root: Path):
+    """Same finding with different wording should dedup by category|file."""
+    from dominion_mcp.tools.progress import quality_gate
+
+    dom = _patch_dom_root
+    review_output = dom / "phases" / "01" / "review" / "output"
+    write_toml(review_output / "verdict.toml", {
+        "findings": {
+            "analyst": {
+                "items": [
+                    {"severity": "critical", "category": "runtime", "file": "main.py:5", "description": "Relative imports will crash"},
+                ],
+            },
+            "reviewer": {
+                "verdict": "go-with-warnings",
+                "items": [
+                    {"severity": "critical", "category": "runtime", "file": "main.py:5", "description": "Relative imports fixed", "action": "verified-fixed"},
+                ],
+            },
+        },
+    })
+
+    result = await quality_gate("01")
+    assert len(result["blocking_findings"]) == 0
+    assert result["action"] == "proceed"
+
+
+@pytest.mark.asyncio
+async def test_quality_gate_finding_id_supersession(_patch_dom_root: Path):
+    """Reviewer referencing a specialist finding_id should supersede it."""
+    from dominion_mcp.tools.progress import quality_gate
+
+    dom = _patch_dom_root
+    review_output = dom / "phases" / "01" / "review" / "output"
+    write_toml(review_output / "verdict.toml", {
+        "findings": {
+            "security-auditor": {
+                "items": [
+                    {"finding_id": "security-auditor-01", "severity": "critical", "category": "security", "file": "auth.py", "description": "SQL injection found"},
+                ],
+            },
+            "reviewer": {
+                "verdict": "go-with-warnings",
+                "items": [
+                    {"finding_id": "security-auditor-01", "severity": "critical", "category": "security", "file": "auth.py", "description": "SQL injection patched", "action": "verified-fixed"},
+                ],
+            },
+        },
+    })
+
+    result = await quality_gate("01")
+    assert len(result["blocking_findings"]) == 0
+    assert result["action"] == "proceed"
+
+
+@pytest.mark.asyncio
+async def test_quality_gate_multiple_findings_same_file(_patch_dom_root: Path):
+    """Two distinct findings in same file — only the unfixed one should block."""
+    from dominion_mcp.tools.progress import quality_gate
+
+    dom = _patch_dom_root
+    review_output = dom / "phases" / "01" / "review" / "output"
+    write_toml(review_output / "verdict.toml", {
+        "findings": {
+            "reviewer": {
+                "verdict": "no-go",
+                "items": [
+                    {"severity": "critical", "category": "security", "file": "auth.py", "description": "SQL injection", "action": "verified-fixed"},
+                    {"severity": "high", "category": "perf", "file": "auth.py", "description": "N+1 query"},
+                ],
+            },
+        },
+    })
+
+    result = await quality_gate("01")
+    assert len(result["blocking_findings"]) == 1
+    assert result["blocking_findings"][0]["category"] == "perf"
+
+
+@pytest.mark.asyncio
+async def test_quality_gate_backward_compat_no_finding_ids(_patch_dom_root: Path):
+    """Findings without finding_ids should still work via structural dedup."""
+    from dominion_mcp.tools.progress import quality_gate
+
+    dom = _patch_dom_root
+    review_output = dom / "phases" / "01" / "review" / "output"
+    write_toml(review_output / "verdict.toml", {
+        "findings": {
+            "analyst": {
+                "items": [
+                    {"severity": "high", "category": "perf", "file": "db.py", "description": "Missing index on users table"},
+                ],
+            },
+            "reviewer": {
+                "verdict": "go-with-warnings",
+                "items": [
+                    {"severity": "high", "category": "perf", "file": "db.py", "description": "Index added to users table", "action": "verified-fixed"},
+                ],
+            },
+        },
+    })
+
+    result = await quality_gate("01")
+    assert len(result["blocking_findings"]) == 0
+    assert result["action"] == "proceed"
+
+
 # -- generate_phase_report --------------------------------------------------
 
 

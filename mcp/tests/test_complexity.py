@@ -89,11 +89,25 @@ def test_assess_design_doc_false_gives_moderate():
     assert result["complexity"] == "moderate"
 
 
+def test_assess_analysis_analyze():
+    result = assess_complexity("Analyze codebase: document patterns and flag anti-patterns")
+    assert result["complexity"] == "analysis"
+
+
+def test_assess_analysis_audit():
+    result = assess_complexity("audit security and assess test coverage")
+    assert result["complexity"] == "analysis"
+
+
 # -- get_pipeline ------------------------------------------------------------
 
 
 def test_pipeline_trivial():
     assert get_pipeline("trivial") == ["execute"]
+
+
+def test_pipeline_analysis():
+    assert get_pipeline("analysis") == ["research", "review"]
 
 
 def test_pipeline_specified():
@@ -191,8 +205,8 @@ def test_dispatch_invalid_step_complexity():
 # -- DISPATCH_TABLE ----------------------------------------------------------
 
 
-def test_dispatch_table_has_18_entries():
-    assert len(DISPATCH_TABLE) == 18
+def test_dispatch_table_has_20_entries():
+    assert len(DISPATCH_TABLE) == 20
 
 
 def test_all_roles_in_dispatch_are_valid():

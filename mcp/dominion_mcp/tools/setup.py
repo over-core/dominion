@@ -27,6 +27,7 @@ from ..core.prepare import (
     generate_task_claude_md,
     read_agent_toml,
     read_heuristics,
+    read_interface_contracts,
     read_knowledge_index,
     read_prior_summaries,
     filter_knowledge_by_step,
@@ -49,9 +50,9 @@ async def start_phase(intent: str, complexity: str) -> dict:
 
     Args:
         intent: What the user wants to accomplish.
-        complexity: trivial | moderate | complex | major.
+        complexity: trivial | analysis | specified | moderate | complex | major.
     """
-    valid = ("trivial", "specified", "moderate", "complex", "major")
+    valid = ("trivial", "analysis", "specified", "moderate", "complex", "major")
     if complexity not in valid:
         return {"error": f"Invalid complexity '{complexity}'. Must be one of: {', '.join(valid)}"}
 
@@ -150,6 +151,12 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
     heuristics = read_heuristics(dom_root, step, role=target_role)
     knowledge_index = read_knowledge_index(dom_root)
     knowledge_entries = filter_knowledge_by_step(knowledge_index, step)
+
+    # Load full knowledge content (v0.4.3 — inject content, not just summaries)
+    for entry in knowledge_entries:
+        kpath = dom_root / "knowledge" / entry.get("path", f"{entry.get('topic', 'unknown')}.md")
+        if kpath.exists():
+            entry["_content"] = kpath.read_text()
     decisions = get_decisions(dom_root)
     pipeline = get_pipeline(complexity)
 
@@ -285,6 +292,12 @@ async def prepare_task(
     if task_files:
         knowledge_entries = filter_knowledge_by_files(knowledge_entries, task_files)
 
+    # Load full knowledge content (v0.4.3 — inject content, not just summaries)
+    for entry in knowledge_entries:
+        kpath = dom_root / "knowledge" / entry.get("path", f"{entry.get('topic', 'unknown')}.md")
+        if kpath.exists():
+            entry["_content"] = kpath.read_text()
+
     # Upstream task summaries (from earlier waves)
     from ..core.filesystem import read_task_summary
     upstream: dict[str, str] = {}
@@ -292,6 +305,12 @@ async def prepare_task(
         dep_summary = read_task_summary(dom_root, phase, dep_id)
         if dep_summary:
             upstream[dep_id] = dep_summary
+
+    # Interface contracts (v0.4.3 — cross-task visibility)
+    contracts = read_interface_contracts(dom_root, phase, task_id)
+
+    # Decisions (v0.4.3 — visible to task agents, not just step agents)
+    decisions = get_decisions(dom_root)
 
     # Generate CLAUDE.md
     content = generate_task_claude_md(
@@ -305,6 +324,8 @@ async def prepare_task(
         plan_summary=plan_summary,
         knowledge_entries=knowledge_entries,
         upstream_task_summaries=upstream,
+        interface_contracts=contracts,
+        decisions=decisions,
     )
 
     # Create task directory and write CLAUDE.md

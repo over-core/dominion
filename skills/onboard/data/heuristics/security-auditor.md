@@ -47,8 +47,13 @@ Use STRIDE to prioritize which code paths to audit first.
 - Review transitive dependencies for known vulnerabilities
 - Flag dependencies with no maintainer activity (>12 months)
 
+### Finding IDs
+Assign a unique finding_id to each finding: `security-auditor-{N}` (e.g., `security-auditor-01`).
+Include finding_id in every item. The cross-cutting reviewer uses these IDs to reference findings
+as verified-fixed, enabling reliable deduplication in the quality gate.
+
 ### Output
 Produce findings with:
-- Each finding: severity, category, CWE reference (e.g., CWE-89), file:line, exploitability assessment
+- Each finding: finding_id, severity, category, CWE reference (e.g., CWE-89), file:line, exploitability assessment
 - Remediation guidance: specific fix, not generic advice
 - Dependency audit results if applicable

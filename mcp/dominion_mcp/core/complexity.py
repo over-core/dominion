@@ -13,7 +13,7 @@ from pathlib import Path
 
 from .config import read_toml_optional
 
-COMPLEXITY_LEVELS = ("trivial", "specified", "moderate", "complex", "major")
+COMPLEXITY_LEVELS = ("trivial", "analysis", "specified", "moderate", "complex", "major")
 
 # ---------------------------------------------------------------------------
 # Pipeline profiles per complexity
@@ -21,6 +21,7 @@ COMPLEXITY_LEVELS = ("trivial", "specified", "moderate", "complex", "major")
 
 PIPELINE_PROFILES: dict[str, list[str]] = {
     "trivial": ["execute"],
+    "analysis": ["research", "review"],
     "specified": ["plan", "execute", "review"],
     "moderate": ["research", "plan", "execute", "review"],
     "complex": ["discuss", "research", "plan", "execute", "review"],
@@ -32,6 +33,7 @@ PIPELINE_PROFILES: dict[str, list[str]] = {
 # ---------------------------------------------------------------------------
 
 DISPATCH_TABLE: dict[tuple[str, str], tuple[str, list[tuple[str, str]]]] = {
+    ("research", "analysis"): ("P-Thread", [("researcher", "opus"), ("security-auditor", "opus"), ("innovation-engineer", "opus")]),
     ("research", "moderate"): ("B-Thread", [("researcher", "opus")]),
     ("research", "complex"): ("P-Thread", [("researcher", "opus"), ("innovation-engineer", "opus"), ("security-auditor", "opus")]),
     ("research", "major"): ("P-Thread", [("researcher", "opus"), ("innovation-engineer", "opus"), ("security-auditor", "opus")]),
@@ -47,6 +49,7 @@ DISPATCH_TABLE: dict[tuple[str, str], tuple[str, list[tuple[str, str]]]] = {
     ("execute", "complex"): ("P-Thread", [("developer", "sonnet")]),
     ("execute", "major"): ("P-Thread", [("developer", "sonnet")]),
 
+    ("review", "analysis"): ("P-Thread", [("reviewer", "opus"), ("analyst", "opus")]),
     ("review", "specified"): ("B-Thread", [("reviewer", "opus")]),
     ("review", "moderate"): ("B-Thread", [("reviewer", "opus")]),
     ("review", "complex"): ("P-Thread", [("reviewer", "opus"), ("security-auditor", "opus"), ("analyst", "opus")]),
@@ -116,6 +119,11 @@ def get_dispatch(
 # Keyword-based complexity assessment
 # ---------------------------------------------------------------------------
 
+_ANALYSIS_PATTERNS = re.compile(
+    r"\b(analyz|audit|assess|review codebase|document patterns|flag anti.?patterns"
+    r"|security scan|code quality|technical debt|codebase health|improvement plan)\b",
+    re.IGNORECASE,
+)
 _TRIVIAL_PATTERNS = re.compile(
     r"\b(fix typo|rename|bump version|update version|typo|whitespace|comment fix"
     r"|change label|fix spelling|update copyright)\b",
@@ -143,6 +151,15 @@ def assess_complexity(intent: str, *, has_design_doc: bool = False) -> dict:
     "specified" instead of "moderate" — skipping discuss and research steps.
     """
     keywords: list[str] = []
+
+    if _ANALYSIS_PATTERNS.search(intent):
+        match = _ANALYSIS_PATTERNS.search(intent)
+        keywords = [match.group()] if match else []
+        return {
+            "complexity": "analysis",
+            "reasoning": "Intent is codebase analysis — research and review only, no implementation",
+            "keywords_matched": keywords,
+        }
 
     if _MAJOR_PATTERNS.search(intent):
         match = _MAJOR_PATTERNS.search(intent)

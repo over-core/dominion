@@ -117,10 +117,12 @@ async def quality_gate(phase: str) -> dict:
     if not findings:
         return {"verdict": "go", "blocking_findings": [], "warning_findings": [], "action": "proceed", "retry_count": 0, "same_finding": False}
 
-    # Collect all items across role namespaces, deduplicate (prefer latest —
-    # cross-cutting reviewer entries overwrite stale specialist entries)
-    all_items_map: dict[str, dict] = {}
+    # Collect all items across role namespaces with multi-pass dedup:
+    # Pass 1: Gather all items, index by finding_id where present
+    # Pass 2: Apply reviewer supersession — finding_id matches override specialist entries
+    # Pass 3: Structural dedup by category|file — prefer entries with action field
     verdict = "go"
+    raw_items: list[dict] = []
 
     for role_key, role_data in findings.items():
         if not isinstance(role_data, dict):
@@ -128,10 +130,45 @@ async def quality_gate(phase: str) -> dict:
         if role_data.get("verdict"):
             verdict = role_data["verdict"]
         for item in role_data.get("items", []):
-            dedup_key = f"{item.get('category', '')}|{item.get('file', '')}|{item.get('description', '')}"
-            all_items_map[dedup_key] = item
+            raw_items.append(item)
 
-    all_items = list(all_items_map.values())
+    # Pass 1: Index items with finding_id
+    by_finding_id: dict[str, dict] = {}
+    no_id_items: list[dict] = []
+    for item in raw_items:
+        fid = item.get("finding_id")
+        if fid:
+            # Later entries (reviewer) overwrite earlier (specialist)
+            by_finding_id[fid] = item
+        else:
+            no_id_items.append(item)
+
+    # Pass 2: Apply reviewer supersession — if a no-id reviewer item references
+    # a finding_id via action, apply the action to the indexed entry
+    remaining_no_id: list[dict] = []
+    for item in no_id_items:
+        ref_id = item.get("references_finding_id")
+        if ref_id and ref_id in by_finding_id:
+            # Reviewer references a specialist finding — supersede with reviewer's action
+            by_finding_id[ref_id] = {**by_finding_id[ref_id], "action": item.get("action", "")}
+        else:
+            remaining_no_id.append(item)
+
+    # Pass 3: Structural dedup by category|file — prefer entries with action field
+    struct_map: dict[str, dict] = {}
+    for item in list(by_finding_id.values()) + remaining_no_id:
+        struct_key = f"{item.get('category', '')}|{item.get('file', '')}"
+        existing = struct_map.get(struct_key)
+        if existing is None:
+            struct_map[struct_key] = item
+        elif item.get("action") and not existing.get("action"):
+            # Prefer entry with action (verified-fixed/warn) over entry without
+            struct_map[struct_key] = item
+        elif not existing.get("action"):
+            # Both lack action — latest wins (later in dict iteration)
+            struct_map[struct_key] = item
+
+    all_items = list(struct_map.values())
 
     # Classify — filter out findings marked as verified-fixed by main reviewer
     blocking = [
@@ -159,9 +196,9 @@ async def quality_gate(phase: str) -> dict:
     else:
         action = "retry"
 
-    # Same-finding detection
-    sorted_findings = sorted(blocking, key=lambda f: (f.get("category", ""), f.get("file", ""), f.get("description", "")))
-    hash_input = json.dumps([(f.get("category"), f.get("file"), f.get("description")) for f in sorted_findings], sort_keys=True)
+    # Same-finding detection (keyed on category|file, not description)
+    sorted_findings = sorted(blocking, key=lambda f: (f.get("category", ""), f.get("file", "")))
+    hash_input = json.dumps([(f.get("category"), f.get("file")) for f in sorted_findings], sort_keys=True)
     findings_hash = hashlib.sha256(hash_input.encode()).hexdigest()[:16]
 
     same_finding = False
@@ -390,4 +427,22 @@ async def save_decision_tool(
     tag_list = [t.strip() for t in tags.split(",")] if tags else []
 
     entry = await _save_decision(dom_root, phase, title, decision, rationale, tag_list)
+
+    # Auto-promote to knowledge so decisions persist across phases and reach task agents
+    from ..tools.knowledge import _update_index
+    knowledge_dir = dom_root / "knowledge"
+    knowledge_dir.mkdir(parents=True, exist_ok=True)
+    knowledge_topic = f"decision-{title}"
+    knowledge_content = f"# Decision: {title}\n\n**Decision:** {decision}\n\n**Rationale:** {rationale}\n\n**Phase:** {phase}\n**Tags:** {', '.join(tag_list)}\n"
+    knowledge_path = knowledge_dir / f"{knowledge_topic}.md"
+    knowledge_path.write_text(knowledge_content)
+    _update_index(
+        dom_root,
+        topic=knowledge_topic,
+        summary=f"ADR: {decision}",
+        tags=["research", "plan", "execute", "review"],
+        path=f"{knowledge_topic}.md",
+        referenced_files=[],
+    )
+
     return {"id": entry["id"], "title": title, "phase": phase}

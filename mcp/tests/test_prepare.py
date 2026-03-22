@@ -10,6 +10,7 @@ from dominion_mcp.core.prepare import (
     generate_task_claude_md,
     read_agent_toml,
     read_heuristics,
+    read_interface_contracts,
     read_knowledge_index,
 )
 
@@ -137,3 +138,86 @@ def test_filter_knowledge_by_files():
     assert "a" in topics
     assert "c" in topics  # no referenced_files → included
     assert "b" not in topics
+
+
+# -- interface contracts (v0.4.3) ------------------------------------------
+
+
+def test_interface_contracts_injected(dom_root_with_plan):
+    """Task brief should include interface contracts from tasks.toml."""
+    from dominion_mcp.core.config import write_toml
+
+    dom = dom_root_with_plan
+    # Add interfaces to tasks.toml
+    tasks_path = dom / "phases" / "01" / "plan" / "output" / "tasks.toml"
+    tasks_data = {
+        "findings": {"architect": {"tasks": [
+            {"task_id": "01", "wave": 1, "title": "Models", "description": "Create models", "files": ["models.py"], "agent_role": "developer", "dependencies": []},
+            {"task_id": "02", "wave": 2, "title": "Workflow", "description": "Create workflow", "files": ["workflow.py"], "agent_role": "developer", "dependencies": ["01"]},
+        ]}},
+        "interfaces": {
+            "symbols": [
+                {"name": "ValidationReport", "defined_in": "01", "imported_by": ["02"], "module": "models.py", "signature": "class ValidationReport(BaseModel)"},
+            ],
+            "runtime_contracts": [],
+        },
+    }
+    write_toml(tasks_path, tasks_data)
+
+    result = read_interface_contracts(dom, "01", "01")
+    assert result is not None
+    assert "ValidationReport" in result
+    assert "YOU DEFINE" in result
+
+    result2 = read_interface_contracts(dom, "01", "02")
+    assert result2 is not None
+    assert "ValidationReport" in result2
+    assert "task 01 defines" in result2
+
+
+def test_interface_contracts_filtered_by_task(dom_root_with_plan):
+    """Only contracts relevant to the task should be included."""
+    from dominion_mcp.core.config import write_toml
+
+    dom = dom_root_with_plan
+    tasks_path = dom / "phases" / "01" / "plan" / "output" / "tasks.toml"
+    tasks_data = {
+        "findings": {"architect": {"tasks": []}},
+        "interfaces": {
+            "symbols": [
+                {"name": "Foo", "defined_in": "01", "imported_by": ["02"], "module": "foo.py", "signature": "class Foo"},
+                {"name": "Bar", "defined_in": "03", "imported_by": ["04"], "module": "bar.py", "signature": "class Bar"},
+            ],
+            "runtime_contracts": [],
+        },
+    }
+    write_toml(tasks_path, tasks_data)
+
+    result = read_interface_contracts(dom, "01", "01")
+    assert "Foo" in result
+    assert "Bar" not in result
+
+
+def test_interface_contracts_missing_graceful(dom_root_with_plan):
+    """No interfaces section → returns None."""
+    result = read_interface_contracts(dom_root_with_plan, "01", "01")
+    assert result is None
+
+
+def test_task_claude_md_includes_contracts():
+    """generate_task_claude_md should include interface contracts section."""
+    content = generate_task_claude_md(
+        phase="01",
+        task_id="02",
+        task_info={"title": "Workflow", "description": "Build it", "files": ["workflow.py"], "dependencies": ["01"], "agent_role": "developer"},
+        config={"style": {}},
+        agent_toml={"agent": {"purpose": "Implementation"}, "governance": {"hard_stops": []}},
+        heuristics=None,
+        research_summary=None,
+        plan_summary=None,
+        knowledge_entries=[],
+        upstream_task_summaries={},
+        interface_contracts="### Shared Symbols\n- `Report` in `models.py` — task 01 defines",
+    )
+    assert "## Interface Contracts" in content
+    assert "Report" in content

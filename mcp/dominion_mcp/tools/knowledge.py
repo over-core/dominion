@@ -13,8 +13,11 @@ from ..core.config import find_dominion_root, read_toml_optional, write_toml
 
 VALID_TAGS = {"discuss", "research", "plan", "execute", "review"}
 
-# Regex to extract file paths from content
-_FILE_PATH_RE = re.compile(r'(?:^|\s)((?:src|lib|app|test|tests|pkg|cmd|internal)/[\w/\-\.]+)', re.MULTILINE)
+# Regex to extract file paths from content (v0.4.3: expanded beyond src/lib/app prefixes)
+_FILE_PATH_RE = re.compile(r'(?:^|\s)([\w][\w\-\.]*/[\w/\-\.]+)', re.MULTILINE)
+
+# Regex to detect loose file references that the path regex might miss
+_LOOSE_FILE_RE = re.compile(r'\b[\w\-]+\.(?:py|ts|js|rs|go|java|toml|yaml|yml|json|md|sql)\b')
 
 
 @mcp.tool()
@@ -79,11 +82,23 @@ async def save_knowledge(
         _update_index(dom_root, topic, summary, tag_list, f"{topic}.md", referenced_files)
         result_path = str(file_path.relative_to(dom_root.parent))
 
-    return {
+    result: dict = {
         "status": "saved",
         "path": result_path,
         "split": split,
     }
+
+    # Warn if referenced_files is empty but content mentions file-like names
+    if not referenced_files:
+        loose = list(set(_LOOSE_FILE_RE.findall(content)))
+        if loose:
+            result["warning"] = (
+                f"No referenced_files extracted but content mentions: {', '.join(loose[:5])}. "
+                "Consider adding explicit directory-prefixed file paths (e.g., src/auth/login.py) "
+                "so knowledge is scoped to relevant agents."
+            )
+
+    return result
 
 
 def _update_index(

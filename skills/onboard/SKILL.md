@@ -49,7 +49,7 @@ CLI tools:
 
 ## Phase 3: Interview
 
-Follow interview.md (8 questions: direction, testing, conventions, skill level, etc.)
+Follow interview.md (4 questions + optional taste: project identity, direction, testing, experience level)
 
 ## Phase 4: Generation
 
@@ -83,14 +83,16 @@ Generated:
 IMPORTANT: Restart your Claude Code session now.
   .mcp.json was created — Claude Code must restart to load the MCP server.
 
-Suggested first run — seed project knowledge:
-  /dominion:orchestrate "Analyze codebase: document framework usage patterns,
-  flag dependency anti-patterns, identify security concerns, and produce
-  an improvement plan with prioritized recommendations"
+NEXT STEP after restart:
+  /dominion:orchestrate "Analyze codebase: document framework patterns,
+  flag anti-patterns, audit security, assess test coverage, and produce
+  an improvement roadmap"
 
-  This runs the pipeline in analysis mode — no code changes, just knowledge seeding.
-  Findings are saved as knowledge entries for all future pipeline runs.
-  Developers will see framework-specific coding guidance in their briefs.
+  This runs in analysis mode (research → review only, no code changes).
+  The orchestrator compiles findings into knowledge entries and reports.
+  Without this, agents have zero project-specific knowledge.
+  After this run, every agent brief includes framework-specific
+  coding guidance, anti-pattern warnings, and security findings.
 
 {if rtk not installed:}
 Recommended: Install rtk for 60-90% token savings on Bash output.

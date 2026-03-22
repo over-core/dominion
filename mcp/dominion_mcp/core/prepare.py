@@ -67,10 +67,23 @@ def generate_phase_claude_md(
             f"- Languages: {', '.join(project.get('languages', []))}",
             f"- Frameworks: {', '.join(project.get('frameworks', []))}",
         ])
-        if project.get("direction"):
-            sections.append(f"- Direction: {project['direction']}")
         if project.get("git_platform"):
             sections.append(f"- Git platform: {project['git_platform']}")
+        sections.append("")
+
+    # Direction (v0.4.3 — structured from config.toml [direction])
+    direction = config.get("direction", {})
+    if direction:
+        mode = direction.get("mode", "")
+        sections.append("## Direction")
+        if mode == "maintain":
+            sections.append("Maintain — preserve existing patterns. Be conservative with changes.")
+        elif mode == "improve":
+            sections.append("Improve — follow existing patterns but fix anti-patterns when touching code.")
+        elif mode == "restructure":
+            target = direction.get("target_state", "")
+            strategy = direction.get("migration_strategy", "")
+            sections.append(f"Restructure — target: {target}. Strategy: {strategy}.")
         sections.append("")
 
     # Prior phases
@@ -160,11 +173,20 @@ def generate_step_claude_md(
             sections.append(f"- {conv}")
         sections.append("")
 
-    # Existing knowledge
+    # Existing knowledge (v0.4.3: full content injection with token budget)
     if knowledge_entries:
         sections.append("## Existing Knowledge")
+        total_chars = 0
+        knowledge_budget = 8000  # ~2000 tokens
         for entry in knowledge_entries:
-            sections.append(f"- {entry.get('topic', '?')}: {entry.get('summary', '?')}")
+            content = entry.get("_content")
+            topic = entry.get("topic", "?")
+            if content and total_chars + len(content) <= knowledge_budget:
+                sections.append(f"### {topic}")
+                sections.append(content)
+                total_chars += len(content)
+            else:
+                sections.append(f"- {topic}: {entry.get('summary', '?')}")
         sections.append("")
 
     # Tool usage
@@ -225,6 +247,8 @@ def generate_task_claude_md(
     plan_summary: str | None,
     knowledge_entries: list[dict],
     upstream_task_summaries: dict[str, str],
+    interface_contracts: str | None = None,
+    decisions: list[dict] | None = None,
 ) -> str:
     """Generate task-level CLAUDE.md content.
 
@@ -259,6 +283,10 @@ def generate_task_claude_md(
     sections.append(f"{'None (wave 1)' if not deps else ', '.join(deps)}")
     sections.append("")
 
+    # Interface contracts (v0.4.3 — cross-task symbol and runtime contracts)
+    if interface_contracts:
+        sections.extend(["## Interface Contracts", interface_contracts, ""])
+
     # Research context
     if research_summary:
         sections.extend(["## Research Context", research_summary, ""])
@@ -273,11 +301,20 @@ def generate_task_claude_md(
         for tid, summary in upstream_task_summaries.items():
             sections.extend([f"### Task {tid}", summary, ""])
 
-    # Knowledge
+    # Knowledge (v0.4.3: full content injection with token budget)
     if knowledge_entries:
         sections.append("## Existing Knowledge")
+        total_chars = 0
+        knowledge_budget = 8000  # ~2000 tokens
         for entry in knowledge_entries:
-            sections.append(f"- {entry.get('topic', '?')}: {entry.get('summary', '?')}")
+            content = entry.get("_content")
+            topic = entry.get("topic", "?")
+            if content and total_chars + len(content) <= knowledge_budget:
+                sections.append(f"### {topic}")
+                sections.append(content)
+                total_chars += len(content)
+            else:
+                sections.append(f"- {topic}: {entry.get('summary', '?')}")
         sections.append("")
 
     # Heuristics
@@ -314,6 +351,13 @@ def generate_task_claude_md(
                 sections.append(_TOOL_DIRECTIVES[tool_name])
         sections.append("")
 
+    # Decisions
+    if decisions:
+        sections.append("## Active Decisions")
+        for d in decisions:
+            sections.append(f"- {d.get('title', '?')}: {d.get('decision', '?')}")
+        sections.append("")
+
     # Submission
     sections.extend([
         "## Submission",
@@ -328,6 +372,60 @@ def generate_task_claude_md(
     ])
 
     return "\n".join(sections)
+
+
+# ---------------------------------------------------------------------------
+# Helper: interface contracts (v0.4.3 context fragmentation fix)
+# ---------------------------------------------------------------------------
+
+
+def read_interface_contracts(
+    dom_root: Path, phase: str, task_id: str
+) -> str | None:
+    """Read interface contracts relevant to a specific task from plan output.
+
+    Returns formatted markdown section, or None if no contracts exist.
+    """
+    tasks_path = dom_root / "phases" / phase / "plan" / "output" / "tasks.toml"
+    tasks_data = read_toml_optional(tasks_path)
+    if not tasks_data:
+        return None
+
+    interfaces = tasks_data.get("interfaces", {})
+    if not interfaces:
+        return None
+
+    # Filter symbols relevant to this task
+    relevant_symbols = [
+        s for s in interfaces.get("symbols", [])
+        if s.get("defined_in") == task_id or task_id in s.get("imported_by", [])
+    ]
+
+    # Filter runtime contracts relevant to this task
+    relevant_contracts = [
+        c for c in interfaces.get("runtime_contracts", [])
+        if c.get("producer") == task_id or c.get("consumer") == task_id
+    ]
+
+    if not relevant_symbols and not relevant_contracts:
+        return None
+
+    lines: list[str] = []
+    if relevant_symbols:
+        lines.append("### Shared Symbols")
+        for s in relevant_symbols:
+            owner = "YOU DEFINE" if s.get("defined_in") == task_id else f"task {s.get('defined_in')} defines"
+            lines.append(
+                f"- `{s.get('name', '?')}` in `{s.get('module', '?')}` — {owner}. "
+                f"Signature: `{s.get('signature', '?')}`"
+            )
+    if relevant_contracts:
+        lines.append("### Runtime Contracts")
+        for c in relevant_contracts:
+            role = "YOU PRODUCE" if c.get("producer") == task_id else "YOU CONSUME"
+            lines.append(f"- {role}: {c.get('format', '?')} — fields: {c.get('fields', '?')}")
+
+    return "\n".join(lines)
 
 
 # ---------------------------------------------------------------------------

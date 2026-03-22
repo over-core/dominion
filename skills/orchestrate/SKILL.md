@@ -75,31 +75,74 @@ e. **Execute step — wave loop:**
      - Spawn architect agent WITHOUT `isolation='worktree'` (direct commit to branch)
      - After stub task completes, verify stubs committed
      - All subsequent worktrees branch from this updated HEAD
-   - **Before spawning worktree agents:** verify current branch with `git branch --show-current`.
-     Include in each agent's prompt: "Your worktree MUST branch from `{current_branch}` at HEAD.
-     Verify with `git log --oneline -1` that your branch includes the Wave 0 stubs."
+   - **Pre-wave cleanup** (before spawning worktree agents for each wave):
+     1. Verify current branch: `git branch --show-current` → store as `{current_branch}`
+     2. Stash dirty state: `git stash --include-untracked -m "dominion-pre-wave-{N}"` (ignore "nothing to stash")
+     3. Remove stale worktrees: `for wt in $(git worktree list --porcelain | grep -oP '(?<=worktree ).+\.claude/worktrees/.+'); do git worktree remove --force "$wt"; done`
+     4. Include in each agent's prompt: "Your worktree MUST branch from `{current_branch}` at HEAD.
+        Verify with `git log --oneline -1` that your branch includes the Wave 0 stubs.
+        Do NOT commit directly to `{current_branch}`. All work must be in your worktree."
    - **Wave 1+ (implementation):**
      - For each task: call `prepare_task(phase, task_id)`, Read CLAUDE.md
      - Spawn in **batches of 4-5 agents** maximum per batch: `Agent(isolation='worktree', prompt=content, subagent_type=task.agent_role)`
-     - After each batch returns:
-       - Verify all agents created worktrees (check for worktreePath in output)
-       - If any agent failed to create a worktree, retry that agent once
-       - Clean up failed worktree artifacts: `rm -rf .claude/worktrees/{failed_branch}`
-       - Extract `total_tokens` from each agent's output; accumulate in a tokens list: `[{role, task, tokens}]`
+     - **Post-batch verification** (after each batch returns):
+       a. For each agent: check for worktreePath in output. If missing, agent committed directly — log warning: "Agent {role} for task {id} did not create worktree"
+       b. For each worktree branch: verify base with `git merge-base --is-ancestor {current_branch} {worktree_branch}`. If not ancestor → flag: "Worktree {branch} branched from wrong base"
+       c. **Unsubmitted work detection**: for each agent, call `get_progress()` and check if task status is "complete". If NOT complete but agent returned:
+          - Check for uncommitted changes: `git -C {worktree_path} status --porcelain`
+          - If uncommitted changes: commit on behalf: `git -C {worktree_path} add -A && git -C {worktree_path} commit -m "feat: auto-commit unsubmitted work for task {id}"`
+          - Submit on behalf: `submit_work(phase, "execute", role, '{"commit": "auto", "tests_run": 0, "tests_passed": 0}', "Auto-submitted: agent failed to submit")`
+          - Log warning: "Agent for task {id} failed to submit — auto-submitted with zero test verification"
+       d. Extract `total_tokens` from each agent's output; accumulate in a tokens list: `[{role, task, tokens}]`
      - **Worktree Merge Protocol** (after all batch agents return):
-       0. Pre-merge check: `git diff --name-only {branch} $(git branch --show-current)` — verify changed files are a subset of the agent's assignment. If unexpected files appear, halt and report.
-       0a. Clean worktree before merge: `git -C {worktree_path} clean -fd` to remove untracked files that could leak into the merge.
+       0. Pre-merge: ensure clean state: `git status --porcelain` — if dirty, `git stash --include-untracked -m "dominion-pre-merge"`
+       0a. Clean each worktree: `git -C {worktree_path} clean -fd`
+       0b. Pre-merge file check: `git diff --name-only {branch} {current_branch}` — verify changed files are a subset of the agent's assignment. If unexpected files appear, halt and report.
        1. Squash-merge each branch: `git merge --squash {branch} && git commit -m "feat({scope}): {task_title}"`
        2. On conflict → C-Thread halt: "Merge conflict in {files}. Resolve manually, re-run."
-       3. On success → `git branch -d {branch}` cleanup
-       4. After ALL wave N branches merged → wave N+1 from updated HEAD
-   - After all waves complete:
+       3. On success → `git worktree remove .claude/worktrees/{worktree_name}` THEN `git branch -d {branch}`
+       4. After ALL wave N branches merged → pop stash if exists (`git stash pop`, ignore errors) → wave N+1 from updated HEAD
+   - **Post-execute cleanup** (after all waves complete):
+     - Remove ALL remaining worktrees: `for wt in $(git worktree list --porcelain | grep -oP '(?<=worktree ).+\.claude/worktrees/.+'); do git worktree remove --force "$wt"; done`
+     - Verify: `git worktree list` shows only main worktree
+     - Pop any remaining stash: `git stash pop` (ignore errors)
+   - **Integration validation** (after cleanup, before submitting execute):
+     1. Run full test suite: the project's test command from config
+     2. If tests fail: spawn a single developer agent WITHOUT `isolation='worktree'` with prompt: "Integration issues detected after multi-agent merge. Test failures: {output}. Read the failing test files and the source files they test. Fix cross-module integration issues only. Do NOT refactor working code."
+     3. Re-run tests. If still failing after 1 fix attempt → halt: "Integration test failures persist. Manual intervention needed."
+   - After integration passes:
      - Call `submit_work(phase, "execute", "orchestrator", {tasks_completed, waves, files_changed}, summary)`
      - Call `advance_step(phase, "execute")`
 
 f. After all agents for non-execute steps return: call `mcp__dominion__advance_step(phase, step)`
 
+g0. **Analysis completion (analysis complexity only):**
+   After research and review complete (no plan/execute in this pipeline):
+   1. Read all research findings from `.dominion/phases/{phase}/research/output/`
+   2. Read all review findings from `.dominion/phases/{phase}/review/output/`
+   3. **Save knowledge entries** — for each major finding category:
+      - Call `save_knowledge(topic, content, tags="research,plan,execute,review", summary)` with:
+        - Prescriptive guidance (not just observations)
+        - Real code examples with file:line from the findings
+        - `referenced_files` populated from the findings' file references
+      - Categories: framework-patterns, security-findings, performance-analysis, test-coverage, dependency-health, improvement-priorities
+      - Incorporate review corrections: severity changes, new findings, quantitative fixes
+   4. **Present summary to user** inline (NOT a file):
+      "Analysis complete. {N} knowledge entries saved to .dominion/knowledge/:
+       - framework-patterns: {summary}
+       - security-findings: {summary}
+       - ..."
+   5. Do NOT write docs/ files. Knowledge entries ARE the analysis output.
+      They persist across phases, are injected into agent briefs, and are committed to git.
+      Agents read knowledge; agents don't read docs/.
+   6. Commit knowledge: `git add .dominion/knowledge/ && git commit -m "feat(knowledge): seed from codebase analysis"`
+   7. Skip to Section 5 (Completion)
+
 g. **Review step — two-phase protocol (complex/major):**
+   0. **Pre-review cleanup**: remove ALL stale worktrees before spawning any review agents:
+      `for wt in $(git worktree list --porcelain | grep -oP '(?<=worktree ).+\.claude/worktrees/.+'); do git worktree remove --force "$wt"; done`
+      Verify: `ls .claude/worktrees/ 2>/dev/null` should be empty or not exist.
+      This prevents reviewers from reading stale code in old worktree directories.
    1. Call `prepare_step(phase, "review", role="security-auditor")` + `prepare_step(phase, "review", role="analyst")`
    2. Spawn specialists in parallel
    3. After specialists submit: if blocking findings exist, apply fixes:
@@ -133,15 +176,28 @@ When quality_gate returns action="retry":
 After review go/go-with-warnings:
 1. Read review output for retrospective.knowledge_updates
 2. Call `save_knowledge()` for each entry with content, tags, summary
-3. Call `mcp__dominion__generate_phase_report(phase, tokens=accumulated_tokens_list)` → present metrics to user:
+3. **Report revision** (analysis phases only — when pipeline produced docs/reports, NOT implementation phases):
+   a. Read review findings from `verdict.toml` — collect all items where action != "verified-fixed"
+   b. Read specialist findings from security-auditor and analyst outputs
+   c. Identify corrections that should flow back to published reports:
+      - Severity changes (reviewer downgraded/upgraded)
+      - New findings not in original reports
+      - Quantitative corrections (wrong counts, misleading claims)
+      - Missing analysis areas flagged by reviewers
+   d. For EACH published report file that needs correction:
+      - Read the current report
+      - Apply corrections inline (add missing sections, fix numbers, add new findings, adjust severities)
+      - Commit: `git add {file} && git commit -m "fix(reports): incorporate review findings into {filename}"`
+   e. Do this directly — do NOT spawn a subagent for report corrections
+4. Call `mcp__dominion__generate_phase_report(phase, tokens=accumulated_tokens_list)` → present metrics to user:
    "Phase {phase} complete:
     - {tasks_total} tasks across {waves} waves
     - {findings_by_severity} review findings
     - {retry_count} retries
     - {tokens.total} total tokens across {tokens.agents_spawned} agents"
-4. If --auto: intent self-assessment
+5. If --auto: intent self-assessment
    - Read phase CLAUDE.md intent
    - Compare to execute + review summaries
    - Flag gaps as warnings
-5. Output completion message
-6. Include `<promise>pipeline complete</promise>` for ralph-loop compatibility
+6. Output completion message
+7. Include `<promise>pipeline complete</promise>` for ralph-loop compatibility

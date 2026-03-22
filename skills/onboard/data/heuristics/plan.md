@@ -18,6 +18,30 @@ When decomposing tasks:
 - Treat import dependencies the same as file dependencies: if B imports from A, B cannot be in A's wave
 - When grouping tasks into waves, check BOTH file ownership and import chains
 
+### Interface Contracts (REQUIRED for multi-task plans)
+After decomposing tasks, produce an `[interfaces]` section in your output:
+1. List every symbol (class, function, type, constant) DEFINED in one task and IMPORTED by another
+2. For each symbol: name, defined_in (task_id), imported_by (list of task_ids), module (file path), signature (type signature)
+3. If a task produces output that another task reads at runtime (not import-time), document the contract: producer, consumer, format, fields
+4. This contract document is injected into every developer agent's brief — they implement against it
+
+Format in your output:
+```
+[interfaces]
+symbols = [
+  {name = "ValidationReport", defined_in = "00", imported_by = ["05", "06"], module = "models.py", signature = "class ValidationReport(BaseModel): status, checks_run, checks_passed, checks_failed, violations, errors"},
+]
+runtime_contracts = [
+  {producer = "05", consumer = "06", format = "JSON response body", fields = "status:str, checks_run:int, checks_passed:int, checks_failed:int"},
+]
+```
+
+### Coupled Tasks
+If two tasks share a runtime integration boundary (one produces output the other consumes at runtime, not just import-time), mark them as coupled:
+- Coupled tasks MUST be in sequential waves (consumer wave > producer wave)
+- Add `coupled_with = ["task_id"]` to each coupled task
+- In the task description, note: "This task produces/consumes {contract} with task {id}. See interface contracts."
+
 ### Focus Areas
 - Task decomposition with clear boundaries
 - Dependency analysis between tasks (file AND import level)

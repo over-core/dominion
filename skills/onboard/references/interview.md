@@ -2,6 +2,11 @@
 
 Adaptive preference gathering based on project state. Uses a 4-phase flow: silent detection (already done) → present & confirm → ask preferences → generate.
 
+Every question asked must produce data that agents consume. Delivery mechanisms:
+- **CLAUDE.md** — read by Claude Code at session start, every agent sees it natively
+- **config.toml** — read by MCP prepare tools, injected into agent briefs
+- **Knowledge** — injected into agent briefs via prepare_step/prepare_task
+
 ## Mode Selection
 
 Determine interview mode from detection results:
@@ -44,67 +49,52 @@ For polyglot projects, show one block per language with its dev profile.
 
 ### Phase 3: Preferences
 
-Ask ONLY questions whose answers cannot be detected from the codebase. Present as a focused sequence — one question at a time.
+Ask ONLY questions whose answers cannot be detected from the codebase. Present as a focused sequence — one question at a time. Every answer has a defined delivery path to agents.
 
 #### Question 1: Project Identity
 
-Ask:
-1. "What's this project? One sentence." → dominion.toml [project.vision]
-2. "Who uses it?" → dominion.toml [project.target_users]
-3. "Team size?" → options: solo + AI / small team (2-5) / larger team
+Ask: "Describe this project and who uses it, in 1-2 sentences."
+
+→ Delivery: CLAUDE.md `## Project` section (vision + users)
 
 #### Question 2: Direction
 
-Ask:
-1. "What's the project's current state?"
-   - **Maintain** — codebase is good, preserve existing patterns
-   - **Improve** — mostly good, improve incrementally
-   - **Restructure** — significant restructuring planned
+Ask: "What's the project's current direction?"
+- **Maintain** — codebase is good, preserve existing patterns
+- **Improve** — mostly good, improve incrementally
+- **Restructure** — significant restructuring planned
 
-If restructure:
-2. "Describe the target state" → dominion.toml [direction.restructure.target_state]
-3. "Migration strategy?" → strangler-fig / big-bang / incremental
+If improve or restructure:
+- "What specifically needs work? Describe the pain points, weak areas, or things you'd change." → knowledge entry `project-direction.md`
 
-#### Question 3: Testing Style
+If restructure (additional):
+- "Describe the target state" → config.toml `[direction].target_state`
+- "Migration strategy?" → strangler-fig / big-bang / incremental → config.toml `[direction].migration_strategy`
 
-Ask:
-1. "Testing approach?" → TDD / test-after / both
-2. "Code review?" → all changes / major only / agents review (default for solo: agents review)
+→ Delivery: CLAUDE.md `## Direction` one-liner + config.toml `[direction]` + knowledge entry with full detail (improve and restructure)
 
-#### Question 4: ADRs
+#### Question 3: Testing
 
-Ask:
-1. "Record Architecture Decision Records? [Y/n]" (default: Y)
-2. If Y: "Location? [docs/adr]" → allow custom path
+Ask: "TDD? [Y/n]" (default Y if test files detected, otherwise ask)
 
-#### Question 5: Autonomy
+→ Delivery: config.toml `[style].testing` → prepare.py → agent briefs (already works)
 
-Ask:
-1. "Enable auto mode for unattended pipeline runs? [Y/n]" (default: Y)
-2. If Y: "Max tokens per task? [150000]" → override default
+#### Question 4: Experience Level
 
-#### Question 6: Roadmap
+Ask: "Your experience level with this codebase?" → beginner / intermediate / advanced
+- **beginner**: agents explain decisions, show examples
+- **intermediate**: balanced detail (default)
+- **advanced**: agents are terse, skip obvious explanations
 
-Ask:
-1. "What's the first milestone?" → roadmap.toml
-2. "Rough phases to get there?" → roadmap.toml phases
-3. "Success criteria?" → dominion.toml [project.success_criteria]
-
-#### Question 7: Experience Level
-
-Ask:
-1. "Your experience level with this codebase?" → options: beginner / intermediate / advanced
-   - **beginner**: new to the language or codebase — agents explain more, show examples
-   - **intermediate**: comfortable but not expert — balanced detail (default)
-   - **advanced**: deep expertise — agents are terse, skip obvious explanations
-
-Store in: user-profile.toml `[user].experience_level`
+→ Delivery: CLAUDE.md `## Experience Level` section
 
 #### Taste (optional)
 
 Ask:
-1. "Things you want agents to ALWAYS do?" → style.toml [taste.dos]
-2. "Things you want agents to NEVER do?" → style.toml [taste.donts]
+1. "Things you want agents to ALWAYS do?"
+2. "Things you want agents to NEVER do?"
+
+→ Delivery: CLAUDE.md `## Conventions` section (merged with auto-detected conventions)
 
 ## Brownfield Interview
 
@@ -151,14 +141,11 @@ For projects with `.dominion/` but no MCP wiring:
 ## Output
 
 Store all answers as structured data in conversation context for the generation phase:
-- `project_identity`: vision, target_users, team_size
-- `direction`: mode, restructure details if applicable
+- `project_identity`: vision + users (one combined answer)
+- `direction`: mode + restructure details if applicable
 - `dev_profiles`: matched package manager profiles (from detection)
 - `git_workflow`: commit_format, branching, merge_strategy (confirmed in Phase 2)
-- `testing`: style, review_process
-- `adrs`: enabled, path
-- `autonomy`: enabled, max_tokens_per_task
-- `roadmap`: milestone, phases, success_criteria
+- `testing`: tdd | test-after
 - `experience_level`: beginner / intermediate / advanced
 - `taste`: dos, donts
 - `brownfield_artifacts`: list of existing files to preserve
