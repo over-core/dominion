@@ -2,9 +2,9 @@
 
 > Your AI development team, generated from your codebase.
 
-**v0.2.2** | MIT License | Claude Code Plugin
+**v0.4.2** | MIT License | Claude Code Plugin
 
-Dominion is a Claude Code plugin that analyzes your project and generates a complete AI development methodology — specialized agents, an MCP server, governance hooks, code conventions, and conditional methodology — all committed to git. The plugin is the author; the artifacts are the runtime. Dominion is needed to create and evolve the setup, but a cloned repo works without it. New developers get best practices on `git clone`.
+Dominion is a Claude Code plugin that analyzes your project and generates a complete AI development context — specialized agents, an MCP server, governance hooks, and code conventions — all committed to git. The plugin is the author; the artifacts are the runtime. Dominion is needed to create and evolve the setup, but a cloned repo works without it. New developers get the full context on `git clone`.
 
 ## What You Get
 
@@ -13,23 +13,20 @@ Run `/dominion:onboard` once and Dominion generates the following in your projec
 ```
 .dominion/
 ├── dominion.toml              # Project configuration
-├── roadmap.toml               # Phase roadmap
-├── state.toml                 # Session state (gitignored)
 ├── style.toml                 # Code conventions
 ├── agents/
-│   ├── researcher/
-│   │   ├── agent.toml         # Agent config + methodology section index
-│   │   ├── core.md            # Conditional methodology sections (flat)
-│   │   └── ...
-│   ├── architect/
-│   │   └── agent.toml
-│   └── ...
-├── memory/                    # Per-agent persistent memory
-│   ├── researcher.toml
+│   ├── researcher.toml        # Agent config (role, model, MCPs, hard stops)
+│   ├── architect.toml
+│   ├── developer.toml
+│   └── ...                    # 7 roles total
+├── heuristics/
+│   ├── research.md            # Step-specific methodology + engineering practices
+│   ├── plan.md
+│   ├── developer.md           # Role-specific heuristics for specialists
 │   └── ...
 ├── knowledge/
 │   └── index.toml             # Domain knowledge registry
-└── ...
+└── phases/                    # Pipeline state (gitignored)
 
 .claude/
 ├── agents/                    # Agent dispatch files (thin, MCP-driven)
@@ -38,118 +35,104 @@ Run `/dominion:onboard` once and Dominion generates the following in your projec
 │   └── ...
 ├── settings.local.json        # Permissions + governance hooks
 └── hooks/
-    ├── block-dominion-access.sh
-    ├── block-cli-access.sh
-    └── verify-agent-submitted.sh
+    └── dominion-governance.sh
 
-.mcp.json                      # MCP server config (3 lines, committed)
-CLAUDE.md                      # Lean project-aware instructions
+.mcp.json                      # MCP server config (committed)
+CLAUDE.md                      # Project-aware instructions
 AGENTS.md                      # Agent roster with dispatch entries
 ```
 
-Everything is committed to git. The MCP server (`dominion-mcp`) becomes the exclusive interface for reading and writing project state — agents call MCP tools, hooks enforce this mechanically.
+Everything is committed to git. The MCP server (`dominion-mcp`) prepares context via CLAUDE.md files; agents read the filesystem directly. Hooks block `.dominion/` writes — agents write via MCP tools only.
 
 ## The Pipeline
 
-Dominion drives feature development through a 7-step pipeline. Each step has a dedicated skill and a dispatch mode.
+Dominion drives feature development through a complexity-adaptive pipeline. Depth adapts to the task — trivial tasks execute directly, complex tasks get the full cycle.
 
-| Step | Skill | Dispatch Mode | Lead Agent | Produces |
-|------|-------|--------------|------------|----------|
-| 1. Discuss | `/dominion:discuss` | Inline / Panel | Orchestrator | Intent, scope, constraints |
-| 2. Research | `/dominion:research` | Subagent | Researcher | research.toml — findings, risks |
-| 3. Plan | `/dominion:plan` | Subagent | Architect | plan.toml — tasks, waves, criteria |
-| 4. Execute | `/dominion:execute` | Worktree | Developer | Code changes with atomic commits |
-| 5. Audit | `/dominion:audit` | Multi-subagent | QA + Security + Analyst | test-report.toml, security-findings.toml |
-| 6. Review | `/dominion:review` | Subagent | Reviewer | review.toml — quality findings, verdict |
-| 7. Improve | `/dominion:improve` | Panel | All | Improvement proposals, knowledge capture |
+| Step | Skill | Lead Agent | Produces |
+|------|-------|------------|----------|
+| 1. Discuss | `/dominion:discuss` | Orchestrator | Intent, scope, constraints |
+| 2. Research | `/dominion:research` | Researcher | Structured findings, risks |
+| 3. Plan | `/dominion:plan` | Architect | Tasks with wave grouping, success criteria |
+| 4. Execute | `/dominion:execute` | Developer | Code changes with atomic commits |
+| 5. Review | `/dominion:review` | Reviewer + Specialists | Quality verdict, security/perf findings |
+| 6. Improve | `/dominion:improve` | Orchestrator | Knowledge capture, methodology updates |
 
-Use `/dominion:orchestrate` to drive the full pipeline end-to-end. Pipeline depth adapts to task complexity — trivial tasks skip ceremony, major tasks get panel debates.
+Use `/dominion:orchestrate` to drive the full pipeline end-to-end. The orchestrator assesses complexity and selects the appropriate depth:
+
+| Complexity | Steps |
+|------------|-------|
+| Trivial | Execute only |
+| Moderate | Research → Plan → Execute → Review |
+| Complex | Full 6-step pipeline |
+| Major | Full pipeline + panel debates |
+| Specified | Plan → Execute → Review (spec already exists) |
 
 ## MCP Server
 
-`dominion-mcp` is the methodology engine — it replaces the CLI as the data access layer and adds conditional methodology curation, pipeline state machine, and agent memory.
+`dominion-mcp` is the context engine — it prepares agent context as CLAUDE.md files on the filesystem and manages pipeline state.
 
-### 21 MCP Tools
+### 11 MCP Tools
 
 | Category | Tools |
 |----------|-------|
-| **Agent Lifecycle** | `agent_start`, `agent_submit`, `agent_signal`, `agent_status` |
-| **Pipeline** | `pipeline_next`, `step_dispatch`, `phase_status`, `phase_history`, `help` |
-| **Data Reads** | `get_config`, `get_style`, `get_plan`, `get_progress`, `get_knowledge`, `search_knowledge`, `get_roadmap` |
-| **Data Writes** | `update_progress`, `add_blocker`, `resolve_blocker`, `save_decision`, `save_memory` |
+| **Setup** | `start_phase`, `prepare_step`, `prepare_task` |
+| **Submit** | `submit_work`, `signal_blocker` |
+| **Progress** | `get_progress`, `quality_gate`, `assess_complexity`, `advance_step`, `save_decision` |
+| **Knowledge** | `save_knowledge` |
 
-### Conditional Methodology
+### Context Delivery
 
-Agent methodologies are stored as 10x richer conditional sections (language-specific, phase-specific, tool-specific) and curated per invocation:
-
-- **Opus agents** (500k budget): permissive curation — richer context for deep analysis
-- **Sonnet agents** (150k budget): strict curation — only precisely relevant sections
+MCP is the context preparer; the filesystem is the context delivery mechanism. `prepare_step` and `prepare_task` generate CLAUDE.md files that agents read directly. Agent heuristics include step methodology, engineering practices, and role-specific guidance — 150–260 lines served per agent.
 
 ### Agent Protocol
 
 Every agent follows the mandatory protocol:
 
 ```
-SPAWN → agent_start → WORK → agent_submit → VERIFY
+SPAWN → read CLAUDE.md → WORK → submit_work → VERIFY
 ```
 
-Agents receive zero methodology at spawn — only "call agent_start." The MCP server delivers everything in one call. Hooks block any alternative path.
+The MCP server writes context to the filesystem before agents spawn. Hooks block direct `.dominion/` writes — agents submit results via MCP tools.
 
 ## Agents
 
-17 agents (8 core + 9 specialist), each with conditional methodology and model-aware token budgets.
-
-### Core Agents
+7 agent roles, deployed per project based on detection results.
 
 | Role | Model | Purpose |
 |------|-------|---------|
-| Researcher (A1) | Opus | Deep codebase and ecosystem analysis |
-| Architect (A2) | Opus | Translates research into executable plans |
-| Developer (A3) | Sonnet* | Implements plan tasks (Opus override for complex tasks) |
-| Quality Auditor (A4) | Sonnet | Dual-mode: primary testing or TDD test audit |
-| Reviewer (A5) | Opus | Post-phase quality assessment with audit synthesis |
-| Analyst (A7) | Opus | Performance analysis, metrics, measurement |
-| Security Auditor (A8) | Opus | Dependency audits, STRIDE, threat modeling. Always active. |
-| Secretary | Sonnet | System maintenance, file generation |
+| Researcher | Opus | Deep codebase analysis, framework audit, pattern detection |
+| Architect | Opus | Task decomposition, wave design, dependency planning |
+| Developer | Sonnet | Implementation with TDD, self-verification, atomic commits |
+| Reviewer | Opus | Cross-cutting code review across security, performance, architecture |
+| Security Auditor | Opus | OWASP Top 10, CWE matching, dependency scanning, threat modeling |
+| Analyst | Opus | Quantitative performance analysis, N+1 detection, scalability |
+| Innovation Engineer | Opus | Opt-in. TRIZ, TOC, SIT, first principles, SCAMPER |
 
-### Specialist Agents
-
-| Role | Model | Activated By |
-|------|-------|-------------|
-| Frontend Engineer (S1) | Sonnet | React, Vue, Svelte, Angular, Next.js |
-| API Designer (S2) | Sonnet | OpenAPI, GraphQL, gRPC frameworks |
-| Database Engineer (S3) | Sonnet | PostgreSQL, MySQL, SQLite, MongoDB, ORMs |
-| DevOps (S4) | Sonnet | Docker, GitHub Actions, Helm Charts |
-| Cloud Engineer (S5) | Sonnet | Terraform, Pulumi, CDK, AWS/GCP/Azure |
-| Technical Writer (S6) | Sonnet | docs/ directories, ADR directories |
-| Observability Engineer (S7) | Sonnet | Prometheus, Grafana, OpenTelemetry |
-| Release Manager (S8) | Sonnet | Release workflows, version management |
-| Innovation Engineer (S9) | Opus | Opt-in only. TRIZ, SIT, Axiomatic Design. |
+Reviewer and analyst roles can create temporary analysis scripts but cannot modify source code files. Developer agents are restricted to files listed in their assignment to prevent merge conflicts during parallel worktree execution.
 
 ## Skills
 
-11 user-facing commands available via `/dominion:*`.
+10 user-facing commands available via `/dominion:*`.
 
 ### Pipeline Skills
 
 | Command | Description |
 |---------|-------------|
-| `/dominion:discuss` | Capture user intent — goals, scope, constraints |
-| `/dominion:research` | Researcher-driven codebase analysis |
-| `/dominion:plan` | Architect-driven planning with wave grouping |
-| `/dominion:execute` | Developer-driven task execution with worktrees |
-| `/dominion:audit` | Multi-agent quality audit (testing + security + performance) |
-| `/dominion:review` | Reviewer-driven quality assessment |
-| `/dominion:improve` | Post-pipeline retrospective and methodology improvement |
+| `/dominion:discuss` | Capture intent — goals, scope, constraints, panel debate at complex+ |
+| `/dominion:research` | Codebase analysis producing structured findings |
+| `/dominion:plan` | Task decomposition with wave grouping and success criteria |
+| `/dominion:execute` | Parallel worktree implementation with wave grouping |
+| `/dominion:review` | Cross-cutting review with specialist support (security, performance) |
+| `/dominion:improve` | Add project-specific knowledge via conversation |
 
 ### Utility Skills
 
 | Command | Description |
 |---------|-------------|
-| `/dominion:onboard` | Analyze project and generate AI development methodology |
+| `/dominion:onboard` | Analyze project and generate AI development context |
 | `/dominion:orchestrate` | Drive the full pipeline end-to-end |
-| `/dominion:status` | Display project status dashboard |
-| `/dominion:release` | Generate changelog, PR synopsis, and release notes |
+| `/dominion:status` | Display pipeline status dashboard |
+| `/dominion:ship` | Automated ship — sync, test, commit, push, create PR |
 
 ## Getting Started
 
@@ -173,15 +156,14 @@ Agents receive zero methodology at spawn — only "call agent_start." The MCP se
 /dominion:onboard
 ```
 
-This walks through project analysis and a setup wizard. Dominion detects your languages, frameworks, and infrastructure, then generates agents, MCP server config, governance hooks, and conditional methodology.
+This walks through project analysis and a setup wizard. Dominion detects your languages, frameworks, and infrastructure, then generates agents, MCP server config, governance hooks, and heuristics.
 
-After onboard completes, **restart your Claude Code session** (required for `.mcp.json` to take effect).
+After onboard completes, **restart your Claude Code session** (required for `.mcp.json` to take effect). Then run `/dominion:orchestrate` to start your first pipeline.
 
 ### Run Your First Pipeline
 
 ```bash
-# Set high effort — subagents inherit the session's effort level,
-# and pipeline steps (research, plan, review) benefit significantly
+# Set high effort — subagents inherit the session's effort level
 /effort high
 
 # Full pipeline with user control points between steps
@@ -192,26 +174,25 @@ After onboard completes, **restart your Claude Code session** (required for `.mc
 /dominion:research
 /dominion:plan
 /dominion:execute
-/dominion:audit
 /dominion:review
 /dominion:improve
 ```
 
-> **Note:** Claude Code subagents inherit the parent session's thinking effort level. There is no per-agent override. Running pipeline steps at high effort produces significantly better research, planning, and review output. This is a Claude Code platform constraint, not a Dominion limitation.
+> **Note:** Claude Code subagents inherit the parent session's thinking effort level. There is no per-agent override. Running pipeline steps at high effort produces significantly better research, planning, and review output.
 
 ## Requirements
 
 ### Required MCPs
 
-| MCP | Category | Critical | Install |
-|-----|----------|----------|---------|
-| serena | Code navigation | Yes | See [serena docs](https://github.com/serena-ai/serena) |
-| echovault | Cross-agent memory | No | `pip install git+https://github.com/mraza007/echovault.git` |
+| MCP | Category | Install |
+|-----|----------|---------|
+| serena | Code navigation | See [serena docs](https://github.com/oraios/serena). Add `--project .` to args for worktree support. |
 
 ### Recommended MCPs
 
 | MCP | Category | Install |
 |-----|----------|---------|
+| echovault | Cross-agent memory | See [echovault docs](https://github.com/mraza007/echovault) |
 | context7 | Documentation | `claude mcp add context7 -- npx -y @upstash/context7-mcp@latest` |
 | exa | Semantic search + code examples | `claude mcp add --transport http exa https://mcp.exa.ai/mcp` |
 | sequential-thinking | Multi-step reasoning | `claude mcp add sequential-thinking -- npx -y @anthropic/sequential-thinking-mcp` |
@@ -222,39 +203,38 @@ After onboard completes, **restart your Claude Code session** (required for `.mc
 | Plugin | Purpose | Install |
 |--------|---------|---------|
 | hookify | Governance hook creation | `/plugin marketplace install hookify` |
-| skill-creator | Eval-driven skill authoring | `/plugin marketplace install skill-creator` |
+
+### Recommended Tools
+
+| Tool | Purpose | Install |
+|------|---------|---------|
+| rtk | CLI proxy — 60-90% Bash output token savings | See [rtk docs](https://github.com/tomoam/rtk) |
 
 ## Governance
 
-Dominion enforces its protocol mechanically through a 4-layer enforcement stack:
+Dominion enforces its protocol through a 3-layer enforcement stack:
 
-1. **Hooks** — PreToolUse blocks direct `.dominion/` access and legacy CLI usage
-2. **MCP** — The only interface for reading/writing project state
-3. **Agent Prompt** — Spawn prompt contains zero methodology; `agent_start` delivers everything
-4. **Orchestrator** — Verifies submission via `phase_status()` after each agent
+1. **Hooks** — PreToolUse blocks direct `.dominion/` writes
+2. **MCP** — Context preparation and result submission interface
+3. **Orchestrator** — Verifies submission via `quality_gate()` after each agent, deduplicates stale findings
 
 ## Project Structure
 
 For contributors — this is the plugin's own layout.
 
 ```
-skills/                    11 user-facing skills (/dominion:* commands)
+skills/                    10 user-facing skills (/dominion:* commands)
   onboard/                 Substantial — project analysis + setup wizard
-  {step}/                  Thin MCP dispatchers (~10-15 lines each)
-
-templates/
-  agents/                  17 agent TOML templates (8 core + 9 specialist)
-    {role}/                Agent directory (agent.toml + methodology .md files)
-  schemas/                 TOML schema definitions (20 schemas)
-  agents/_shared/          Shared methodology sections (core, output-format, tools, rubrics)
-  hooks/                   Governance hook scripts + settings template
-  mcp-spec.toml            MCP tool specification (21 tools)
+    data/                  Detection data (languages, frameworks, registry, agents)
+    data/heuristics/       Step + role-specific methodology heuristics
+    references/            Sub-step instructions (detection, generation, interview, etc.)
+  {step}/                  Pipeline step dispatchers
 
 mcp/                       dominion-mcp Python package (MCP server)
   dominion_mcp/
-    core/                  12 core modules (config, state, plan, complexity, panel, correction, etc.)
-    tools/                 4 tool modules (21 MCP tools total)
-  tests/                   201 tests
+    core/                  7 core modules (config, state, filesystem, prepare, complexity, panel)
+    tools/                 4 tool modules (11 MCP tools)
+  tests/                   115 tests
 
 .claude-plugin/
   plugin.json              Plugin manifest
@@ -265,10 +245,11 @@ mcp/                       dominion-mcp Python package (MCP server)
 
 | Version | Highlights |
 |---------|------------|
-| 0.2.2 | Advanced collaboration — panel mode for multi-perspective debates, course correction with severity-based halt, complexity-adaptive pipeline depth |
-| 0.2.1 | Methodology enrichment — complexity detection, skill level adaptation, adaptive requirements, TDD methodology option |
-| 0.2.0 | MCP architecture — CLI replaced by MCP server, conditional methodology, governance hooks, agent memory, pipeline state machine, 5 dispatch modes |
-| 0.1.1 | Stabilization — agent dispatch protocol, execution resilience, governance fixes |
+| 0.4.2 | Concerns remediation — quality gate dedup, worktree branch verification, relaxed file ownership for reviewer/analyst, rtk recommendation, Serena `--project` flag, enriched agent heuristics with methodology and engineering practices |
+| 0.4.0 | Pipeline hardening — stubs-first TDD, specified complexity level, post-mortem fixes from production use |
+| 0.3.0 | Context engine architecture — filesystem-based context delivery, MCP as context preparer, heuristics replace conditional methodology, 11 tools (down from 21) |
+| 0.2.2 | Advanced collaboration — panel mode, course correction, complexity-adaptive pipeline depth |
+| 0.2.0 | MCP architecture — CLI replaced by MCP server, conditional methodology, governance hooks, agent memory |
 | 0.1.0 | Initial release — 14 skills, 18 agents, 54 CLI commands, 7-step pipeline |
 
 ## License
