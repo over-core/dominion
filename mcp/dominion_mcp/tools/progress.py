@@ -11,7 +11,7 @@ from pathlib import Path
 
 from ..server import mcp
 from ..core.config import find_dominion_root, read_toml_optional
-from ..core.events import emit_event
+from ..core.events import emit_event, read_events
 from ..core.complexity import (
     assess_complexity as _assess,
     get_pipeline,
@@ -48,17 +48,17 @@ async def get_progress(phase: str | None = None) -> dict:
     try:
         dom_root = find_dominion_root()
     except ValueError:
-        return {"phase": "00", "step": "idle", "complexity": None, "completed_steps": [], "pipeline": []}
+        return {"phase": "00", "step": "idle", "complexity": None, "completed_steps": [], "pipeline": [], "recent_events": []}
 
     state = read_toml_optional(dom_root / "state.toml")
     if not state:
-        return {"phase": "00", "step": "idle", "complexity": None, "completed_steps": [], "pipeline": []}
+        return {"phase": "00", "step": "idle", "complexity": None, "completed_steps": [], "pipeline": [], "recent_events": []}
 
     pos = get_position(dom_root)
     target_phase = phase or pos.get("phase", "00")
 
     if target_phase == "00":
-        return {"phase": "00", "step": "idle", "complexity": None, "completed_steps": [], "pipeline": []}
+        return {"phase": "00", "step": "idle", "complexity": None, "completed_steps": [], "pipeline": [], "recent_events": []}
 
     complexity = pos.get("complexity_level", "moderate")
     pipeline = get_pipeline(complexity)
@@ -90,6 +90,10 @@ async def get_progress(phase: str | None = None) -> dict:
     # Check for completion
     if pos.get("step") == "idle" and pos.get("status") == "complete":
         result["status"] = "complete"
+
+    # Recent events for observability
+    recent = read_events(dom_root, phase=target_phase, limit=5)
+    result["recent_events"] = recent
 
     return result
 

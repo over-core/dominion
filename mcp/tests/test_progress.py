@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from dominion_mcp.core.config import write_toml
+from dominion_mcp.core.events import emit_event
 
 
 @pytest.fixture()
@@ -324,3 +325,25 @@ async def test_generate_phase_report_no_phase(_patch_dom_root_bare: Path):
 
     result = await generate_phase_report("99")
     assert "error" in result
+
+
+# -- recent_events in get_progress ------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_get_progress_includes_recent_events(dom_root: Path, monkeypatch: pytest.MonkeyPatch):
+    """get_progress returns recent_events from event feed."""
+    # Emit events for phase 01
+    await emit_event(dom_root, phase="01", event="phase_started")
+    await emit_event(dom_root, phase="01", event="step_prepared")
+
+    monkeypatch.setattr(
+        "dominion_mcp.tools.progress.find_dominion_root",
+        lambda: dom_root,
+    )
+    from dominion_mcp.tools.progress import get_progress
+
+    result = await get_progress(phase="01")
+
+    assert "recent_events" in result
+    assert len(result["recent_events"]) == 2
