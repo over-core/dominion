@@ -318,3 +318,57 @@ async def save_decision(
             f.write(md_entry)
 
     return entry
+
+
+# ---------------------------------------------------------------------------
+# Active agents (stall detection)
+# ---------------------------------------------------------------------------
+
+
+def get_active_agents(dom_root: Path) -> dict:
+    """Read active agents from state.toml [active_agents] section.
+
+    Returns dict of agent_key -> {spawned, phase, step, role, task_id}.
+    Returns empty dict if section doesn't exist.
+    """
+    state = read_toml_optional(dom_root / "state.toml") or {}
+    return state.get("active_agents", {})
+
+
+async def register_active_agent(
+    dom_root: Path,
+    agent_key: str,
+    phase: str,
+    step: str,
+    role: str,
+    task_id: str | None = None,
+) -> dict:
+    """Record agent spawn in state.toml for stall detection."""
+    entry = {
+        "spawned": datetime.now(timezone.utc).isoformat(),
+        "phase": phase,
+        "step": step,
+        "role": role,
+        "task_id": task_id or "",
+    }
+
+    def _update(state: dict) -> dict:
+        if "active_agents" not in state:
+            state["active_agents"] = {}
+        state["active_agents"][agent_key] = entry
+        return state
+
+    await write_toml_locked(dom_root / "state.toml", _update)
+    return {"agent_key": agent_key, **entry}
+
+
+async def remove_active_agent(dom_root: Path, agent_key: str) -> None:
+    """Remove agent from active_agents after successful submission."""
+
+    def _update(state: dict) -> dict:
+        agents = state.get("active_agents", {})
+        agents.pop(agent_key, None)
+        state["active_agents"] = agents
+        return state
+
+    await write_toml_locked(dom_root / "state.toml", _update)

@@ -8,6 +8,7 @@ import pytest
 
 from dominion_mcp.core.config import read_toml
 from dominion_mcp.core.state import (
+    get_active_agents,
     get_circuit_breaker,
     get_completed_tasks,
     get_decisions,
@@ -16,6 +17,8 @@ from dominion_mcp.core.state import (
     mark_task_complete,
     next_phase_id,
     add_phase,
+    register_active_agent,
+    remove_active_agent,
     save_decision,
     update_circuit_breaker,
     update_phase_status,
@@ -168,3 +171,43 @@ async def test_save_multiple_decisions(dom_root: Path):
 def test_get_decisions_filter_by_phase(dom_root: Path):
     decisions = get_decisions(dom_root, phase="99")
     assert len(decisions) == 0
+
+
+# -- active agents -----------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_register_active_agent(dom_root: Path):
+    """register_active_agent writes agent entry to state.toml."""
+    await register_active_agent(
+        dom_root,
+        agent_key="researcher-research",
+        phase="01",
+        step="research",
+        role="researcher",
+    )
+    agents = get_active_agents(dom_root)
+    assert "researcher-research" in agents
+    assert agents["researcher-research"]["role"] == "researcher"
+    assert "spawned" in agents["researcher-research"]
+
+
+@pytest.mark.asyncio
+async def test_remove_active_agent(dom_root: Path):
+    """remove_active_agent clears agent entry from state.toml."""
+    await register_active_agent(
+        dom_root,
+        agent_key="researcher-research",
+        phase="01",
+        step="research",
+        role="researcher",
+    )
+    await remove_active_agent(dom_root, agent_key="researcher-research")
+    agents = get_active_agents(dom_root)
+    assert "researcher-research" not in agents
+
+
+def test_get_active_agents_empty(dom_root: Path):
+    """get_active_agents returns empty dict when no agents registered."""
+    agents = get_active_agents(dom_root)
+    assert agents == {}
