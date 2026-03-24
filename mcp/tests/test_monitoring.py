@@ -169,3 +169,31 @@ async def test_check_pipeline_ready_enabled(dom_root: Path):
     assert result["step"] == "research"
     assert result["wave"] == 0
     assert result["complexity"] == "moderate"
+
+
+@pytest.mark.asyncio
+async def test_submit_work_clears_active_agent(dom_root_with_plan: Path):
+    """submit_work removes agent from active_agents after success."""
+    import json
+    # Register agent
+    await _register_agent(dom_root_with_plan, phase="01", step="research", role="researcher")
+
+    # Verify registered
+    agents = get_active_agents(dom_root_with_plan)
+    assert "researcher-research" in agents
+
+    # Submit work via tool (monkey-patch find_dominion_root)
+    import dominion_mcp.tools.submit as submit_mod
+    original = submit_mod.find_dominion_root
+    submit_mod.find_dominion_root = lambda: dom_root_with_plan
+    try:
+        content = json.dumps({"items": [{"severity": "medium", "category": "style", "description": "test", "file": "test.py"}]})
+        result = await submit_mod.submit_work(phase="01", step="research", role="researcher", content=content, summary="Test findings")
+    finally:
+        submit_mod.find_dominion_root = original
+
+    assert result["status"] == "accepted"
+
+    # Verify cleared
+    agents = get_active_agents(dom_root_with_plan)
+    assert "researcher-research" not in agents
