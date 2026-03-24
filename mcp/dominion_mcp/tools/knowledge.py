@@ -82,6 +82,13 @@ async def save_knowledge(
         _update_index(dom_root, topic, summary, tag_list, f"{topic}.md", referenced_files)
         result_path = str(file_path.relative_to(dom_root.parent))
 
+    from ..core.events import emit_event
+    from ..core.state import get_position
+    pos = get_position(dom_root)
+    current_phase = pos.get("phase", "00")
+    await emit_event(dom_root, phase=current_phase, event="knowledge_saved",
+                     data={"topic": topic, "tags": tag_list})
+
     result: dict = {
         "status": "saved",
         "path": result_path,

@@ -110,3 +110,42 @@ def test_read_events_no_file(dom_root: Path):
     """read_events returns empty list when events.jsonl doesn't exist."""
     result = read_events(dom_root, "42")
     assert result == []
+
+
+@pytest.mark.asyncio
+async def test_start_phase_emits_event(dom_root: Path):
+    """start_phase emits a phase_started event."""
+    import dominion_mcp.tools.setup as setup_mod
+    from dominion_mcp.tools.setup import start_phase
+
+    original = setup_mod.find_dominion_root
+    setup_mod.find_dominion_root = lambda: dom_root
+    try:
+        result = await start_phase(intent="Test feature", complexity="moderate")
+    finally:
+        setup_mod.find_dominion_root = original
+
+    phase = result["phase"]
+    events = read_events(dom_root, phase=phase)
+    phase_events = [e for e in events if e["event"] == "phase_started"]
+    assert len(phase_events) == 1
+    assert phase_events[0]["data"]["complexity"] == "moderate"
+
+
+@pytest.mark.asyncio
+async def test_advance_step_emits_event(dom_root_with_plan: Path):
+    """advance_step emits a step_advanced event."""
+    import dominion_mcp.tools.progress as prog_mod
+    from dominion_mcp.tools.progress import advance_step
+
+    original = prog_mod.find_dominion_root
+    prog_mod.find_dominion_root = lambda: dom_root_with_plan
+    try:
+        result = await advance_step(phase="01", step="research")
+    finally:
+        prog_mod.find_dominion_root = original
+
+    events = read_events(dom_root_with_plan, phase="01")
+    advance_events = [e for e in events if e["event"] == "step_advanced"]
+    assert len(advance_events) == 1
+    assert advance_events[0]["data"]["from_step"] == "research"

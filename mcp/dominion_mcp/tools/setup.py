@@ -33,6 +33,7 @@ from ..core.prepare import (
     filter_knowledge_by_step,
     filter_knowledge_by_files,
 )
+from ..core.events import emit_event
 from ..core.state import (
     add_phase,
     get_decisions,
@@ -92,6 +93,9 @@ async def start_phase(intent: str, complexity: str) -> dict:
         status="active",
         complexity_level=complexity,
     )
+
+    await emit_event(dom_root, phase=phase_id, event="phase_started",
+                     data={"complexity": complexity, "pipeline": pipeline})
 
     return {
         "phase": phase_id,
@@ -214,6 +218,9 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
             agent["model"] = agent_conf["agent"]["model"]
         agent["agent_path"] = f".claude/agents/{agent['role']}.md"
 
+    await emit_event(dom_root, phase=phase, event="step_prepared",
+                     step=step, data={"thread_type": thread_type, "agent_count": len(agents)})
+
     return {
         "claude_md_path": str(path.relative_to(dom_root.parent)),
         "thread_type": thread_type,
@@ -331,6 +338,10 @@ async def prepare_task(
     # Create task directory and write CLAUDE.md
     task_dir = create_task_dirs(dom_root, phase, task_id)
     path = write_task_claude_md(dom_root, phase, task_id, content)
+
+    await emit_event(dom_root, phase=phase, event="task_prepared",
+                     step="execute", task_id=task_id,
+                     data={"title": task.get("title", ""), "wave": task.get("wave", 0)})
 
     return {
         "claude_md_path": str(path.relative_to(dom_root.parent)),

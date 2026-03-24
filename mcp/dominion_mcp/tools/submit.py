@@ -24,6 +24,7 @@ from ..core.filesystem import (
     write_output,
     write_task_output,
 )
+from ..core.events import emit_event
 from ..core.state import mark_task_complete, update_position
 
 # Step → output filename mapping
@@ -181,6 +182,10 @@ async def submit_work(
         "complexity_upgrade": None,
     }
 
+    await emit_event(dom_root, phase=phase, event="work_submitted",
+                     step=step, role=role, task_id=task_id,
+                     data={"output_path": str(output_path.relative_to(dom_root.parent))})
+
     # Research side effect: trigger refine_complexity after ALL agents submit (H8)
     if step == "research" and not task_id:
         state = read_toml_optional(dom_root / "state.toml") or {}
@@ -232,6 +237,9 @@ async def signal_blocker(phase: str, task_id: str, reason: str) -> dict:
     blocker_path.write_text(f"# Blocker: Task {task_id}\n\n{reason}\n")
 
     await update_position(dom_root, status="blocked")
+
+    await emit_event(dom_root, phase=phase, event="blocker_signaled",
+                     task_id=task_id, data={"reason": reason})
 
     return {
         "status": "blocked",

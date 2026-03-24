@@ -11,6 +11,7 @@ from pathlib import Path
 
 from ..server import mcp
 from ..core.config import find_dominion_root, read_toml_optional
+from ..core.events import emit_event
 from ..core.complexity import (
     assess_complexity as _assess,
     get_pipeline,
@@ -223,6 +224,10 @@ async def quality_gate(phase: str) -> dict:
         same_finding_count=same_count,
     )
 
+    await emit_event(dom_root, phase=phase, event="quality_gate",
+                     step="review", data={"verdict": verdict, "action": action,
+                                          "blocking": len(blocking), "warnings": len(warnings)})
+
     return {
         "verdict": verdict,
         "blocking_findings": blocking,
@@ -301,11 +306,15 @@ async def advance_step(phase: str, step: str) -> dict:
     if current_idx + 1 < len(pipeline):
         next_step = pipeline[current_idx + 1]
         await update_position(dom_root, step=next_step, wave=0)
+        await emit_event(dom_root, phase=phase, event="step_advanced",
+                         step=step, data={"from_step": step, "to_step": next_step})
         return {"status": "advanced", "from_step": step, "to_step": next_step}
     else:
         # Last step — pipeline complete
         await update_position(dom_root, step="idle", status="complete")
         await update_phase_status(dom_root, phase, "complete")
+        await emit_event(dom_root, phase=phase, event="step_advanced",
+                         step=step, data={"from_step": step, "to_step": "idle"})
         return {"status": "advanced", "from_step": step, "to_step": "idle"}
 
 
@@ -444,5 +453,8 @@ async def save_decision_tool(
         path=f"{knowledge_topic}.md",
         referenced_files=[],
     )
+
+    await emit_event(dom_root, phase=phase, event="decision_saved",
+                     data={"title": title, "tags": tag_list})
 
     return {"id": entry["id"], "title": title, "phase": phase}
