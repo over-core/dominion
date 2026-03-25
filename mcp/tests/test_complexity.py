@@ -368,3 +368,28 @@ def test_valid_steps_with_config():
     assert "security-review" in steps
     assert "compliance-check" in steps
     assert "research" in steps  # base still present
+
+
+def test_pipeline_config_insertion_after_missing():
+    """Insertion silently skipped when 'after' step doesn't exist in base pipeline."""
+    config = {
+        "agents": {"active": ["security-auditor"]},
+        "pipeline": {"insertions": [
+            {"name": "security-review", "after": "nonexistent-step", "when": "security-auditor"}
+        ]},
+    }
+    # Moderate pipeline should be unchanged — insertion target doesn't exist
+    result = get_pipeline("moderate", config)
+    assert result == ["research", "plan", "execute", "review"]
+    assert "security-review" not in result
+
+
+def test_dispatch_custom_step_no_active_agents():
+    """Custom step dispatch raises ValueError when no active agents match roles."""
+    config = {
+        "pipeline": {"insertions": [
+            {"name": "security-review", "thread_type": "B-Thread", "roles": ["security-auditor"]}
+        ]},
+    }
+    with pytest.raises(ValueError, match="No active agents"):
+        get_dispatch("security-review", "moderate", ["researcher", "developer"], config)

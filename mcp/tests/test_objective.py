@@ -127,3 +127,30 @@ async def test_complete_objective(dom_root: Path):
     assert obj["status"] == "complete"
     assert obj["completed"] != ""
     assert obj["summary"] == "Done!"
+
+
+@pytest.mark.asyncio
+async def test_create_objective_slug_collision(dom_root: Path):
+    """Two names that slugify identically are treated as the same objective."""
+    await create_objective(dom_root, name="Auth-Rewrite", description="First")
+    await create_objective(dom_root, name="Auth Rewrite", description="Second")
+
+    objectives = read_objectives(dom_root)
+    # Both names produce slug "auth-rewrite" — second create is idempotent
+    matching = [o for o in objectives if o["id"] == "auth-rewrite"]
+    assert len(matching) == 1
+    assert matching[0]["summary"] == "First"  # Original preserved, not overwritten
+
+
+@pytest.mark.asyncio
+async def test_get_objective_enrichment_missing_phase(dom_root: Path):
+    """Objective enrichment handles phases that don't exist in state.toml."""
+    await create_objective(dom_root, name="Ghost Phases", description="Test")
+    await link_phase_to_objective(dom_root, phase="99", objective_id="ghost-phases")
+
+    result = get_objective(dom_root, "ghost-phases")
+    assert "phases_detail" in result
+    assert len(result["phases_detail"]) == 1
+    assert result["phases_detail"][0]["id"] == "99"
+    assert result["phases_detail"][0]["intent"] == ""  # Empty — phase doesn't exist
+    assert result["phases_detail"][0]["status"] == "unknown"

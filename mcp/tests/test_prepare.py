@@ -269,3 +269,58 @@ def test_task_claude_md_includes_contracts():
     )
     assert "## Interface Contracts" in content
     assert "Report" in content
+
+
+@pytest.mark.asyncio
+async def test_prepare_task_wave_review_missing_heuristic(dom_root_with_plan: Path):
+    """Wave-review task works even if wave-review.md heuristic doesn't exist."""
+    import json
+    # Do NOT create wave-review.md — test graceful degradation
+
+    import dominion_mcp.tools.setup as setup_mod
+    original = setup_mod.find_dominion_root
+    setup_mod.find_dominion_root = lambda: dom_root_with_plan
+    try:
+        task_info = json.dumps({
+            "title": "Wave 1 review",
+            "description": "Check consistency",
+            "files": ["src/middleware.py"],
+            "wave": 1, "dependencies": [], "agent_role": "developer",
+        })
+        result = await setup_mod.prepare_task(phase="01", task_id="wave-review-1", task_info=task_info)
+    finally:
+        setup_mod.find_dominion_root = original
+
+    # Should still succeed — CLAUDE.md created, just without heuristic section
+    assert "claude_md_path" in result
+    claude_path = dom_root_with_plan.parent / result["claude_md_path"]
+    assert claude_path.exists()
+
+
+@pytest.mark.asyncio
+async def test_prepare_task_wave_review_excludes_execute(dom_root_with_plan: Path):
+    """Wave-review task does NOT include execute.md heuristic content."""
+    import json
+    # Create both heuristics
+    (dom_root_with_plan / "heuristics" / "wave-review.md").write_text("## Wave Review\nCheck consistency.\n")
+    # execute.md already exists from conftest (has "Execute Heuristics" header)
+
+    import dominion_mcp.tools.setup as setup_mod
+    original = setup_mod.find_dominion_root
+    setup_mod.find_dominion_root = lambda: dom_root_with_plan
+    try:
+        task_info = json.dumps({
+            "title": "Wave 1 review",
+            "description": "Check consistency",
+            "files": ["src/middleware.py"],
+            "wave": 1, "dependencies": [], "agent_role": "developer",
+        })
+        result = await setup_mod.prepare_task(phase="01", task_id="wave-review-1", task_info=task_info)
+    finally:
+        setup_mod.find_dominion_root = original
+
+    claude_path = dom_root_with_plan.parent / result["claude_md_path"]
+    content = claude_path.read_text()
+    assert "Wave Review" in content
+    # Execute heuristic should NOT be present
+    assert "Execute Heuristics" not in content
