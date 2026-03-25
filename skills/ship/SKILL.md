@@ -79,11 +79,22 @@ Platform-aware from config.toml `[project].git_platform`:
 ### Tasks
 - [x] Task 01: {title} — {one-line summary}
 
+## Objective
+{if phase linked to objective via get_objective():}
+This PR is part of the `{objective_id}` objective: {objective_name}
+{for each phase in objective: "- Phase {pid}: {intent} ({status})"}
+
 ## Key Decisions
 {from state.toml [[decisions]] for this phase}
 
 ## Review: {verdict}
 {from review/output/summary.md}
+
+Quality Score: {score.score}/10
+Effort: avg {effort.mean}/10 (max {effort.max}) — {effort.with_effort} findings assessed
+Delta: {delta.summary}
+
+(Get score/effort/delta by calling `mcp__dominion__quality_gate(phase)`. If unavailable, omit these lines.)
 
 ## Metrics
 Files changed: N | Lines: +X / -Y | Tests added: Z

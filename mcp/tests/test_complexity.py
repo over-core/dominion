@@ -12,6 +12,7 @@ from dominion_mcp.core.complexity import (
     get_dispatch,
     get_pipeline,
     refine_complexity,
+    valid_steps,
 )
 
 
@@ -272,3 +273,123 @@ def test_refine_no_downgrade(dom_root_with_plan: Path):
     result = refine_complexity(dom_root_with_plan, "01")
     assert result["refined"] == "complex"
     assert result["upgraded"] is False
+
+
+# -- get_pipeline with config ---------------------------------------------------
+
+
+def test_pipeline_config_override():
+    """Config [pipeline.overrides] replaces entire profile."""
+    config = {"pipeline": {"overrides": {"moderate": ["plan", "execute"]}}}
+    assert get_pipeline("moderate", config) == ["plan", "execute"]
+
+
+def test_pipeline_config_override_no_match():
+    """Config override for different level doesn't affect requested level."""
+    config = {"pipeline": {"overrides": {"complex": ["plan", "execute"]}}}
+    assert get_pipeline("moderate", config) == ["research", "plan", "execute", "review"]
+
+
+def test_pipeline_config_insertion():
+    """Config [[pipeline.insertions]] adds step after named step."""
+    config = {
+        "agents": {"active": ["security-auditor", "researcher", "architect", "developer", "reviewer"]},
+        "pipeline": {"insertions": [
+            {"name": "security-review", "after": "execute", "when": "security-auditor",
+             "thread_type": "B-Thread", "roles": ["security-auditor"]}
+        ]},
+    }
+    result = get_pipeline("moderate", config)
+    assert result == ["research", "plan", "execute", "security-review", "review"]
+
+
+def test_pipeline_config_insertion_when_agent_inactive():
+    """Insertion skipped when 'when' agent not in active list."""
+    config = {
+        "agents": {"active": ["researcher"]},
+        "pipeline": {"insertions": [
+            {"name": "security-review", "after": "execute", "when": "security-auditor"}
+        ]},
+    }
+    result = get_pipeline("moderate", config)
+    assert result == ["research", "plan", "execute", "review"]
+
+
+def test_pipeline_no_config_unchanged():
+    """get_pipeline with config=None behaves exactly as before."""
+    assert get_pipeline("moderate") == ["research", "plan", "execute", "review"]
+    assert get_pipeline("moderate", None) == ["research", "plan", "execute", "review"]
+
+
+# -- get_dispatch with config ---------------------------------------------------
+
+
+def test_dispatch_custom_step_from_config():
+    """Custom step dispatches from config insertion definition."""
+    config = {
+        "pipeline": {"insertions": [
+            {"name": "security-review", "after": "execute",
+             "thread_type": "B-Thread", "roles": ["security-auditor"]}
+        ]},
+    }
+    thread, agents = get_dispatch("security-review", "moderate",
+                                   ["security-auditor", "reviewer"], config)
+    assert thread == "B-Thread"
+    assert len(agents) == 1
+    assert agents[0]["role"] == "security-auditor"
+
+
+def test_dispatch_standard_step_ignores_config():
+    """Standard dispatch table used even when config provided."""
+    config = {"pipeline": {"insertions": []}}
+    thread, agents = get_dispatch("research", "moderate", ["researcher"], config)
+    assert thread == "B-Thread"
+    assert agents[0]["role"] == "researcher"
+
+
+# -- valid_steps ---------------------------------------------------------------
+
+
+def test_valid_steps_base():
+    """Base valid steps without config."""
+    steps = valid_steps()
+    assert "idle" in steps
+    assert "research" in steps
+    assert "execute" in steps
+
+
+def test_valid_steps_with_config():
+    """Custom insertion names included in valid steps."""
+    config = {"pipeline": {"insertions": [
+        {"name": "security-review"},
+        {"name": "compliance-check"},
+    ]}}
+    steps = valid_steps(config)
+    assert "security-review" in steps
+    assert "compliance-check" in steps
+    assert "research" in steps  # base still present
+
+
+def test_pipeline_config_insertion_after_missing():
+    """Insertion silently skipped when 'after' step doesn't exist in base pipeline."""
+    config = {
+        "agents": {"active": ["security-auditor"]},
+        "pipeline": {"insertions": [
+            {"name": "security-review", "after": "nonexistent-step", "when": "security-auditor"}
+        ]},
+    }
+    # Moderate pipeline should be unchanged — insertion target doesn't exist
+    result = get_pipeline("moderate", config)
+    assert result == ["research", "plan", "execute", "review"]
+    assert "security-review" not in result
+
+
+def test_dispatch_custom_step_no_active_agents():
+    """Custom step dispatch raises ValueError when no active agents match roles."""
+    config = {
+        "pipeline": {"insertions": [
+            {"name": "security-review", "thread_type": "B-Thread", "roles": ["security-auditor"]}
+        ]},
+    }
+    with pytest.raises(ValueError, match="No active agents"):
+        get_dispatch("security-review", "moderate", ["researcher", "developer"], config)

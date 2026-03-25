@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from dominion_mcp.core.config import write_toml
+from dominion_mcp.core.events import emit_event, read_events
 
 
 @pytest.fixture()
@@ -324,3 +325,158 @@ async def test_generate_phase_report_no_phase(_patch_dom_root_bare: Path):
 
     result = await generate_phase_report("99")
     assert "error" in result
+
+
+# -- recent_events in get_progress ------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_get_progress_includes_recent_events(dom_root: Path, monkeypatch: pytest.MonkeyPatch):
+    """get_progress returns recent_events from event feed."""
+    # Emit events for phase 01
+    await emit_event(dom_root, phase="01", event="phase_started")
+    await emit_event(dom_root, phase="01", event="step_prepared")
+
+    monkeypatch.setattr(
+        "dominion_mcp.tools.progress.find_dominion_root",
+        lambda: dom_root,
+    )
+    from dominion_mcp.tools.progress import get_progress
+
+    result = await get_progress(phase="01")
+
+    assert "recent_events" in result
+    assert len(result["recent_events"]) == 2
+
+
+# -- circuit_breaker event emission -----------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_quality_gate_emits_circuit_breaker_event(dom_root_with_plan: Path):
+    """quality_gate emits circuit_breaker event when state changes."""
+    from dominion_mcp.core.config import write_toml
+
+    # Create review output with blocking finding
+    review_dir = dom_root_with_plan / "phases" / "01" / "review"
+    (review_dir / "status").write_text("complete")
+    write_toml(review_dir / "output" / "verdict.toml", {
+        "findings": {
+            "reviewer": {
+                "verdict": "no-go",
+                "items": [{"severity": "critical", "category": "security", "file": "auth.py", "description": "SQL injection"}],
+            }
+        }
+    })
+
+    import dominion_mcp.tools.progress as prog_mod
+    original = prog_mod.find_dominion_root
+    prog_mod.find_dominion_root = lambda: dom_root_with_plan
+    try:
+        result = await prog_mod.quality_gate(phase="01")
+    finally:
+        prog_mod.find_dominion_root = original
+
+    assert result["action"] == "halt"
+
+    events = read_events(dom_root_with_plan, phase="01")
+    cb_events = [e for e in events if e["event"] == "circuit_breaker"]
+    assert len(cb_events) == 1
+    assert cb_events[0]["data"]["state"] == "open"
+
+
+# -- v0.5.0 effort, scoring, delta in quality_gate -------------------------
+
+
+@pytest.mark.asyncio
+async def test_quality_gate_returns_effort(_patch_dom_root: Path):
+    """quality_gate returns effort aggregation."""
+    from dominion_mcp.tools.progress import quality_gate
+
+    dom = _patch_dom_root
+    review_output = dom / "phases" / "01" / "review" / "output"
+    write_toml(review_output / "verdict.toml", {
+        "findings": {
+            "reviewer": {
+                "verdict": "go-with-warnings",
+                "items": [
+                    {"severity": "high", "category": "perf", "file": "b.py", "description": "N+1", "effort": 3},
+                    {"severity": "medium", "category": "style", "file": "c.py", "description": "naming", "effort": 7},
+                ],
+            },
+        },
+    })
+
+    result = await quality_gate("01")
+    assert "effort" in result
+    assert result["effort"]["mean"] == 5.0
+    assert result["effort"]["max"] == 7
+    assert result["effort"]["with_effort"] == 2
+
+
+@pytest.mark.asyncio
+async def test_quality_gate_returns_score(_patch_dom_root: Path):
+    """quality_gate returns quality score."""
+    from dominion_mcp.tools.progress import quality_gate
+
+    dom = _patch_dom_root
+    review_output = dom / "phases" / "01" / "review" / "output"
+    write_toml(review_output / "verdict.toml", {
+        "findings": {
+            "reviewer": {
+                "verdict": "go-with-warnings",
+                "items": [
+                    {"severity": "medium", "category": "style", "file": "c.py", "description": "naming"},
+                ],
+            },
+        },
+    })
+
+    result = await quality_gate("01")
+    assert "score" in result
+    assert isinstance(result["score"]["score"], float)
+    assert result["score"]["score"] > 0.0
+    assert result["score"]["deductions"] == 1
+
+
+@pytest.mark.asyncio
+async def test_quality_gate_returns_delta(_patch_dom_root: Path):
+    """quality_gate returns delta comparison."""
+    from dominion_mcp.tools.progress import quality_gate
+
+    dom = _patch_dom_root
+    review_output = dom / "phases" / "01" / "review" / "output"
+    write_toml(review_output / "verdict.toml", {
+        "findings": {
+            "reviewer": {
+                "verdict": "go",
+                "items": [
+                    {"severity": "low", "category": "style", "file": "d.py", "description": "minor"},
+                ],
+            },
+        },
+    })
+
+    result = await quality_gate("01")
+    assert "delta" in result
+    assert "trend" in result["delta"]
+    assert "summary" in result["delta"]
+
+
+@pytest.mark.asyncio
+async def test_quality_gate_empty_findings_defaults(_patch_dom_root: Path):
+    """Empty findings returns perfect score and baseline delta."""
+    from dominion_mcp.tools.progress import quality_gate
+
+    dom = _patch_dom_root
+    review_output = dom / "phases" / "01" / "review" / "output"
+    write_toml(review_output / "verdict.toml", {
+        "findings": {
+            "reviewer": {"verdict": "go", "items": []},
+        },
+    })
+
+    result = await quality_gate("01")
+    assert result["effort"]["mean"] == 0.0
+    assert result["score"]["score"] == 10.0
+    assert result["delta"]["trend"] == "baseline"

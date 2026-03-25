@@ -133,6 +133,108 @@ notes = "Compresses Bash output by 60-90% before it reaches the LLM. Transparent
 missing_consequence = "Agents consume full terminal output — higher token usage on git, test runners, and build tools"
 setup_command = "rtk init --global"
 
+[cli_tools.semgrep]
+tier = "recommended"
+critical = false
+category = "security"
+rating = 4.6
+platforms = ["linux", "macos"]
+agent_affinity = ["Security Auditor"]
+install_command = "pip install semgrep"
+detect_command = "semgrep --version"
+notes = "SAST scanner — pattern-based security analysis. Runs during research/review for security-auditor."
+missing_consequence = "Security auditor relies on manual code review only — may miss common vulnerability patterns"
+
+[cli_tools.pip-audit]
+tier = "recommended"
+critical = false
+category = "security"
+rating = 4.5
+platforms = ["linux", "macos", "windows"]
+agent_affinity = ["Security Auditor"]
+install_command = "pip install pip-audit"
+detect_command = "pip-audit --version"
+when = "python detected"
+notes = "Checks Python dependencies against the Python Packaging Advisory Database."
+missing_consequence = "Dependency CVE scanning omitted — supply chain vulnerabilities may go undetected"
+
+[cli_tools.radon]
+tier = "recommended"
+critical = false
+category = "quality"
+rating = 4.3
+platforms = ["linux", "macos", "windows"]
+agent_affinity = ["Analyst"]
+install_command = "pip install radon"
+detect_command = "radon --version"
+when = "python detected"
+notes = "Cyclomatic complexity + maintainability index for Python code."
+missing_consequence = "Analyst estimates complexity qualitatively instead of with measured scores"
+
+[cli_tools.vulture]
+tier = "optional"
+critical = false
+category = "quality"
+rating = 4.0
+platforms = ["linux", "macos", "windows"]
+agent_affinity = ["Analyst"]
+install_command = "pip install vulture"
+detect_command = "vulture --version"
+when = "python detected"
+notes = "Dead code detection for Python."
+missing_consequence = "Dead code identified manually — lower detection rate"
+
+[cli_tools.ruff]
+tier = "recommended"
+critical = false
+category = "quality"
+rating = 4.7
+platforms = ["linux", "macos", "windows"]
+agent_affinity = ["Security Auditor", "Analyst"]
+install_command = "pip install ruff"
+detect_command = "ruff --version"
+when = "python detected"
+notes = "Fast Python linter. Security-auditor uses S*/B* rules. Analyst uses for violation statistics."
+missing_consequence = "Linting delegated to manual review or slower tools"
+
+[cli_tools.jscpd]
+tier = "optional"
+critical = false
+category = "quality"
+rating = 4.1
+platforms = ["linux", "macos", "windows"]
+agent_affinity = ["Analyst"]
+install_command = "npm install -g jscpd"
+detect_command = "jscpd --version"
+notes = "Copy-paste detection, supports most languages."
+missing_consequence = "Duplication detection relies on manual code review"
+
+[cli_tools.cargo-audit]
+tier = "recommended"
+critical = false
+category = "security"
+rating = 4.4
+platforms = ["linux", "macos"]
+agent_affinity = ["Security Auditor"]
+install_command = "cargo install cargo-audit"
+detect_command = "cargo audit --version"
+when = "rust detected"
+notes = "Checks Rust dependencies against the RustSec advisory database."
+missing_consequence = "Rust dependency vulnerability scanning omitted"
+
+[cli_tools.govulncheck]
+tier = "recommended"
+critical = false
+category = "security"
+rating = 4.3
+platforms = ["linux", "macos"]
+agent_affinity = ["Security Auditor"]
+install_command = "go install golang.org/x/vuln/cmd/govulncheck@latest"
+detect_command = "govulncheck -version"
+when = "go detected"
+notes = "Checks Go dependencies against the Go vulnerability database."
+missing_consequence = "Go dependency vulnerability scanning omitted"
+
 # === Plugins ===
 
 [plugins.superpowers]

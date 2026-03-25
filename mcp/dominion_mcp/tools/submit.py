@@ -24,7 +24,8 @@ from ..core.filesystem import (
     write_output,
     write_task_output,
 )
-from ..core.state import mark_task_complete, update_position
+from ..core.events import emit_event
+from ..core.state import mark_task_complete, remove_active_agent, update_position
 
 # Step → output filename mapping
 _OUTPUT_FILES: dict[str, str] = {
@@ -142,6 +143,16 @@ async def submit_work(
         if error:
             return {"error": error}
 
+    # Effort level warnings (v0.5.0 — non-blocking, agent can self-correct)
+    effort_warnings: list[str] = []
+    if step in ("research", "review", "discuss"):
+        from ..core.metrics import validate_effort_level
+
+        for item in content_data.get("items", []):
+            warning = validate_effort_level(item.get("effort"))
+            if warning:
+                effort_warnings.append(warning)
+
     # Namespace content under [findings.{role}]
     if task_id:
         namespace = f"{role}-{task_id}"
@@ -180,6 +191,12 @@ async def submit_work(
         "summary_path": str(summary_path.relative_to(dom_root.parent)),
         "complexity_upgrade": None,
     }
+    if effort_warnings:
+        result["effort_warnings"] = effort_warnings
+
+    # Clear agent from stall detection tracking
+    agent_key = f"{role}-{task_id}" if task_id else f"{role}-{step}"
+    await remove_active_agent(dom_root, agent_key)
 
     # Research side effect: trigger refine_complexity after ALL agents submit (H8)
     if step == "research" and not task_id:
@@ -201,6 +218,11 @@ async def submit_work(
             if refinement.get("upgraded"):
                 result["complexity_upgrade"] = refinement
                 await update_position(dom_root, complexity_level=refinement["refined"])
+
+    await emit_event(dom_root, phase=phase, event="work_submitted",
+                     step=step, role=role, task_id=task_id,
+                     data={"output_path": str(output_path.relative_to(dom_root.parent)),
+                           "complexity_upgrade": result.get("complexity_upgrade")})
 
     return result
 
@@ -232,6 +254,9 @@ async def signal_blocker(phase: str, task_id: str, reason: str) -> dict:
     blocker_path.write_text(f"# Blocker: Task {task_id}\n\n{reason}\n")
 
     await update_position(dom_root, status="blocked")
+
+    await emit_event(dom_root, phase=phase, event="blocker_signaled",
+                     task_id=task_id, data={"reason": reason})
 
     return {
         "status": "blocked",

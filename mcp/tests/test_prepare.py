@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import pytest
+
 from dominion_mcp.core.prepare import (
     filter_knowledge_by_files,
     filter_knowledge_by_step,
@@ -109,6 +111,52 @@ def test_read_heuristics_role_only(dom_root: Path):
 
 def test_read_heuristics_missing(dom_root: Path):
     assert read_heuristics(dom_root, "nonexistent") is None
+
+
+def test_read_heuristics_wave_review(dom_root: Path):
+    """wave-review heuristic loads from wave-review.md when present."""
+    (dom_root / "heuristics" / "wave-review.md").write_text(
+        "## Wave Review\n\nCross-task integration check.\n"
+    )
+    result = read_heuristics(dom_root, "wave-review")
+    assert result is not None
+    assert "Wave Review" in result
+
+
+@pytest.mark.asyncio
+async def test_prepare_task_wave_review_uses_wave_heuristic(dom_root_with_plan: Path):
+    """prepare_task with wave-review-* prefix uses wave-review heuristic."""
+    import json
+
+    # Create wave-review heuristic
+    (dom_root_with_plan / "heuristics" / "wave-review.md").write_text(
+        "## Wave Review\n\nVerify cross-task consistency.\n"
+    )
+
+    import dominion_mcp.tools.setup as setup_mod
+    original = setup_mod.find_dominion_root
+    setup_mod.find_dominion_root = lambda: dom_root_with_plan
+
+    try:
+        task_info = json.dumps({
+            "title": "Wave 1 integration review",
+            "description": "Verify cross-task consistency",
+            "files": ["src/middleware.py"],
+            "wave": 1,
+            "dependencies": [],
+            "agent_role": "developer",
+        })
+        result = await setup_mod.prepare_task(
+            phase="01", task_id="wave-review-1", task_info=task_info,
+        )
+    finally:
+        setup_mod.find_dominion_root = original
+
+    assert "claude_md_path" in result
+    # Verify the generated CLAUDE.md contains wave-review heuristic
+    claude_path = dom_root_with_plan.parent / result["claude_md_path"]
+    content = claude_path.read_text()
+    assert "Wave Review" in content
 
 
 def test_read_knowledge_index(dom_root: Path):
@@ -221,3 +269,198 @@ def test_task_claude_md_includes_contracts():
     )
     assert "## Interface Contracts" in content
     assert "Report" in content
+
+
+@pytest.mark.asyncio
+async def test_prepare_task_wave_review_missing_heuristic(dom_root_with_plan: Path):
+    """Wave-review task works even if wave-review.md heuristic doesn't exist."""
+    import json
+    # Do NOT create wave-review.md — test graceful degradation
+
+    import dominion_mcp.tools.setup as setup_mod
+    original = setup_mod.find_dominion_root
+    setup_mod.find_dominion_root = lambda: dom_root_with_plan
+    try:
+        task_info = json.dumps({
+            "title": "Wave 1 review",
+            "description": "Check consistency",
+            "files": ["src/middleware.py"],
+            "wave": 1, "dependencies": [], "agent_role": "developer",
+        })
+        result = await setup_mod.prepare_task(phase="01", task_id="wave-review-1", task_info=task_info)
+    finally:
+        setup_mod.find_dominion_root = original
+
+    # Should still succeed — CLAUDE.md created, just without heuristic section
+    assert "claude_md_path" in result
+    claude_path = dom_root_with_plan.parent / result["claude_md_path"]
+    assert claude_path.exists()
+
+
+@pytest.mark.asyncio
+async def test_prepare_task_wave_review_excludes_execute(dom_root_with_plan: Path):
+    """Wave-review task does NOT include execute.md heuristic content."""
+    import json
+    # Create both heuristics
+    (dom_root_with_plan / "heuristics" / "wave-review.md").write_text("## Wave Review\nCheck consistency.\n")
+    # execute.md already exists from conftest (has "Execute Heuristics" header)
+
+    import dominion_mcp.tools.setup as setup_mod
+    original = setup_mod.find_dominion_root
+    setup_mod.find_dominion_root = lambda: dom_root_with_plan
+    try:
+        task_info = json.dumps({
+            "title": "Wave 1 review",
+            "description": "Check consistency",
+            "files": ["src/middleware.py"],
+            "wave": 1, "dependencies": [], "agent_role": "developer",
+        })
+        result = await setup_mod.prepare_task(phase="01", task_id="wave-review-1", task_info=task_info)
+    finally:
+        setup_mod.find_dominion_root = original
+
+    claude_path = dom_root_with_plan.parent / result["claude_md_path"]
+    content = claude_path.read_text()
+    assert "Wave Review" in content
+    # Execute heuristic should NOT be present
+    assert "Execute Heuristics" not in content
+
+
+# ---------------------------------------------------------------------------
+# CLI tool directives (v0.5.0)
+# ---------------------------------------------------------------------------
+
+
+def test_cli_directives_security_auditor(dom_root: Path):
+    """CLI tool directives injected for security-auditor when tools detected."""
+    agent_toml = read_agent_toml(dom_root, "security-auditor")
+    content = generate_step_claude_md(
+        phase="01", step="review", role="security-auditor",
+        intent="Review code",
+        config={"tools": {"available": ["serena"], "cli": ["semgrep", "pip-audit"]}},
+        agent_toml=agent_toml, heuristics=None,
+        prior_summaries={}, knowledge_entries=[], decisions=[],
+    )
+    assert "CLI Analysis Tools" in content
+    assert "semgrep" in content
+    assert "pip-audit" in content
+
+
+def test_cli_directives_analyst(dom_root: Path):
+    """CLI tool directives injected for analyst when tools detected."""
+    agent_toml = read_agent_toml(dom_root, "analyst")
+    content = generate_step_claude_md(
+        phase="01", step="review", role="analyst",
+        intent="Analyze quality",
+        config={"tools": {"available": [], "cli": ["radon", "vulture", "jscpd"]}},
+        agent_toml=agent_toml, heuristics=None,
+        prior_summaries={}, knowledge_entries=[], decisions=[],
+    )
+    assert "CLI Analysis Tools" in content
+    assert "radon" in content
+    assert "vulture" in content
+    assert "jscpd" in content
+
+
+def test_cli_directives_wrong_role(dom_root: Path):
+    """Developer gets no CLI directives."""
+    agent_toml = read_agent_toml(dom_root, "developer")
+    content = generate_step_claude_md(
+        phase="01", step="execute", role="developer",
+        intent="Implement",
+        config={"tools": {"available": [], "cli": ["semgrep"]}},
+        agent_toml=agent_toml, heuristics=None,
+        prior_summaries={}, knowledge_entries=[], decisions=[],
+    )
+    assert "CLI Analysis Tools" not in content
+
+
+def test_cli_directives_empty_cli_list(dom_root: Path):
+    """No CLI section when config has empty cli list."""
+    agent_toml = read_agent_toml(dom_root, "security-auditor")
+    content = generate_step_claude_md(
+        phase="01", step="review", role="security-auditor",
+        intent="Review",
+        config={"tools": {"available": ["serena"], "cli": []}},
+        agent_toml=agent_toml, heuristics=None,
+        prior_summaries={}, knowledge_entries=[], decisions=[],
+    )
+    assert "CLI Analysis Tools" not in content
+
+
+def test_cli_directives_missing_cli_config(dom_root: Path):
+    """No CLI section when [tools].cli missing (old config)."""
+    agent_toml = read_agent_toml(dom_root, "security-auditor")
+    content = generate_step_claude_md(
+        phase="01", step="review", role="security-auditor",
+        intent="Review",
+        config={"tools": {"available": ["serena"]}},
+        agent_toml=agent_toml, heuristics=None,
+        prior_summaries={}, knowledge_entries=[], decisions=[],
+    )
+    assert "CLI Analysis Tools" not in content
+
+
+def test_cli_directives_only_matching_tools(dom_root: Path):
+    """Analyst only gets analyst tools, not security tools."""
+    agent_toml = read_agent_toml(dom_root, "analyst")
+    content = generate_step_claude_md(
+        phase="01", step="review", role="analyst",
+        intent="Analyze",
+        config={"tools": {"available": [], "cli": ["semgrep", "radon"]}},
+        agent_toml=agent_toml, heuristics=None,
+        prior_summaries={}, knowledge_entries=[], decisions=[],
+    )
+    assert "radon" in content
+    assert "semgrep" not in content
+
+
+def test_cli_directives_in_task_claude_md(dom_root: Path):
+    """Task briefs also get CLI directives for matching roles."""
+    agent_toml = read_agent_toml(dom_root, "security-auditor")
+    content = generate_task_claude_md(
+        phase="01", task_id="fix-01",
+        task_info={"title": "Fix vuln", "description": "Fix it", "files": ["auth.py"],
+                   "agent_role": "security-auditor", "dependencies": []},
+        config={"tools": {"available": [], "cli": ["semgrep"]}},
+        agent_toml=agent_toml, heuristics=None,
+        research_summary=None, plan_summary=None,
+        knowledge_entries=[], upstream_task_summaries={},
+    )
+    assert "CLI Analysis Tools" in content
+    assert "semgrep" in content
+
+
+# ---------------------------------------------------------------------------
+# Pre-metrics persistence (v0.5.0 — Gap 1 fix)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_prepare_step_reads_metrics_json(dom_root_with_plan: Path):
+    """prepare_step injects pre-analysis metrics from metrics.json."""
+    import json
+
+    import dominion_mcp.tools.setup as setup_mod
+
+    dom = dom_root_with_plan
+
+    # Write metrics.json to research step dir
+    metrics_path = dom / "phases" / "01" / "research" / "metrics.json"
+    metrics_path.write_text(json.dumps({"Python LOC": "5432", "Test files": "87"}))
+
+    # Reset research step to active so prepare_step can regenerate
+    (dom / "phases" / "01" / "research" / "status").write_text("active")
+
+    original = setup_mod.find_dominion_root
+    setup_mod.find_dominion_root = lambda: dom
+    try:
+        result = await setup_mod.prepare_step(phase="01", step="research")
+    finally:
+        setup_mod.find_dominion_root = original
+
+    claude_path = dom.parent / result["claude_md_path"]
+    content = claude_path.read_text()
+    assert "Pre-Analysis Metrics" in content
+    assert "5432" in content
+    assert "87" in content

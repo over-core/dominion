@@ -30,6 +30,7 @@ CONFIG = {
     },
     "tools": {
         "available": ["serena", "context7"],
+        "cli": [],
     },
     "agents": {
         "active": [
@@ -48,6 +49,8 @@ CONFIG = {
         "halt_on_severity": "critical",
         "max_retries": 3,
         "max_iterations": 10,
+        "auto_continue": False,
+        "agent_timeout_minutes": 15,
     },
 }
 
@@ -62,6 +65,7 @@ STATE = {
         "wave": 0,
         "status": "active",
         "complexity_level": "moderate",
+        "pipeline": ["research", "plan", "execute", "review"],
         "last_session": "2026-03-18T09:00:00Z",
     },
     "circuit_breaker": {

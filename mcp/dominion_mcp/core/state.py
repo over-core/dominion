@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .complexity import valid_steps
 from .config import (
     read_toml_optional,
     write_toml,
@@ -44,6 +45,7 @@ def get_position(dom_root: Path) -> dict:
         "wave": pos.get("wave", 0),
         "status": pos.get("status", "ready"),
         "complexity_level": pos.get("complexity_level"),
+        "pipeline": pos.get("pipeline"),
         "last_session": pos.get("last_session"),
     }
 
@@ -95,6 +97,7 @@ async def update_position(
     wave: int | None = None,
     status: str | None = None,
     complexity_level: str | None = None,
+    pipeline: list[str] | None = None,
 ) -> dict:
     """Update pipeline position fields in state.toml.
 
@@ -102,7 +105,10 @@ async def update_position(
     Returns the updated position dict.
     """
     if step is not None and step not in VALID_STEPS:
-        raise ValueError(f"Invalid step '{step}'. Must be one of: {', '.join(VALID_STEPS)}")
+        # Also check with config for custom steps
+        config = read_toml_optional(dom_root / "config.toml") or {}
+        if step not in valid_steps(config):
+            raise ValueError(f"Invalid step '{step}'. Must be one of: {', '.join(valid_steps(config))}")
     if status is not None and status not in VALID_STATUSES:
         raise ValueError(f"Invalid status '{status}'. Must be one of: {', '.join(VALID_STATUSES)}")
 
@@ -123,6 +129,8 @@ async def update_position(
             pos["status"] = status
         if complexity_level is not None:
             pos["complexity_level"] = complexity_level
+        if pipeline is not None:
+            pos["pipeline"] = pipeline
         pos["last_session"] = now
         return state
 
@@ -318,3 +326,57 @@ async def save_decision(
             f.write(md_entry)
 
     return entry
+
+
+# ---------------------------------------------------------------------------
+# Active agents (stall detection)
+# ---------------------------------------------------------------------------
+
+
+def get_active_agents(dom_root: Path) -> dict:
+    """Read active agents from state.toml [active_agents] section.
+
+    Returns dict of agent_key -> {spawned, phase, step, role, task_id}.
+    Returns empty dict if section doesn't exist.
+    """
+    state = read_toml_optional(dom_root / "state.toml") or {}
+    return state.get("active_agents", {})
+
+
+async def register_active_agent(
+    dom_root: Path,
+    agent_key: str,
+    phase: str,
+    step: str,
+    role: str,
+    task_id: str | None = None,
+) -> dict:
+    """Record agent spawn in state.toml for stall detection."""
+    entry = {
+        "spawned": datetime.now(timezone.utc).isoformat(),
+        "phase": phase,
+        "step": step,
+        "role": role,
+        "task_id": task_id or "",
+    }
+
+    def _update(state: dict) -> dict:
+        if "active_agents" not in state:
+            state["active_agents"] = {}
+        state["active_agents"][agent_key] = entry
+        return state
+
+    await write_toml_locked(dom_root / "state.toml", _update)
+    return {"agent_key": agent_key, **entry}
+
+
+async def remove_active_agent(dom_root: Path, agent_key: str) -> None:
+    """Remove agent from active_agents after successful submission."""
+
+    def _update(state: dict) -> dict:
+        agents = state.get("active_agents", {})
+        agents.pop(agent_key, None)
+        state["active_agents"] = agents
+        return state
+
+    await write_toml_locked(dom_root / "state.toml", _update)

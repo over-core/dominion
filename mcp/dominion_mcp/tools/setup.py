@@ -9,7 +9,7 @@ from pathlib import Path
 
 from ..server import mcp
 from ..core.config import find_dominion_root, read_toml, read_toml_optional
-from ..core.complexity import get_dispatch, get_pipeline
+from ..core.complexity import get_dispatch, get_pipeline, valid_steps
 from ..core.filesystem import (
     create_phase_dirs,
     create_task_dirs,
@@ -33,6 +33,8 @@ from ..core.prepare import (
     filter_knowledge_by_step,
     filter_knowledge_by_files,
 )
+from ..core.events import emit_event
+from ..core.objective import link_phase_to_objective
 from ..core.state import (
     add_phase,
     get_decisions,
@@ -43,14 +45,19 @@ from ..core.state import (
 
 
 @mcp.tool()
-async def start_phase(intent: str, complexity: str) -> dict:
+async def start_phase(
+    intent: str,
+    complexity: str,
+    objective: str | None = None,
+    pipeline: list[str] | None = None,
+) -> dict:
     """Initialize a new pipeline phase.
-
-    Creates phase directory tree, generates phase CLAUDE.md, updates state.toml.
 
     Args:
         intent: What the user wants to accomplish.
         complexity: trivial | analysis | specified | moderate | complex | major.
+        objective: Optional objective ID to link this phase to.
+        pipeline: Optional custom pipeline — subset of canonical order (discuss → research → plan → execute → review). If omitted, derived from complexity.
     """
     valid = ("trivial", "analysis", "specified", "moderate", "complex", "major")
     if complexity not in valid:
@@ -62,11 +69,23 @@ async def start_phase(intent: str, complexity: str) -> dict:
         return {"error": ".dominion/ directory not found. Run /dominion:onboard first."}
 
     config = read_toml_optional(dom_root / "config.toml") or {}
-    pipeline = get_pipeline(complexity)
+
+    if pipeline is not None:
+        known = valid_steps(config)
+        invalid_steps = [s for s in pipeline if s not in known]
+        if invalid_steps:
+            return {"error": f"Unknown pipeline steps: {', '.join(invalid_steps)}"}
+        canonical = ["discuss", "research", "plan", "execute", "review"]
+        filtered = [s for s in canonical if s in pipeline]
+        if filtered != [s for s in pipeline if s in canonical]:
+            return {"error": "Pipeline must preserve canonical order: discuss → research → plan → execute → review"}
+        effective_pipeline = pipeline
+    else:
+        effective_pipeline = get_pipeline(complexity, config)
     phase_id = next_phase_id(dom_root)
 
     # Create directory tree
-    phase_dir = create_phase_dirs(dom_root, phase_id, pipeline)
+    phase_dir = create_phase_dirs(dom_root, phase_id, effective_pipeline)
 
     # Generate phase CLAUDE.md
     phases = get_phases(dom_root)
@@ -75,7 +94,7 @@ async def start_phase(intent: str, complexity: str) -> dict:
         phase=phase_id,
         intent=intent,
         complexity=complexity,
-        pipeline=pipeline,
+        pipeline=effective_pipeline,
         config=config,
         phases=phases,
         decisions=decisions,
@@ -87,16 +106,24 @@ async def start_phase(intent: str, complexity: str) -> dict:
     await update_position(
         dom_root,
         phase=phase_id,
-        step=pipeline[0],
+        step=effective_pipeline[0],
         wave=0,
         status="active",
         complexity_level=complexity,
+        pipeline=effective_pipeline,
     )
+
+    # Link to objective if provided
+    if objective:
+        await link_phase_to_objective(dom_root, phase_id, objective)
+
+    await emit_event(dom_root, phase=phase_id, event="phase_started",
+                     data={"complexity": complexity, "pipeline": effective_pipeline, "objective_id": objective})
 
     return {
         "phase": phase_id,
         "complexity": complexity,
-        "pipeline": pipeline,
+        "pipeline": effective_pipeline,
         "phase_dir": str(phase_dir.relative_to(dom_root.parent)),
     }
 
@@ -138,7 +165,7 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
     else:
         # Use primary role from dispatch table
         try:
-            _, agents = get_dispatch(step, complexity, active_agents)
+            _, agents = get_dispatch(step, complexity, active_agents, config)
             target_role = agents[0]["role"] if agents else step
         except ValueError:
             target_role = step
@@ -158,7 +185,7 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
         if kpath.exists():
             entry["_content"] = kpath.read_text()
     decisions = get_decisions(dom_root)
-    pipeline = get_pipeline(complexity)
+    pipeline = get_pipeline(complexity, config)
 
     # Read prior summaries (including current step for two-phase review)
     prior_summaries = read_prior_summaries(dom_root, phase, pipeline, step)
@@ -172,6 +199,21 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
                 intent = line.split(": ", 1)[1] if ": " in line else ""
                 break
 
+    # Read pre-analysis metrics if available (v0.5.0 — survives retries)
+    pre_metrics: str | None = None
+    if step == "research":
+        import json as _json
+
+        from ..core.metrics import format_metrics_section
+
+        metrics_path = phase_dir / "research" / "metrics.json"
+        if metrics_path.exists():
+            try:
+                metrics_data = _json.loads(metrics_path.read_text())
+                pre_metrics = format_metrics_section(metrics_data)
+            except (ValueError, OSError):
+                pass
+
     # Generate CLAUDE.md
     content = generate_step_claude_md(
         phase=phase,
@@ -184,6 +226,7 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
         prior_summaries=prior_summaries,
         knowledge_entries=knowledge_entries,
         decisions=decisions,
+        pre_metrics=pre_metrics,
     )
 
     # Write CLAUDE.md
@@ -202,7 +245,7 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
 
     # Get dispatch info
     try:
-        thread_type, agents = get_dispatch(step, complexity, active_agents)
+        thread_type, agents = get_dispatch(step, complexity, active_agents, config)
     except ValueError:
         thread_type = "B-Thread"
         agents = [{"role": target_role, "model": "opus"}]
@@ -214,10 +257,23 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
             agent["model"] = agent_conf["agent"]["model"]
         agent["agent_path"] = f".claude/agents/{agent['role']}.md"
 
+    await emit_event(dom_root, phase=phase, event="step_prepared",
+                     step=step, data={"thread_type": thread_type, "agent_count": len(agents)})
+
+    # Metric commands for orchestrator to run before spawning agents (v0.5.0)
+    metric_commands: list[dict] = []
+    if step == "research":
+        from ..core.metrics import get_metric_commands
+
+        languages = config.get("project", {}).get("languages", [])
+        cli_tools = config.get("tools", {}).get("cli", [])
+        metric_commands = get_metric_commands(languages, cli_tools)
+
     return {
         "claude_md_path": str(path.relative_to(dom_root.parent)),
         "thread_type": thread_type,
         "agents": agents,
+        "metric_commands": metric_commands,
     }
 
 
@@ -280,7 +336,12 @@ async def prepare_task(
     # Read inputs
     agent_role = task.get("agent_role", "developer")
     agent_toml = read_agent_toml(dom_root, agent_role)
-    heuristics = read_heuristics(dom_root, "execute", role=agent_role)
+
+    # Wave-review tasks use wave-review heuristic instead of execute
+    if task_id.startswith("wave-review-"):
+        heuristics = read_heuristics(dom_root, "wave-review")
+    else:
+        heuristics = read_heuristics(dom_root, "execute", role=agent_role)
 
     research_summary = read_summary(dom_root, phase, "research")
     plan_summary = read_summary(dom_root, phase, "plan")
@@ -331,6 +392,11 @@ async def prepare_task(
     # Create task directory and write CLAUDE.md
     task_dir = create_task_dirs(dom_root, phase, task_id)
     path = write_task_claude_md(dom_root, phase, task_id, content)
+
+    await emit_event(dom_root, phase=phase, event="task_prepared",
+                     step="execute", task_id=task_id,
+                     data={"title": task.get("title", ""), "wave": task.get("wave", 0),
+                           "files": task_files})
 
     return {
         "claude_md_path": str(path.relative_to(dom_root.parent)),

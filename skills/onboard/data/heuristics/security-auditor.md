@@ -16,6 +16,10 @@ For each applicable category, check the codebase:
 9. **Logging & Monitoring** — sensitive data in logs, missing audit trails, insufficient error context
 10. **Mishandling Exceptional Conditions** — fail-open logic, error-triggered data leakage, DoS via exceptions
 
+### Tool-First Analysis
+If CLI Analysis Tools are listed in your brief, run each tool FIRST before manual analysis.
+Parse structured output (JSON where available). Incorporate tool findings into your assessment — cite tool names and rule IDs. After tool runs, focus manual analysis on business logic, auth flows, and design issues that tools cannot cover.
+
 ### Analysis Method
 - Trace authentication/authorization boundaries across modules
 - Map data flow from user input to storage — identify unvalidated paths
@@ -54,6 +58,6 @@ as verified-fixed, enabling reliable deduplication in the quality gate.
 
 ### Output
 Produce findings with:
-- Each finding: finding_id, severity, category, CWE reference (e.g., CWE-89), file:line, exploitability assessment
+- Each finding: finding_id, severity, category, CWE reference (e.g., CWE-89), file:line, exploitability assessment, effort (1-10)
 - Remediation guidance: specific fix, not generic advice
 - Dependency audit results if applicable

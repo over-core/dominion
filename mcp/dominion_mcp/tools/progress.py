@@ -11,6 +11,9 @@ from pathlib import Path
 
 from ..server import mcp
 from ..core.config import find_dominion_root, read_toml_optional
+from ..core.metrics import aggregate_effort, compute_delta, compute_quality_score
+from ..core.prepare import read_knowledge_index
+from ..core.events import emit_event, read_events
 from ..core.complexity import (
     assess_complexity as _assess,
     get_pipeline,
@@ -47,20 +50,22 @@ async def get_progress(phase: str | None = None) -> dict:
     try:
         dom_root = find_dominion_root()
     except ValueError:
-        return {"phase": "00", "step": "idle", "complexity": None, "completed_steps": [], "pipeline": []}
+        return {"phase": "00", "step": "idle", "complexity": None, "completed_steps": [], "pipeline": [], "recent_events": []}
 
     state = read_toml_optional(dom_root / "state.toml")
     if not state:
-        return {"phase": "00", "step": "idle", "complexity": None, "completed_steps": [], "pipeline": []}
+        return {"phase": "00", "step": "idle", "complexity": None, "completed_steps": [], "pipeline": [], "recent_events": []}
 
     pos = get_position(dom_root)
     target_phase = phase or pos.get("phase", "00")
 
     if target_phase == "00":
-        return {"phase": "00", "step": "idle", "complexity": None, "completed_steps": [], "pipeline": []}
+        return {"phase": "00", "step": "idle", "complexity": None, "completed_steps": [], "pipeline": [], "recent_events": []}
 
     complexity = pos.get("complexity_level", "moderate")
-    pipeline = get_pipeline(complexity)
+    config = read_toml_optional(dom_root / "config.toml") or {}
+    # Read stored pipeline (v0.5.0 — preserves custom pipelines from start_phase)
+    pipeline = pos.get("pipeline") or get_pipeline(complexity, config)
     cb = get_circuit_breaker(dom_root)
 
     # Scan step statuses
@@ -89,6 +94,10 @@ async def get_progress(phase: str | None = None) -> dict:
     # Check for completion
     if pos.get("step") == "idle" and pos.get("status") == "complete":
         result["status"] = "complete"
+
+    # Recent events for observability
+    recent = read_events(dom_root, phase=target_phase, limit=5)
+    result["recent_events"] = recent
 
     return result
 
@@ -170,6 +179,12 @@ async def quality_gate(phase: str) -> dict:
 
     all_items = list(struct_map.values())
 
+    # v0.5.0: effort aggregation, quality scoring, delta audit
+    effort = aggregate_effort(all_items)
+    score_data = compute_quality_score(all_items)
+    knowledge_index = read_knowledge_index(dom_root)
+    delta = compute_delta(all_items, knowledge_index)
+
     # Classify — filter out findings marked as verified-fixed by main reviewer
     blocking = [
         i for i in all_items
@@ -223,6 +238,14 @@ async def quality_gate(phase: str) -> dict:
         same_finding_count=same_count,
     )
 
+    prev_cb_state = cb.get("state", "closed")
+    await emit_event(dom_root, phase=phase, event="quality_gate",
+                     step="review", data={"verdict": verdict, "action": action,
+                                          "blocking": len(blocking), "warnings": len(warnings)})
+    if cb_state != prev_cb_state:
+        await emit_event(dom_root, phase=phase, event="circuit_breaker",
+                         data={"state": cb_state, "retry_count": new_retry})
+
     return {
         "verdict": verdict,
         "blocking_findings": blocking,
@@ -230,6 +253,9 @@ async def quality_gate(phase: str) -> dict:
         "action": action,
         "retry_count": new_retry,
         "same_finding": same_finding,
+        "effort": effort,
+        "score": score_data,
+        "delta": delta,
     }
 
 
@@ -290,8 +316,11 @@ async def advance_step(phase: str, step: str) -> dict:
 
     # Advance to next step
     state = read_toml_optional(dom_root / "state.toml") or {}
-    complexity = state.get("position", {}).get("complexity_level", "moderate")
-    pipeline = get_pipeline(complexity)
+    pos = state.get("position", {})
+    complexity = pos.get("complexity_level", "moderate")
+    config = read_toml_optional(dom_root / "config.toml") or {}
+    # Read stored pipeline (v0.5.0 — preserves custom pipelines from start_phase)
+    pipeline = pos.get("pipeline") or get_pipeline(complexity, config)
 
     try:
         current_idx = pipeline.index(step)
@@ -301,11 +330,15 @@ async def advance_step(phase: str, step: str) -> dict:
     if current_idx + 1 < len(pipeline):
         next_step = pipeline[current_idx + 1]
         await update_position(dom_root, step=next_step, wave=0)
+        await emit_event(dom_root, phase=phase, event="step_advanced",
+                         step=step, data={"from_step": step, "to_step": next_step})
         return {"status": "advanced", "from_step": step, "to_step": next_step}
     else:
         # Last step — pipeline complete
         await update_position(dom_root, step="idle", status="complete")
         await update_phase_status(dom_root, phase, "complete")
+        await emit_event(dom_root, phase=phase, event="step_advanced",
+                         step=step, data={"from_step": step, "to_step": "idle"})
         return {"status": "advanced", "from_step": step, "to_step": "idle"}
 
 
@@ -444,5 +477,8 @@ async def save_decision_tool(
         path=f"{knowledge_topic}.md",
         referenced_files=[],
     )
+
+    await emit_event(dom_root, phase=phase, event="decision_saved",
+                     data={"title": title, "tags": tag_list})
 
     return {"id": entry["id"], "title": title, "phase": phase}

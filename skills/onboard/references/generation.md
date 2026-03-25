@@ -16,6 +16,8 @@ mkdir -p .dominion/phases
 Generate `.dominion/config.toml` — single merged config file:
 
 ```toml
+schema_version = "0.5.0"
+
 [project]
 name = "{{project_name}}"
 languages = [{{detected_languages}}]
@@ -43,6 +45,13 @@ conventions = [{{from_interview + detected conventions}}]
 halt_on_severity = "critical"
 max_retries = 3
 max_iterations = 10
+auto_continue = false
+agent_timeout_minutes = 15
+
+[pipeline]
+# Optional: override default step sequences
+# [pipeline.overrides]
+# moderate = ["research", "plan", "execute", "security-review", "review"]
 ```
 
 Detect test command:
@@ -52,7 +61,12 @@ Detect test command:
 - Go: `go test ./...`
 - Fallback: leave empty
 
-## Step 3: Knowledge index
+## Step 3: Objectives + Knowledge index
+
+Write `.dominion/objectives.toml`:
+```toml
+# Dominion objectives — multi-session feature tracking
+```
 
 Write `.dominion/knowledge/index.toml`:
 ```toml
@@ -95,7 +109,9 @@ Follow [agent-generation.md](agent-generation.md).
 ## Step 6: Deploy heuristics
 
 Copy heuristic source files from plugin `skills/onboard/data/heuristics/` to `.dominion/heuristics/`:
-- research.md, plan.md, execute.md, review.md, discuss.md
+- Step heuristics: research.md, plan.md, execute.md, review.md, discuss.md
+- Role heuristics: developer.md, analyst.md, innovation-engineer.md, security-auditor.md
+- Wave review: wave-review.md
 
 **Re-onboard rule:** If target file exists and differs from source → skip (preserve user customizations). Only overwrite if target matches source or doesn't exist.
 

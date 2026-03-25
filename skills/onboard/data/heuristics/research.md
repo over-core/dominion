@@ -55,7 +55,11 @@ Read the Complexity from your brief:
 
 ### Output
 Produce findings with categorized items:
-- Each finding: severity (critical/high/medium/low), category, description, file:line references
+- Each finding: severity (critical/high/medium/low), category, description, file:line references, effort (1-10)
+- Every finding MUST include effort (integer 1-10) — the blast radius of the fix:
+  1: one-line  2: one block  3: one file  4: few files same module  5: across module + tests
+  6: cross-module  7: subsystem/API contracts  8: multi-subsystem  9: architectural  10: redesign
+  Assess by: count files changed, trace callers, check if interfaces shift.
 - Summary: 3-5 sentence overview of codebase health (REQUIRED -- passed to next step)
 - Recommendations: prioritized list of actions
 
