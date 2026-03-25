@@ -63,7 +63,7 @@ async def start_phase(intent: str, complexity: str) -> dict:
         return {"error": ".dominion/ directory not found. Run /dominion:onboard first."}
 
     config = read_toml_optional(dom_root / "config.toml") or {}
-    pipeline = get_pipeline(complexity)
+    pipeline = get_pipeline(complexity, config)
     phase_id = next_phase_id(dom_root)
 
     # Create directory tree

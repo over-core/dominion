@@ -211,3 +211,23 @@ def test_get_active_agents_empty(dom_root: Path):
     """get_active_agents returns empty dict when no agents registered."""
     agents = get_active_agents(dom_root)
     assert agents == {}
+
+
+# -- custom step validation ---------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_update_position_custom_step(dom_root: Path):
+    """update_position accepts custom steps defined in config."""
+    from dominion_mcp.core.config import write_toml, read_toml_optional
+
+    # Add a pipeline insertion to config
+    config = read_toml_optional(dom_root / "config.toml") or {}
+    config.setdefault("pipeline", {})["insertions"] = [
+        {"name": "security-review", "after": "execute"}
+    ]
+    write_toml(dom_root / "config.toml", config)
+
+    # Should not raise
+    result = await update_position(dom_root, step="security-review")
+    assert result["step"] == "security-review"

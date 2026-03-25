@@ -70,7 +70,7 @@ _PRIMARY_ROLES: dict[str, str] = {
 
 
 def get_dispatch(
-    step: str, complexity: str, active_agents: list[str]
+    step: str, complexity: str, active_agents: list[str], config: dict | None = None
 ) -> tuple[str, list[dict]]:
     """Look up dispatch info for (step, complexity), filtered by active agents.
 
@@ -81,38 +81,58 @@ def get_dispatch(
     - P-Thread with 1 remaining agent → B-Thread
     - F-Thread with 1 remaining agent → B-Thread
     - Primary role missing → raises ValueError
+
+    Falls back to config insertions for custom steps not in the dispatch table.
     """
     key = (step, complexity)
-    if key not in DISPATCH_TABLE:
-        raise ValueError(
-            f"No dispatch entry for ({step}, {complexity}). "
-            f"Step must be in pipeline profile for this complexity level."
-        )
+    if key in DISPATCH_TABLE:
+        thread_type, agent_list = DISPATCH_TABLE[key]
+        active_set = set(active_agents)
 
-    thread_type, agent_list = DISPATCH_TABLE[key]
-    active_set = set(active_agents)
+        # Check primary role
+        primary = _PRIMARY_ROLES.get(step)
+        if primary and primary not in active_set:
+            raise ValueError(
+                f"Primary role '{primary}' for step '{step}' is not in active agents. "
+                f"Add it to config.toml [agents].active."
+            )
 
-    # Check primary role
-    primary = _PRIMARY_ROLES.get(step)
-    if primary and primary not in active_set:
-        raise ValueError(
-            f"Primary role '{primary}' for step '{step}' is not in active agents. "
-            f"Add it to config.toml [agents].active."
-        )
+        # Filter to active agents
+        filtered = [
+            {"role": role, "model": model}
+            for role, model in agent_list
+            if role in active_set
+        ]
 
-    # Filter to active agents
-    filtered = [
-        {"role": role, "model": model}
-        for role, model in agent_list
-        if role in active_set
-    ]
+        # Degrade thread type if too few agents
+        if len(filtered) <= 1:
+            if thread_type in ("P-Thread", "F-Thread"):
+                thread_type = "B-Thread"
 
-    # Degrade thread type if too few agents
-    if len(filtered) <= 1:
-        if thread_type in ("P-Thread", "F-Thread"):
-            thread_type = "B-Thread"
+        return thread_type, filtered
 
-    return thread_type, filtered
+    # Fallback: check config insertions for custom step
+    if config:
+        for ins in config.get("pipeline", {}).get("insertions", []):
+            if ins.get("name") == step:
+                thread_type = ins.get("thread_type", "B-Thread")
+                roles_raw = ins.get("roles", [])
+                active_set = set(active_agents)
+                filtered = [
+                    {"role": r, "model": "opus"}
+                    for r in roles_raw
+                    if r in active_set
+                ]
+                if len(filtered) <= 1 and thread_type in ("P-Thread", "F-Thread"):
+                    thread_type = "B-Thread"
+                if not filtered:
+                    raise ValueError(f"No active agents match roles {roles_raw} for custom step '{step}'.")
+                return thread_type, filtered
+
+    raise ValueError(
+        f"No dispatch entry for ({step}, {complexity}). "
+        f"Step must be in pipeline profile for this complexity level."
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -257,8 +277,46 @@ def refine_complexity(dom_root: Path, phase: str) -> dict:
     return {"previous": current, "refined": current, "upgraded": False}
 
 
-def get_pipeline(complexity: str) -> list[str]:
-    """Return the pipeline step list for a complexity level."""
+def get_pipeline(complexity: str, config: dict | None = None) -> list[str]:
+    """Return the pipeline step list, checking config overrides first.
+
+    Config can override via [pipeline.overrides] (full replacement) or
+    [[pipeline.insertions]] (conditional step insertions after a named step).
+    """
+    if config:
+        # 1. Full override
+        overrides = config.get("pipeline", {}).get("overrides", {})
+        if complexity in overrides:
+            return list(overrides[complexity])
+
+        # 2. Apply insertions to default
+        base = list(PIPELINE_PROFILES.get(complexity, PIPELINE_PROFILES["complex"]))
+        insertions = config.get("pipeline", {}).get("insertions", [])
+        if insertions:
+            active = set(config.get("agents", {}).get("active", []))
+            for ins in insertions:
+                when = ins.get("when")
+                if when and when not in active:
+                    continue
+                after = ins.get("after")
+                if after in base:
+                    idx = base.index(after) + 1
+                    base.insert(idx, ins["name"])
+        return base
+
     if complexity in PIPELINE_PROFILES:
         return list(PIPELINE_PROFILES[complexity])
     return list(PIPELINE_PROFILES["complex"])
+
+
+def valid_steps(config: dict | None = None) -> tuple[str, ...]:
+    """Return all valid step names including custom insertions from config."""
+    base = ("idle", "discuss", "research", "plan", "execute", "review")
+    if config:
+        custom = tuple(
+            ins["name"]
+            for ins in config.get("pipeline", {}).get("insertions", [])
+            if ins.get("name")
+        )
+        return base + custom
+    return base

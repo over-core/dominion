@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .complexity import valid_steps
 from .config import (
     read_toml_optional,
     write_toml,
@@ -102,7 +103,10 @@ async def update_position(
     Returns the updated position dict.
     """
     if step is not None and step not in VALID_STEPS:
-        raise ValueError(f"Invalid step '{step}'. Must be one of: {', '.join(VALID_STEPS)}")
+        # Also check with config for custom steps
+        config = read_toml_optional(dom_root / "config.toml") or {}
+        if step not in valid_steps(config):
+            raise ValueError(f"Invalid step '{step}'. Must be one of: {', '.join(valid_steps(config))}")
     if status is not None and status not in VALID_STATUSES:
         raise ValueError(f"Invalid status '{status}'. Must be one of: {', '.join(VALID_STATUSES)}")
 
