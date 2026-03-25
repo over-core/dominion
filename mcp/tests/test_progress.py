@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from dominion_mcp.core.config import write_toml
-from dominion_mcp.core.events import emit_event
+from dominion_mcp.core.events import emit_event, read_events
 
 
 @pytest.fixture()
@@ -347,3 +347,39 @@ async def test_get_progress_includes_recent_events(dom_root: Path, monkeypatch: 
 
     assert "recent_events" in result
     assert len(result["recent_events"]) == 2
+
+
+# -- circuit_breaker event emission -----------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_quality_gate_emits_circuit_breaker_event(dom_root_with_plan: Path):
+    """quality_gate emits circuit_breaker event when state changes."""
+    from dominion_mcp.core.config import write_toml
+
+    # Create review output with blocking finding
+    review_dir = dom_root_with_plan / "phases" / "01" / "review"
+    (review_dir / "status").write_text("complete")
+    write_toml(review_dir / "output" / "verdict.toml", {
+        "findings": {
+            "reviewer": {
+                "verdict": "no-go",
+                "items": [{"severity": "critical", "category": "security", "file": "auth.py", "description": "SQL injection"}],
+            }
+        }
+    })
+
+    import dominion_mcp.tools.progress as prog_mod
+    original = prog_mod.find_dominion_root
+    prog_mod.find_dominion_root = lambda: dom_root_with_plan
+    try:
+        result = await prog_mod.quality_gate(phase="01")
+    finally:
+        prog_mod.find_dominion_root = original
+
+    assert result["action"] == "halt"
+
+    events = read_events(dom_root_with_plan, phase="01")
+    cb_events = [e for e in events if e["event"] == "circuit_breaker"]
+    assert len(cb_events) == 1
+    assert cb_events[0]["data"]["state"] == "open"

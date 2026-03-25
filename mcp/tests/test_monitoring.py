@@ -22,28 +22,28 @@ from dominion_mcp.tools.monitoring import (
 @pytest.mark.asyncio
 async def test_get_feed_returns_recent_events(dom_root: Path):
     """get_feed returns recently emitted events with total count."""
-    await emit_event(dom_root, "01", "step.started", step="research", role="researcher")
-    await emit_event(dom_root, "01", "step.completed", step="research", role="researcher")
+    await emit_event(dom_root, "01", "step_prepared", step="research", role="researcher")
+    await emit_event(dom_root, "01", "step_advanced", step="research", role="researcher")
 
     result = await _get_feed(dom_root, phase="01")
 
     assert result["total"] == 2
     assert len(result["events"]) == 2
-    assert result["events"][0]["event"] == "step.started"
-    assert result["events"][1]["event"] == "step.completed"
+    assert result["events"][0]["event"] == "step_prepared"
+    assert result["events"][1]["event"] == "step_advanced"
 
 
 @pytest.mark.asyncio
 async def test_get_feed_with_filter(dom_root: Path):
     """get_feed filters events when event_filter comma-separated string is provided."""
-    await emit_event(dom_root, "01", "step.started", step="research")
-    await emit_event(dom_root, "01", "task.assigned", role="developer")
-    await emit_event(dom_root, "01", "step.completed", step="research")
+    await emit_event(dom_root, "01", "step_prepared", step="research")
+    await emit_event(dom_root, "01", "work_submitted", role="developer")
+    await emit_event(dom_root, "01", "step_advanced", step="research")
 
-    result = await _get_feed(dom_root, phase="01", event_filter="step.started,step.completed")
+    result = await _get_feed(dom_root, phase="01", event_filter="step_prepared,step_advanced")
 
     assert result["total"] == 2
-    assert all(e["event"] in {"step.started", "step.completed"} for e in result["events"])
+    assert all(e["event"] in {"step_prepared", "step_advanced"} for e in result["events"])
 
 
 @pytest.mark.asyncio

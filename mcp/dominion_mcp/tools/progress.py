@@ -304,7 +304,8 @@ async def advance_step(phase: str, step: str) -> dict:
     # Advance to next step
     state = read_toml_optional(dom_root / "state.toml") or {}
     complexity = state.get("position", {}).get("complexity_level", "moderate")
-    pipeline = get_pipeline(complexity)
+    config = read_toml_optional(dom_root / "config.toml") or {}
+    pipeline = get_pipeline(complexity, config)
 
     try:
         current_idx = pipeline.index(step)

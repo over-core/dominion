@@ -48,6 +48,8 @@ CONFIG = {
         "halt_on_severity": "critical",
         "max_retries": 3,
         "max_iterations": 10,
+        "auto_continue": False,
+        "agent_timeout_minutes": 15,
     },
 }
 

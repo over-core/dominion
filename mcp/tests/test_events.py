@@ -196,6 +196,35 @@ async def test_signal_blocker_emits_event(dom_root_with_plan: Path):
 
 
 @pytest.mark.asyncio
+async def test_start_phase_with_objective(dom_root: Path):
+    """start_phase links to objective when objective param provided."""
+    from dominion_mcp.core.objective import create_objective, read_objectives
+
+    # Create an objective first
+    obj = await create_objective(dom_root, name="Auth Rewrite", description="Rewrite auth")
+
+    import dominion_mcp.tools.setup as setup_mod
+    original = setup_mod.find_dominion_root
+    setup_mod.find_dominion_root = lambda: dom_root
+    try:
+        result = await setup_mod.start_phase(intent="Implement JWT", complexity="moderate", objective=obj["id"])
+    finally:
+        setup_mod.find_dominion_root = original
+
+    phase = result["phase"]
+
+    # Verify objective is linked
+    objectives = read_objectives(dom_root)
+    auth_obj = [o for o in objectives if o["id"] == obj["id"]][0]
+    assert phase in auth_obj["phases"]
+
+    # Verify event includes objective_id
+    events = read_events(dom_root, phase=phase)
+    started = [e for e in events if e["event"] == "phase_started"][0]
+    assert started["data"]["objective_id"] == obj["id"]
+
+
+@pytest.mark.asyncio
 async def test_save_knowledge_emits_event(dom_root: Path):
     """save_knowledge emits knowledge_saved event."""
     import dominion_mcp.tools.knowledge as knowledge_mod

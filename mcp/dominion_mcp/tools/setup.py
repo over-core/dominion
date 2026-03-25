@@ -34,6 +34,7 @@ from ..core.prepare import (
     filter_knowledge_by_files,
 )
 from ..core.events import emit_event
+from ..core.objective import link_phase_to_objective
 from ..core.state import (
     add_phase,
     get_decisions,
@@ -44,14 +45,13 @@ from ..core.state import (
 
 
 @mcp.tool()
-async def start_phase(intent: str, complexity: str) -> dict:
+async def start_phase(intent: str, complexity: str, objective: str | None = None) -> dict:
     """Initialize a new pipeline phase.
-
-    Creates phase directory tree, generates phase CLAUDE.md, updates state.toml.
 
     Args:
         intent: What the user wants to accomplish.
         complexity: trivial | analysis | specified | moderate | complex | major.
+        objective: Optional objective ID to link this phase to.
     """
     valid = ("trivial", "analysis", "specified", "moderate", "complex", "major")
     if complexity not in valid:
@@ -94,8 +94,12 @@ async def start_phase(intent: str, complexity: str) -> dict:
         complexity_level=complexity,
     )
 
+    # Link to objective if provided
+    if objective:
+        await link_phase_to_objective(dom_root, phase_id, objective)
+
     await emit_event(dom_root, phase=phase_id, event="phase_started",
-                     data={"complexity": complexity, "pipeline": pipeline})
+                     data={"complexity": complexity, "pipeline": pipeline, "objective_id": objective})
 
     return {
         "phase": phase_id,
@@ -142,7 +146,7 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
     else:
         # Use primary role from dispatch table
         try:
-            _, agents = get_dispatch(step, complexity, active_agents)
+            _, agents = get_dispatch(step, complexity, active_agents, config)
             target_role = agents[0]["role"] if agents else step
         except ValueError:
             target_role = step
@@ -162,7 +166,7 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
         if kpath.exists():
             entry["_content"] = kpath.read_text()
     decisions = get_decisions(dom_root)
-    pipeline = get_pipeline(complexity)
+    pipeline = get_pipeline(complexity, config)
 
     # Read prior summaries (including current step for two-phase review)
     prior_summaries = read_prior_summaries(dom_root, phase, pipeline, step)
@@ -206,7 +210,7 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
 
     # Get dispatch info
     try:
-        thread_type, agents = get_dispatch(step, complexity, active_agents)
+        thread_type, agents = get_dispatch(step, complexity, active_agents, config)
     except ValueError:
         thread_type = "B-Thread"
         agents = [{"role": target_role, "model": "opus"}]
