@@ -24,9 +24,14 @@ Run the execute step standalone. Auto-creates a phase if none is active.
 6. **Wave 1+ (implementation):**
    a. For each task: call `mcp__dominion__prepare_task(phase, task_id)`
    b. Read each task CLAUDE.md from returned path
-   c. Spawn in **batches of 4-5**: `Agent(isolation='worktree', prompt=content, subagent_type=task.agent_role)`
+   c. For each task: call `mcp__dominion__register_agent(phase, "execute", task.agent_role, task_id)` before spawning
+   d. Spawn in **batches of 4-5**: `Agent(isolation='worktree', prompt=content, subagent_type=task.agent_role)`
       - IMPORTANT: Use Dominion agents (subagent_type resolves to `.claude/agents/{role}.md`). Do NOT use plugin agents.
-   d. **Post-batch verification** (after each batch returns):
+   e. **Stall detection** (v0.5.0, after each batch returns):
+      - Call `mcp__dominion__check_agent_health(phase)` → check for stalled agents
+      - For each stalled agent: re-prepare task, re-spawn (up to 1 retry per task)
+      - Proceed with partial results if all retries exhausted
+   f. **Post-batch verification** (after each batch returns):
       - For each agent: check for worktreePath in output. If missing → log warning
       - For each worktree branch: `git merge-base --is-ancestor {current_branch} {branch}` — if not ancestor → flag wrong base
       - Unsubmitted work: if task status not "complete" but agent returned, commit on behalf and submit with zero test verification
@@ -37,7 +42,15 @@ Run the execute step standalone. Auto-creates a phase if none is active.
       - Squash-merge: `git merge --squash {branch} && git commit -m "feat({scope}): {task_title}"`
       - On conflict → halt: "Merge conflict. Resolve manually, re-run."
       - On success → `git worktree remove .claude/worktrees/{worktree_name}` THEN `git branch -d {branch}`
-      - After all merges → pop stash (`git stash pop`, ignore errors) → next wave from updated HEAD
+      - After all merges → pop stash (`git stash pop`, ignore errors)
+   g. **Wave-landing review** (v0.5.0, after wave N merge, before wave N+1):
+      - IF wave N had > 2 tasks:
+        - Create task_info: `{"title": "Wave {N} integration review", "description": "Verify cross-task consistency", "files": [{all files from wave N tasks}], "wave": N, "dependencies": [{wave N task IDs}], "agent_role": "developer"}`
+        - Call `prepare_task(phase, "wave-review-{N}", task_info)` → uses wave-review.md heuristic automatically
+        - Read CLAUDE.md, spawn Developer (Sonnet) WITHOUT `isolation='worktree'`
+        - If issues found: developer fixes inline, commits `"fix(wave-{N}): resolve cross-task integration issues"`
+      - ELSE: run test suite directly as quick sanity check
+      - Continue to wave N+1 from updated HEAD
 7. **Post-execute cleanup** (after all waves complete):
    - Remove ALL remaining worktrees: `for wt in $(git worktree list --porcelain | grep -oP '(?<=worktree ).+\.claude/worktrees/.+'); do git worktree remove --force "$wt"; done`
    - Pop any remaining stash: `git stash pop` (ignore errors)
