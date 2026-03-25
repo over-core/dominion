@@ -9,6 +9,16 @@ Drive the Dominion pipeline from intent to completion. Manages state recovery, a
 
 Usage: `/dominion:orchestrate "Add rate limiting to the API endpoints"`
 Auto mode: `/dominion:orchestrate --auto "Add rate limiting"`
+Resume mode: `/dominion:orchestrate --resume`
+
+## Section 0: Resume Mode (v0.5.0)
+
+If `--resume` flag is present OR session context contains "PIPELINE READY":
+1. Call `mcp__dominion__get_progress()`
+2. If no active phase (step == "idle"): "No active pipeline. Use `/dominion:orchestrate` to start a new one."
+3. Otherwise: read phase, step, complexity, pipeline from progress response
+4. Find current step index in pipeline → resume from that step through end
+5. Skip to Section 3 (Step Loop) — no phase initialization needed
 
 ## Section 1: State Recovery
 
@@ -32,6 +42,18 @@ Auto mode: `/dominion:orchestrate --auto "Add rate limiting"`
 4. Present assessment to user: "{complexity}: {reasoning}. Override? [Y/change/n]"
    - In `--auto` mode: use suggestion, MODERATE floor (never below moderate)
 5. Call `mcp__dominion__start_phase(intent, complexity)` → creates phase + step dirs
+
+### Objective Linking (v0.5.0)
+
+After start_phase:
+1. Call `mcp__dominion__get_objective()` → list active objectives
+2. If active objectives exist AND intent keywords overlap with an objective name/summary:
+   - Ask user: "Link this phase to objective '{name}'?" (C-Thread)
+   - If yes: call `mcp__dominion__link_phase_to_objective(phase, objective_id)`
+3. If no match: ask user "Create a new objective for this work?" (C-Thread)
+   - If yes: call `mcp__dominion__create_objective(name, description)`
+   - Then link the new phase
+4. In `--auto` mode: auto-link if intent overlaps, auto-create if new work
 
 ## Section 3: Step Loop
 
@@ -84,7 +106,12 @@ e. **Execute step — wave loop:**
         Do NOT commit directly to `{current_branch}`. All work must be in your worktree."
    - **Wave 1+ (implementation):**
      - For each task: call `prepare_task(phase, task_id)`, Read CLAUDE.md
+     - For each task: call `mcp__dominion__register_agent(phase, "execute", task.agent_role, task_id)` before spawning
      - Spawn in **batches of 4-5 agents** maximum per batch: `Agent(isolation='worktree', prompt=content, subagent_type=task.agent_role)`
+     - **Stall detection** (after each batch returns):
+       - Call `mcp__dominion__check_agent_health(phase)` → check for stalled agents
+       - For each stalled agent: re-prepare task and re-spawn (up to 1 retry per task)
+       - Proceed with partial results if all retries exhausted
      - **Post-batch verification** (after each batch returns):
        a. For each agent: check for worktreePath in output. If missing, agent committed directly — log warning: "Agent {role} for task {id} did not create worktree"
        b. For each worktree branch: verify base with `git merge-base --is-ancestor {current_branch} {worktree_branch}`. If not ancestor → flag: "Worktree {branch} branched from wrong base"
@@ -101,7 +128,15 @@ e. **Execute step — wave loop:**
        1. Squash-merge each branch: `git merge --squash {branch} && git commit -m "feat({scope}): {task_title}"`
        2. On conflict → C-Thread halt: "Merge conflict in {files}. Resolve manually, re-run."
        3. On success → `git worktree remove .claude/worktrees/{worktree_name}` THEN `git branch -d {branch}`
-       4. After ALL wave N branches merged → pop stash if exists (`git stash pop`, ignore errors) → wave N+1 from updated HEAD
+       4. After ALL wave N branches merged → pop stash if exists (`git stash pop`, ignore errors)
+   - **Wave-landing review (v0.5.0)** (after wave N merge, before wave N+1):
+     - IF wave N had > 2 tasks:
+       - Create task_info: `{"title": "Wave {N} integration review", "description": "Verify cross-task consistency", "files": [{all files from wave N tasks}], "wave": N, "dependencies": [{wave N task IDs}], "agent_role": "developer"}`
+       - Call `prepare_task(phase, "wave-review-{N}", task_info)` → uses wave-review.md heuristic automatically
+       - Read CLAUDE.md, spawn Developer (Sonnet) WITHOUT `isolation='worktree'` (runs on merged branch)
+       - If issues found: developer fixes inline, commits `"fix(wave-{N}): resolve cross-task integration issues"`
+     - ELSE: run test suite directly as quick sanity check
+     - Continue to wave N+1 from updated HEAD
    - **Post-execute cleanup** (after all waves complete):
      - Remove ALL remaining worktrees: `for wt in $(git worktree list --porcelain | grep -oP '(?<=worktree ).+\.claude/worktrees/.+'); do git worktree remove --force "$wt"; done`
      - Verify: `git worktree list` shows only main worktree
@@ -114,7 +149,14 @@ e. **Execute step — wave loop:**
      - Call `submit_work(phase, "execute", "orchestrator", {tasks_completed, waves, files_changed}, summary)`
      - Call `advance_step(phase, "execute")`
 
-f. After all agents for non-execute steps return: call `mcp__dominion__advance_step(phase, step)`
+f. After all agents for non-execute steps return:
+   - Call `mcp__dominion__advance_step(phase, step)`
+   - **Session memory (v0.5.0)**: If EchoVault is available (`mcp__echovault__*` tools exist):
+     - Read agent summaries from `.dominion/phases/{phase}/{step}/output/summary.md`
+     - For each agent that submitted: call `mcp__echovault__memory_save(key="dominion/{phase}/{step}/{role}", content="{summary}")`
+   - **Before preparing agents for the NEXT step**: query EchoVault:
+     - Call `mcp__echovault__memory_search(query="dominion {next_step} {intent[:100]}", limit=3)`
+     - If results: append `## Prior Session Memory\n{results}` to the CLAUDE.md content before passing to agent
 
 g0. **Analysis completion (analysis complexity only):**
    After research and review complete (no plan/execute in this pipeline):
