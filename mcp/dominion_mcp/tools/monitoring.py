@@ -161,7 +161,7 @@ async def _check_agent_health(
         if spawned_str:
             spawned = datetime.fromisoformat(spawned_str)
             elapsed_seconds = (now - spawned).total_seconds()
-            if elapsed_seconds > timeout_minutes * 60:
+            if timeout_minutes > 0 and elapsed_seconds > timeout_minutes * 60:
                 stalled.append(agent_key)
                 await emit_event(
                     dom_root,

@@ -8,7 +8,8 @@ from pathlib import Path
 import pytest
 
 from dominion_mcp.core.config import read_toml_optional, write_toml
-from dominion_mcp.core.events import emit_event
+from dominion_mcp.core.events import emit_event, read_events
+
 from dominion_mcp.core.state import get_active_agents, register_active_agent
 from dominion_mcp.tools.monitoring import (
     _check_agent_health,
@@ -197,3 +198,50 @@ async def test_submit_work_clears_active_agent(dom_root_with_plan: Path):
     # Verify cleared
     agents = get_active_agents(dom_root_with_plan)
     assert "researcher-research" not in agents
+
+
+# ---------------------------------------------------------------------------
+# check_agent_health — timeout disabled
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_check_agent_health_timeout_disabled(dom_root: Path):
+    """Stall detection disabled when timeout_minutes=0."""
+    research_dir = dom_root / "phases" / "01" / "research"
+    research_dir.mkdir(parents=True, exist_ok=True)
+    (research_dir / "status").write_text("active")
+
+    await register_active_agent(
+        dom_root, agent_key="researcher-research",
+        phase="01", step="research", role="researcher",
+    )
+    state = read_toml_optional(dom_root / "state.toml") or {}
+    old_time = (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat()
+    state["active_agents"]["researcher-research"]["spawned"] = old_time
+    write_toml(dom_root / "state.toml", state)
+
+    result = await _check_agent_health(dom_root, phase="01", timeout_minutes=0)
+    assert len(result["stalled"]) == 0
+    assert len(result["healthy"]) == 1
+
+
+# ---------------------------------------------------------------------------
+# check_pipeline_ready — event emission
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_check_pipeline_ready_emits_event(dom_root: Path):
+    """check_pipeline_ready emits pipeline_ready event when ready."""
+    config = read_toml_optional(dom_root / "config.toml") or {}
+    config["auto"]["auto_continue"] = True
+    write_toml(dom_root / "config.toml", config)
+
+    result = await _check_pipeline_ready(dom_root)
+    assert result["ready"] is True
+
+    events = read_events(dom_root, phase="01")
+    ready_events = [e for e in events if e["event"] == "pipeline_ready"]
+    assert len(ready_events) == 1
+    assert ready_events[0]["data"]["next_step"] == "research"

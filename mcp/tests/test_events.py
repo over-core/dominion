@@ -149,3 +149,68 @@ async def test_advance_step_emits_event(dom_root_with_plan: Path):
     advance_events = [e for e in events if e["event"] == "step_advanced"]
     assert len(advance_events) == 1
     assert advance_events[0]["data"]["from_step"] == "research"
+
+
+@pytest.mark.asyncio
+async def test_submit_work_emits_event(dom_root_with_plan: Path):
+    """submit_work emits work_submitted event."""
+    import json
+    import dominion_mcp.tools.submit as submit_mod
+
+    original = submit_mod.find_dominion_root
+    submit_mod.find_dominion_root = lambda: dom_root_with_plan
+    try:
+        content = json.dumps({"items": [{"severity": "medium", "category": "test", "description": "d", "file": "f.py"}]})
+        await submit_mod.submit_work(phase="01", step="research", role="researcher", content=content, summary="Test")
+    finally:
+        submit_mod.find_dominion_root = original
+
+    events = read_events(dom_root_with_plan, phase="01")
+    work_events = [e for e in events if e["event"] == "work_submitted"]
+    assert len(work_events) >= 1
+    assert work_events[0]["role"] == "researcher"
+
+
+@pytest.mark.asyncio
+async def test_signal_blocker_emits_event(dom_root_with_plan: Path):
+    """signal_blocker emits blocker_signaled event."""
+    import dominion_mcp.tools.submit as submit_mod
+
+    # Create task dir
+    task_dir = dom_root_with_plan / "phases" / "01" / "tasks" / "t1"
+    task_dir.mkdir(parents=True, exist_ok=True)
+    (task_dir / "status").write_text("active")
+    (task_dir / "output").mkdir(exist_ok=True)
+
+    original = submit_mod.find_dominion_root
+    submit_mod.find_dominion_root = lambda: dom_root_with_plan
+    try:
+        await submit_mod.signal_blocker(phase="01", task_id="t1", reason="Stuck on dependency")
+    finally:
+        submit_mod.find_dominion_root = original
+
+    events = read_events(dom_root_with_plan, phase="01")
+    blocker_events = [e for e in events if e["event"] == "blocker_signaled"]
+    assert len(blocker_events) == 1
+    assert blocker_events[0]["data"]["reason"] == "Stuck on dependency"
+
+
+@pytest.mark.asyncio
+async def test_save_knowledge_emits_event(dom_root: Path):
+    """save_knowledge emits knowledge_saved event."""
+    import dominion_mcp.tools.knowledge as knowledge_mod
+
+    original = knowledge_mod.find_dominion_root
+    knowledge_mod.find_dominion_root = lambda: dom_root
+    try:
+        await knowledge_mod.save_knowledge(
+            topic="test-topic", content="# Test\n\nContent about src/auth.py",
+            tags="research,plan", summary="Test knowledge"
+        )
+    finally:
+        knowledge_mod.find_dominion_root = original
+
+    events = read_events(dom_root, phase="01")
+    k_events = [e for e in events if e["event"] == "knowledge_saved"]
+    assert len(k_events) == 1
+    assert k_events[0]["data"]["topic"] == "test-topic"
