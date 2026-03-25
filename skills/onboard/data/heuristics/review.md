@@ -53,7 +53,8 @@ Review in this sequence — later steps assume earlier ones passed:
 ### Output
 Produce verdict with:
 - verdict: go | go-with-warnings | no-go
-- items: severity/category/file findings (REQUIRED). For fixed specialist findings, include action="verified-fixed"
+- items: severity/category/file findings with effort 1-10 (REQUIRED). For fixed specialist findings, include action="verified-fixed"
+- Every unresolved finding MUST include effort (integer 1-10, blast radius scale — see research heuristics for scale definition)
 - retrospective: knowledge_updates (content, tags, summary), convention_suggestions, metrics
 
 ### Retrospective

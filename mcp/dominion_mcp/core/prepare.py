@@ -26,6 +26,29 @@ _TOOL_DIRECTIVES: dict[str, str] = {
 _DOC_CHAIN = """\
 Documentation chain: Context7 -> Exa -> WebSearch -> NEVER guess API signatures."""
 
+# ---------------------------------------------------------------------------
+# CLI tool directives — role-specific commands (v0.5.0)
+# ---------------------------------------------------------------------------
+
+_CLI_TOOL_DIRECTIVES: dict[str, dict[str, str]] = {
+    "security-auditor": {
+        "semgrep": "Run `semgrep --config auto --json .` — parse JSON output, cite rule IDs in findings. Focus manual review on business logic and auth flows that SAST cannot cover.",
+        "pip-audit": "Run `uv run pip-audit --format json` — report CVEs with advisory IDs. Check `uv tree` for transitive exposure.",
+        "ruff": "Run `ruff check --select S --output-format json .` — Bandit-equivalent security rules (eval/exec/hardcoded passwords/SQL injection).",
+        "pip-licenses": "Run `pip-licenses --format json` — flag copyleft (GPL/AGPL) contamination risk.",
+        "cargo-audit": "Run `cargo audit --json` — check RustSec advisory database.",
+        "govulncheck": "Run `govulncheck ./...` — check Go vulnerability database.",
+        "npm-audit": "Run `npm audit --json` — check Node.js dependency advisories.",
+        "trivy": "Run `trivy fs --format json .` — scan for vulnerabilities and misconfigurations.",
+    },
+    "analyst": {
+        "radon": "Run `radon cc -s -a .` for cyclomatic complexity averages. Run `radon mi -s .` for maintainability index. Report exact scores, not estimates.",
+        "vulture": "Run `vulture . --min-confidence 80` — report dead code count sorted by file size for impact prioritization.",
+        "jscpd": "Run `jscpd --format json .` — report duplicate blocks with file locations and token counts.",
+        "ruff": "Run `ruff check --statistics .` — report lint violation counts grouped by category.",
+    },
+}
+
 
 # ---------------------------------------------------------------------------
 # Phase-level CLAUDE.md
@@ -135,6 +158,7 @@ def generate_step_claude_md(
     prior_summaries: dict[str, str],
     knowledge_entries: list[dict],
     decisions: list[dict],
+    pre_metrics: str | None = None,
 ) -> str:
     """Generate step-level CLAUDE.md content.
 
@@ -155,6 +179,10 @@ def generate_step_claude_md(
     # Heuristics (verbatim from .dominion/heuristics/{step}.md)
     if heuristics:
         sections.extend(["## Heuristics", heuristics, ""])
+
+    # Pre-analysis metrics (v0.5.0 — quantitative baseline for researcher)
+    if pre_metrics:
+        sections.extend([pre_metrics, ""])
 
     # Prior step summaries
     if prior_summaries:
@@ -200,6 +228,18 @@ def generate_step_claude_md(
             if tool_name in _TOOL_DIRECTIVES:
                 sections.append(_TOOL_DIRECTIVES[tool_name])
         sections.append("")
+
+    # CLI tool directives (v0.5.0 — role-specific commands)
+    cli_tools = config.get("tools", {}).get("cli", [])
+    if cli_tools and role in _CLI_TOOL_DIRECTIVES:
+        role_directives = _CLI_TOOL_DIRECTIVES[role]
+        applicable = [t for t in cli_tools if t in role_directives]
+        if applicable:
+            sections.append("## CLI Analysis Tools (RUN THESE FIRST)")
+            sections.append("Run each tool below before starting manual analysis. Parse structured output.")
+            for tool_name in applicable:
+                sections.append(f"- **{tool_name}**: {role_directives[tool_name]}")
+            sections.append("")
 
     # Hard stops from agent TOML
     hard_stops = agent_toml.get("governance", {}).get("hard_stops", [])
@@ -331,15 +371,7 @@ def generate_task_claude_md(
             sections.append(f"- {conv}")
         sections.append("")
 
-    # Hard stops
-    hard_stops = agent_toml.get("governance", {}).get("hard_stops", [])
-    if hard_stops:
-        sections.append("## Hard Stops")
-        for stop in hard_stops:
-            sections.append(f"- {stop}")
-        sections.append("")
-
-    # Tool usage
+    # Tool usage (order: MCP tools → CLI tools → hard stops)
     available_tools = config.get("tools", {}).get("available", [])
     if available_tools:
         sections.append("## Tool Usage (MANDATORY)")
@@ -349,6 +381,26 @@ def generate_task_claude_md(
         for tool_name in available_tools:
             if tool_name in _TOOL_DIRECTIVES:
                 sections.append(_TOOL_DIRECTIVES[tool_name])
+        sections.append("")
+
+    # CLI tool directives (v0.5.0 — role-specific commands)
+    cli_tools = config.get("tools", {}).get("cli", [])
+    if cli_tools and role in _CLI_TOOL_DIRECTIVES:
+        role_directives = _CLI_TOOL_DIRECTIVES[role]
+        applicable = [t for t in cli_tools if t in role_directives]
+        if applicable:
+            sections.append("## CLI Analysis Tools (RUN THESE FIRST)")
+            sections.append("Run each tool below before starting manual analysis. Parse structured output.")
+            for tool_name in applicable:
+                sections.append(f"- **{tool_name}**: {role_directives[tool_name]}")
+            sections.append("")
+
+    # Hard stops
+    hard_stops = agent_toml.get("governance", {}).get("hard_stops", [])
+    if hard_stops:
+        sections.append("## Hard Stops")
+        for stop in hard_stops:
+            sections.append(f"- {stop}")
         sections.append("")
 
     # Decisions

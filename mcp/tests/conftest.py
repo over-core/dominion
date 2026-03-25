@@ -30,6 +30,7 @@ CONFIG = {
     },
     "tools": {
         "available": ["serena", "context7"],
+        "cli": [],
     },
     "agents": {
         "active": [
@@ -64,6 +65,7 @@ STATE = {
         "wave": 0,
         "status": "active",
         "complexity_level": "moderate",
+        "pipeline": ["research", "plan", "execute", "review"],
         "last_session": "2026-03-18T09:00:00Z",
     },
     "circuit_breaker": {

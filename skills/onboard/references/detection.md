@@ -81,10 +81,29 @@ Store in config.toml `[tools].available`. Tool directives and hooks are ONLY gen
 
 ## Step 4b: CLI Tool Detection
 
-Check for recommended CLI tools that improve agent efficiency:
-- `rtk --version` → rtk (token compression proxy for Bash output)
+For each tool in registry.toml `[cli_tools]`, run the detect_command to check installation. Present results to user.
 
-If rtk is installed, record in config.toml `[tools].cli_tools`. If not installed, add to recommendations with install command from registry.toml.
+Specifically check:
+- `rtk --version` → token compression proxy
+- `semgrep --version` → SAST security scanner
+- `pip-audit --version` → Python dependency vulnerability checker (when Python detected)
+- `radon --version` → Python complexity metrics (when Python detected)
+- `vulture --version` → Python dead code detection (when Python detected)
+- `ruff --version` → Python linter, fast (when Python detected)
+- `jscpd --version` → copy-paste detection, multi-language
+- `cargo audit --version` → Rust dependency checker (when Rust detected)
+- `govulncheck -version` → Go vulnerability checker (when Go detected)
+
+For each tool:
+- If installed: add tool name to `[tools].cli` list in config.toml
+- If not installed: add to recommendations with install command from registry.toml
+
+Store in config.toml:
+```toml
+[tools]
+available = ["serena", "context7"]  # MCPs (existing)
+cli = ["ruff", "radon", "semgrep"]  # CLI tools (NEW)
+```
 
 ## Step 5: Git Platform Detection (v0.3.0)
 

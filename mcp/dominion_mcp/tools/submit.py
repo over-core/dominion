@@ -143,6 +143,16 @@ async def submit_work(
         if error:
             return {"error": error}
 
+    # Effort level warnings (v0.5.0 — non-blocking, agent can self-correct)
+    effort_warnings: list[str] = []
+    if step in ("research", "review", "discuss"):
+        from ..core.metrics import validate_effort_level
+
+        for item in content_data.get("items", []):
+            warning = validate_effort_level(item.get("effort"))
+            if warning:
+                effort_warnings.append(warning)
+
     # Namespace content under [findings.{role}]
     if task_id:
         namespace = f"{role}-{task_id}"
@@ -181,6 +191,8 @@ async def submit_work(
         "summary_path": str(summary_path.relative_to(dom_root.parent)),
         "complexity_upgrade": None,
     }
+    if effort_warnings:
+        result["effort_warnings"] = effort_warnings
 
     # Clear agent from stall detection tracking
     agent_key = f"{role}-{task_id}" if task_id else f"{role}-{step}"

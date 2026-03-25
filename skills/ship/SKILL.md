@@ -90,6 +90,12 @@ This PR is part of the `{objective_id}` objective: {objective_name}
 ## Review: {verdict}
 {from review/output/summary.md}
 
+Quality Score: {score.score}/10
+Effort: avg {effort.mean}/10 (max {effort.max}) — {effort.with_effort} findings assessed
+Delta: {delta.summary}
+
+(Get score/effort/delta by calling `mcp__dominion__quality_gate(phase)`. If unavailable, omit these lines.)
+
 ## Metrics
 Files changed: N | Lines: +X / -Y | Tests added: Z
 

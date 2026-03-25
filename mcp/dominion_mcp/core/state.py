@@ -45,6 +45,7 @@ def get_position(dom_root: Path) -> dict:
         "wave": pos.get("wave", 0),
         "status": pos.get("status", "ready"),
         "complexity_level": pos.get("complexity_level"),
+        "pipeline": pos.get("pipeline"),
         "last_session": pos.get("last_session"),
     }
 
@@ -96,6 +97,7 @@ async def update_position(
     wave: int | None = None,
     status: str | None = None,
     complexity_level: str | None = None,
+    pipeline: list[str] | None = None,
 ) -> dict:
     """Update pipeline position fields in state.toml.
 
@@ -127,6 +129,8 @@ async def update_position(
             pos["status"] = status
         if complexity_level is not None:
             pos["complexity_level"] = complexity_level
+        if pipeline is not None:
+            pos["pipeline"] = pipeline
         pos["last_session"] = now
         return state
 

@@ -41,7 +41,24 @@ If `--resume` flag is present OR session context contains "PIPELINE READY":
 3. Call `mcp__dominion__assess_complexity_tool(intent, has_design_doc=True/False)` → get suggested complexity
 4. Present assessment to user: "{complexity}: {reasoning}. Override? [Y/change/n]"
    - In `--auto` mode: use suggestion, MODERATE floor (never below moderate)
-5. Call `mcp__dominion__start_phase(intent, complexity)` → creates phase + step dirs
+5. **Dynamic Pipeline Selection (v0.5.0):**
+   Available stages: discuss, research, plan, execute, review.
+   Based on the intent, select which stages this task needs. Skip stages but NEVER reorder.
+   Examples: quick scan → `["research"]`, security audit → `["research", "review"]`,
+   implement from spec → `["plan", "execute", "review"]`, standard feature → full default.
+   Pass the selected pipeline to start_phase: `mcp__dominion__start_phase(intent, complexity, pipeline=[...])`
+   If no custom selection needed, omit pipeline param for complexity-derived default.
+
+   **Skipped stage effects** (downstream agents handle missing context gracefully):
+   | Skipped | Effect |
+   |---------|--------|
+   | discuss | No complexity override. You pick complexity directly. |
+   | research | No findings.toml. Plan works from intent + knowledge only. |
+   | plan | No tasks.toml. Execute uses inline task_info parameter. |
+   | execute | No implementation. Review-only pipeline (analysis mode). |
+   | review | No verdict. Ship uses manual mode PR body. |
+
+6. Call `mcp__dominion__start_phase(intent, complexity, pipeline=...)` → creates phase + step dirs
 
 ### Objective Linking (v0.5.0)
 
@@ -59,7 +76,13 @@ After start_phase:
 
 For each step in pipeline profile (skipping completed):
 
-a. Call `mcp__dominion__prepare_step(phase, step)` → returns path + thread_type + agents
+a. Call `mcp__dominion__prepare_step(phase, step)` → returns path + thread_type + agents + metric_commands
+a1. **Pre-analysis metrics (v0.5.0):** If metric_commands is non-empty (research step):
+   - For each command: run via Bash, capture stdout (timeout 30s each, ignore failures)
+   - Collect results into a JSON dict: `{label: output}` (using each command's "label" as key)
+   - Write the dict to `.dominion/phases/{phase}/research/metrics.json`
+   - Call `mcp__dominion__prepare_step(phase, step)` AGAIN — it reads metrics.json and injects into CLAUDE.md
+   This ensures metrics survive retries: metrics.json persists, and prepare_step reads it on regeneration.
 b. Read CLAUDE.md from returned path via Read tool
 c. Branch on thread type:
 

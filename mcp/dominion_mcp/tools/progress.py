@@ -11,6 +11,8 @@ from pathlib import Path
 
 from ..server import mcp
 from ..core.config import find_dominion_root, read_toml_optional
+from ..core.metrics import aggregate_effort, compute_delta, compute_quality_score
+from ..core.prepare import read_knowledge_index
 from ..core.events import emit_event, read_events
 from ..core.complexity import (
     assess_complexity as _assess,
@@ -61,7 +63,9 @@ async def get_progress(phase: str | None = None) -> dict:
         return {"phase": "00", "step": "idle", "complexity": None, "completed_steps": [], "pipeline": [], "recent_events": []}
 
     complexity = pos.get("complexity_level", "moderate")
-    pipeline = get_pipeline(complexity)
+    config = read_toml_optional(dom_root / "config.toml") or {}
+    # Read stored pipeline (v0.5.0 — preserves custom pipelines from start_phase)
+    pipeline = pos.get("pipeline") or get_pipeline(complexity, config)
     cb = get_circuit_breaker(dom_root)
 
     # Scan step statuses
@@ -175,6 +179,12 @@ async def quality_gate(phase: str) -> dict:
 
     all_items = list(struct_map.values())
 
+    # v0.5.0: effort aggregation, quality scoring, delta audit
+    effort = aggregate_effort(all_items)
+    score_data = compute_quality_score(all_items)
+    knowledge_index = read_knowledge_index(dom_root)
+    delta = compute_delta(all_items, knowledge_index)
+
     # Classify — filter out findings marked as verified-fixed by main reviewer
     blocking = [
         i for i in all_items
@@ -243,6 +253,9 @@ async def quality_gate(phase: str) -> dict:
         "action": action,
         "retry_count": new_retry,
         "same_finding": same_finding,
+        "effort": effort,
+        "score": score_data,
+        "delta": delta,
     }
 
 
@@ -303,9 +316,11 @@ async def advance_step(phase: str, step: str) -> dict:
 
     # Advance to next step
     state = read_toml_optional(dom_root / "state.toml") or {}
-    complexity = state.get("position", {}).get("complexity_level", "moderate")
+    pos = state.get("position", {})
+    complexity = pos.get("complexity_level", "moderate")
     config = read_toml_optional(dom_root / "config.toml") or {}
-    pipeline = get_pipeline(complexity, config)
+    # Read stored pipeline (v0.5.0 — preserves custom pipelines from start_phase)
+    pipeline = pos.get("pipeline") or get_pipeline(complexity, config)
 
     try:
         current_idx = pipeline.index(step)

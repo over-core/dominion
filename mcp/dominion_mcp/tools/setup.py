@@ -9,7 +9,7 @@ from pathlib import Path
 
 from ..server import mcp
 from ..core.config import find_dominion_root, read_toml, read_toml_optional
-from ..core.complexity import get_dispatch, get_pipeline
+from ..core.complexity import get_dispatch, get_pipeline, valid_steps
 from ..core.filesystem import (
     create_phase_dirs,
     create_task_dirs,
@@ -45,13 +45,19 @@ from ..core.state import (
 
 
 @mcp.tool()
-async def start_phase(intent: str, complexity: str, objective: str | None = None) -> dict:
+async def start_phase(
+    intent: str,
+    complexity: str,
+    objective: str | None = None,
+    pipeline: list[str] | None = None,
+) -> dict:
     """Initialize a new pipeline phase.
 
     Args:
         intent: What the user wants to accomplish.
         complexity: trivial | analysis | specified | moderate | complex | major.
         objective: Optional objective ID to link this phase to.
+        pipeline: Optional custom pipeline — subset of canonical order (discuss → research → plan → execute → review). If omitted, derived from complexity.
     """
     valid = ("trivial", "analysis", "specified", "moderate", "complex", "major")
     if complexity not in valid:
@@ -63,11 +69,23 @@ async def start_phase(intent: str, complexity: str, objective: str | None = None
         return {"error": ".dominion/ directory not found. Run /dominion:onboard first."}
 
     config = read_toml_optional(dom_root / "config.toml") or {}
-    pipeline = get_pipeline(complexity, config)
+
+    if pipeline is not None:
+        known = valid_steps(config)
+        invalid_steps = [s for s in pipeline if s not in known]
+        if invalid_steps:
+            return {"error": f"Unknown pipeline steps: {', '.join(invalid_steps)}"}
+        canonical = ["discuss", "research", "plan", "execute", "review"]
+        filtered = [s for s in canonical if s in pipeline]
+        if filtered != [s for s in pipeline if s in canonical]:
+            return {"error": "Pipeline must preserve canonical order: discuss → research → plan → execute → review"}
+        effective_pipeline = pipeline
+    else:
+        effective_pipeline = get_pipeline(complexity, config)
     phase_id = next_phase_id(dom_root)
 
     # Create directory tree
-    phase_dir = create_phase_dirs(dom_root, phase_id, pipeline)
+    phase_dir = create_phase_dirs(dom_root, phase_id, effective_pipeline)
 
     # Generate phase CLAUDE.md
     phases = get_phases(dom_root)
@@ -76,7 +94,7 @@ async def start_phase(intent: str, complexity: str, objective: str | None = None
         phase=phase_id,
         intent=intent,
         complexity=complexity,
-        pipeline=pipeline,
+        pipeline=effective_pipeline,
         config=config,
         phases=phases,
         decisions=decisions,
@@ -88,10 +106,11 @@ async def start_phase(intent: str, complexity: str, objective: str | None = None
     await update_position(
         dom_root,
         phase=phase_id,
-        step=pipeline[0],
+        step=effective_pipeline[0],
         wave=0,
         status="active",
         complexity_level=complexity,
+        pipeline=effective_pipeline,
     )
 
     # Link to objective if provided
@@ -99,12 +118,12 @@ async def start_phase(intent: str, complexity: str, objective: str | None = None
         await link_phase_to_objective(dom_root, phase_id, objective)
 
     await emit_event(dom_root, phase=phase_id, event="phase_started",
-                     data={"complexity": complexity, "pipeline": pipeline, "objective_id": objective})
+                     data={"complexity": complexity, "pipeline": effective_pipeline, "objective_id": objective})
 
     return {
         "phase": phase_id,
         "complexity": complexity,
-        "pipeline": pipeline,
+        "pipeline": effective_pipeline,
         "phase_dir": str(phase_dir.relative_to(dom_root.parent)),
     }
 
@@ -180,6 +199,21 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
                 intent = line.split(": ", 1)[1] if ": " in line else ""
                 break
 
+    # Read pre-analysis metrics if available (v0.5.0 — survives retries)
+    pre_metrics: str | None = None
+    if step == "research":
+        import json as _json
+
+        from ..core.metrics import format_metrics_section
+
+        metrics_path = phase_dir / "research" / "metrics.json"
+        if metrics_path.exists():
+            try:
+                metrics_data = _json.loads(metrics_path.read_text())
+                pre_metrics = format_metrics_section(metrics_data)
+            except (ValueError, OSError):
+                pass
+
     # Generate CLAUDE.md
     content = generate_step_claude_md(
         phase=phase,
@@ -192,6 +226,7 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
         prior_summaries=prior_summaries,
         knowledge_entries=knowledge_entries,
         decisions=decisions,
+        pre_metrics=pre_metrics,
     )
 
     # Write CLAUDE.md
@@ -225,10 +260,20 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
     await emit_event(dom_root, phase=phase, event="step_prepared",
                      step=step, data={"thread_type": thread_type, "agent_count": len(agents)})
 
+    # Metric commands for orchestrator to run before spawning agents (v0.5.0)
+    metric_commands: list[dict] = []
+    if step == "research":
+        from ..core.metrics import get_metric_commands
+
+        languages = config.get("project", {}).get("languages", [])
+        cli_tools = config.get("tools", {}).get("cli", [])
+        metric_commands = get_metric_commands(languages, cli_tools)
+
     return {
         "claude_md_path": str(path.relative_to(dom_root.parent)),
         "thread_type": thread_type,
         "agents": agents,
+        "metric_commands": metric_commands,
     }
 
 

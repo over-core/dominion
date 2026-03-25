@@ -225,6 +225,113 @@ async def test_start_phase_with_objective(dom_root: Path):
 
 
 @pytest.mark.asyncio
+async def test_start_phase_custom_pipeline(dom_root: Path):
+    """start_phase accepts a custom pipeline subset."""
+    import dominion_mcp.tools.setup as setup_mod
+
+    original = setup_mod.find_dominion_root
+    setup_mod.find_dominion_root = lambda: dom_root
+    try:
+        result = await setup_mod.start_phase(
+            intent="Quick scan", complexity="moderate",
+            pipeline=["research", "review"],
+        )
+    finally:
+        setup_mod.find_dominion_root = original
+
+    assert result["pipeline"] == ["research", "review"]
+    phase_dir = dom_root / "phases" / result["phase"]
+    assert (phase_dir / "research").exists()
+    assert (phase_dir / "review").exists()
+    assert not (phase_dir / "plan").exists()
+    assert not (phase_dir / "execute").exists()
+
+    # Verify pipeline persisted in state.toml
+    from dominion_mcp.core.state import get_position
+    pos = get_position(dom_root)
+    assert pos["pipeline"] == ["research", "review"]
+
+
+@pytest.mark.asyncio
+async def test_get_progress_reads_stored_pipeline(dom_root: Path):
+    """get_progress returns the stored pipeline, not re-derived from complexity."""
+    import dominion_mcp.tools.setup as setup_mod
+    import dominion_mcp.tools.progress as prog_mod
+
+    original_setup = setup_mod.find_dominion_root
+    original_prog = prog_mod.find_dominion_root
+    setup_mod.find_dominion_root = lambda: dom_root
+    prog_mod.find_dominion_root = lambda: dom_root
+    try:
+        await setup_mod.start_phase(
+            intent="Quick audit", complexity="moderate",
+            pipeline=["research", "review"],
+        )
+        progress = await prog_mod.get_progress()
+    finally:
+        setup_mod.find_dominion_root = original_setup
+        prog_mod.find_dominion_root = original_prog
+
+    # Should reflect custom pipeline, NOT moderate's default
+    assert progress["pipeline"] == ["research", "review"]
+
+
+@pytest.mark.asyncio
+async def test_start_phase_rejects_invalid_pipeline_step(dom_root: Path):
+    """start_phase returns error for unknown step names."""
+    import dominion_mcp.tools.setup as setup_mod
+
+    original = setup_mod.find_dominion_root
+    setup_mod.find_dominion_root = lambda: dom_root
+    try:
+        result = await setup_mod.start_phase(
+            intent="Test", complexity="moderate",
+            pipeline=["research", "bogus"],
+        )
+    finally:
+        setup_mod.find_dominion_root = original
+
+    assert "error" in result
+    assert "bogus" in result["error"]
+
+
+@pytest.mark.asyncio
+async def test_start_phase_rejects_misordered_pipeline(dom_root: Path):
+    """start_phase returns error when pipeline violates canonical order."""
+    import dominion_mcp.tools.setup as setup_mod
+
+    original = setup_mod.find_dominion_root
+    setup_mod.find_dominion_root = lambda: dom_root
+    try:
+        result = await setup_mod.start_phase(
+            intent="Test", complexity="moderate",
+            pipeline=["plan", "research"],
+        )
+    finally:
+        setup_mod.find_dominion_root = original
+
+    assert "error" in result
+    assert "canonical order" in result["error"]
+
+
+@pytest.mark.asyncio
+async def test_start_phase_default_pipeline_when_none(dom_root: Path):
+    """start_phase uses complexity-derived pipeline when pipeline=None."""
+    import dominion_mcp.tools.setup as setup_mod
+
+    original = setup_mod.find_dominion_root
+    setup_mod.find_dominion_root = lambda: dom_root
+    try:
+        result = await setup_mod.start_phase(
+            intent="Feature", complexity="moderate",
+        )
+    finally:
+        setup_mod.find_dominion_root = original
+
+    assert result["pipeline"] == ["research", "plan", "execute", "review"]
+
+
+@pytest.mark.asyncio
 async def test_save_knowledge_emits_event(dom_root: Path):
     """save_knowledge emits knowledge_saved event."""
     import dominion_mcp.tools.knowledge as knowledge_mod
