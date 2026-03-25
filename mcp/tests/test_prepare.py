@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import pytest
+
 from dominion_mcp.core.prepare import (
     filter_knowledge_by_files,
     filter_knowledge_by_step,
@@ -109,6 +111,52 @@ def test_read_heuristics_role_only(dom_root: Path):
 
 def test_read_heuristics_missing(dom_root: Path):
     assert read_heuristics(dom_root, "nonexistent") is None
+
+
+def test_read_heuristics_wave_review(dom_root: Path):
+    """wave-review heuristic loads from wave-review.md when present."""
+    (dom_root / "heuristics" / "wave-review.md").write_text(
+        "## Wave Review\n\nCross-task integration check.\n"
+    )
+    result = read_heuristics(dom_root, "wave-review")
+    assert result is not None
+    assert "Wave Review" in result
+
+
+@pytest.mark.asyncio
+async def test_prepare_task_wave_review_uses_wave_heuristic(dom_root_with_plan: Path):
+    """prepare_task with wave-review-* prefix uses wave-review heuristic."""
+    import json
+
+    # Create wave-review heuristic
+    (dom_root_with_plan / "heuristics" / "wave-review.md").write_text(
+        "## Wave Review\n\nVerify cross-task consistency.\n"
+    )
+
+    import dominion_mcp.tools.setup as setup_mod
+    original = setup_mod.find_dominion_root
+    setup_mod.find_dominion_root = lambda: dom_root_with_plan
+
+    try:
+        task_info = json.dumps({
+            "title": "Wave 1 integration review",
+            "description": "Verify cross-task consistency",
+            "files": ["src/middleware.py"],
+            "wave": 1,
+            "dependencies": [],
+            "agent_role": "developer",
+        })
+        result = await setup_mod.prepare_task(
+            phase="01", task_id="wave-review-1", task_info=task_info,
+        )
+    finally:
+        setup_mod.find_dominion_root = original
+
+    assert "claude_md_path" in result
+    # Verify the generated CLAUDE.md contains wave-review heuristic
+    claude_path = dom_root_with_plan.parent / result["claude_md_path"]
+    content = claude_path.read_text()
+    assert "Wave Review" in content
 
 
 def test_read_knowledge_index(dom_root: Path):

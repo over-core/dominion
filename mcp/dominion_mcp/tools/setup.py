@@ -287,7 +287,12 @@ async def prepare_task(
     # Read inputs
     agent_role = task.get("agent_role", "developer")
     agent_toml = read_agent_toml(dom_root, agent_role)
-    heuristics = read_heuristics(dom_root, "execute", role=agent_role)
+
+    # Wave-review tasks use wave-review heuristic instead of execute
+    if task_id.startswith("wave-review-"):
+        heuristics = read_heuristics(dom_root, "wave-review")
+    else:
+        heuristics = read_heuristics(dom_root, "execute", role=agent_role)
 
     research_summary = read_summary(dom_root, phase, "research")
     plan_summary = read_summary(dom_root, phase, "plan")
