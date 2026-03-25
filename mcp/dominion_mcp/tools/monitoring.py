@@ -160,8 +160,8 @@ async def _check_agent_health(
         spawned_str = info.get("spawned", "")
         if spawned_str:
             spawned = datetime.fromisoformat(spawned_str)
-            elapsed = (now - spawned).total_seconds() / 60.0
-            if elapsed > timeout_minutes:
+            elapsed_seconds = (now - spawned).total_seconds()
+            if elapsed_seconds > timeout_minutes * 60:
                 stalled.append(agent_key)
                 await emit_event(
                     dom_root,
@@ -170,7 +170,7 @@ async def _check_agent_health(
                     step=step,
                     role=info.get("role", ""),
                     task_id=task_id or None,
-                    data={"agent_key": agent_key, "elapsed_minutes": round(elapsed, 1)},
+                    data={"agent_key": agent_key, "duration_seconds": int(elapsed_seconds)},
                 )
                 continue
 
@@ -225,7 +225,7 @@ async def _check_pipeline_ready(dom_root: Path) -> dict:
     if pos["step"] == "idle":
         return {"ready": False, "reason": "pipeline step is idle"}
 
-    return {
+    result = {
         "ready": True,
         "reason": "pipeline ready for autonomous continuation",
         "phase": pos["phase"],
@@ -233,6 +233,9 @@ async def _check_pipeline_ready(dom_root: Path) -> dict:
         "wave": pos["wave"],
         "complexity": pos.get("complexity_level"),
     }
+    await emit_event(dom_root, phase=pos["phase"], event="pipeline_ready",
+                     step=pos["step"], data={"next_step": pos["step"]})
+    return result
 
 
 @mcp.tool()

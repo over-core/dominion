@@ -341,7 +341,8 @@ async def prepare_task(
 
     await emit_event(dom_root, phase=phase, event="task_prepared",
                      step="execute", task_id=task_id,
-                     data={"title": task.get("title", ""), "wave": task.get("wave", 0)})
+                     data={"title": task.get("title", ""), "wave": task.get("wave", 0),
+                           "files": task_files})
 
     return {
         "claude_md_path": str(path.relative_to(dom_root.parent)),

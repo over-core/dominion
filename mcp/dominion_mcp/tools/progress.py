@@ -228,9 +228,13 @@ async def quality_gate(phase: str) -> dict:
         same_finding_count=same_count,
     )
 
+    prev_cb_state = cb.get("state", "closed")
     await emit_event(dom_root, phase=phase, event="quality_gate",
                      step="review", data={"verdict": verdict, "action": action,
                                           "blocking": len(blocking), "warnings": len(warnings)})
+    if cb_state != prev_cb_state:
+        await emit_event(dom_root, phase=phase, event="circuit_breaker",
+                         data={"state": cb_state, "retry_count": new_retry})
 
     return {
         "verdict": verdict,

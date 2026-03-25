@@ -182,10 +182,6 @@ async def submit_work(
         "complexity_upgrade": None,
     }
 
-    await emit_event(dom_root, phase=phase, event="work_submitted",
-                     step=step, role=role, task_id=task_id,
-                     data={"output_path": str(output_path.relative_to(dom_root.parent))})
-
     # Clear agent from stall detection tracking
     agent_key = f"{role}-{task_id}" if task_id else f"{role}-{step}"
     await remove_active_agent(dom_root, agent_key)
@@ -210,6 +206,11 @@ async def submit_work(
             if refinement.get("upgraded"):
                 result["complexity_upgrade"] = refinement
                 await update_position(dom_root, complexity_level=refinement["refined"])
+
+    await emit_event(dom_root, phase=phase, event="work_submitted",
+                     step=step, role=role, task_id=task_id,
+                     data={"output_path": str(output_path.relative_to(dom_root.parent)),
+                           "complexity_upgrade": result.get("complexity_upgrade")})
 
     return result
 
