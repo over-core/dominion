@@ -11,11 +11,18 @@ Analyze the project and generate a complete AI development context engine with M
 Before starting:
 1. Confirm you are in the correct project root directory
 2. Check if `.dominion/` already exists:
-   - If yes AND `.mcp.json` has a `dominion` entry: "Dominion is already onboarded. Use /dominion:improve for changes, or delete .dominion/ to re-onboard."
+   - If yes AND `.mcp.json` has a `dominion` entry:
+     a. Read `schema_version` from `.dominion/config.toml` (absent = pre-0.5.0)
+     b. If schema_version absent OR schema_version < "0.5.0":
+        "Dominion v{detected or 'pre-0.5.0'} detected, plugin is v0.5.0."
+        "Run `/dominion:onboard --upgrade` to migrate your project artifacts."
+        EXIT — do not proceed with full onboard
+     c. If `--upgrade` flag passed: follow upgrade-migration.md reference. EXIT after migration.
+     d. Otherwise: "Already onboarded at v{schema_version}. Use /dominion:improve for changes."
+        EXIT
    - If yes but no `.mcp.json` dominion entry: warn: "Found .dominion/ but no MCP wiring. Re-running will regenerate configs. Continue? [Y/n]"
-   - If no: proceed
+   - If no: proceed with full onboard
 3. MCP is NOT available during onboard — this skill creates `.mcp.json`. All data access is direct file reads.
-4. v0.3.0 requires re-onboard. Existing .dominion/ from v0.2.x is not compatible.
 </IMPORTANT>
 
 ## Phase 1: Detection
@@ -54,10 +61,11 @@ Follow interview.md (4 questions + optional taste: project identity, direction, 
 ## Phase 4: Generation
 
 Follow generation.md — creates all artifacts:
-1. `.dominion/config.toml` — merged config
+1. `.dominion/config.toml` — merged config (includes `schema_version = "0.5.0"`)
 2. `.dominion/agents/*.toml` — 7 flat agent configs
-3. `.dominion/heuristics/*.md` — 5 step heuristics
+3. `.dominion/heuristics/*.md` — 10 heuristics (5 step + 4 role + wave-review)
 4. `.dominion/knowledge/index.toml` — empty index
+5. `.dominion/objectives.toml` — empty objectives file
 5. `.claude/agents/*.md` — thin agent briefs
 6. `.claude/hooks/` — block-dominion-writes, session-start, prefer-serena
 7. `.claude/settings.local.json` — permissions + hooks
@@ -67,7 +75,7 @@ Follow generation.md — creates all artifacts:
 ## Phase 5: Confirmation
 
 ```
-Dominion v0.3.0 onboarded successfully.
+Dominion v0.5.0 onboarded successfully.
 
 Generated:
   .dominion/config.toml        Project config (languages, frameworks, agents)
