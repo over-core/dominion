@@ -140,7 +140,7 @@ async def update_position(
 
 
 async def add_phase(
-    dom_root: Path, phase_id: str, intent: str, complexity: str | None = None
+    dom_root: Path, phase_id: str, intent: str
 ) -> dict:
     """Add a new phase to [[phases]] array and update position."""
     state_path = dom_root / "state.toml"

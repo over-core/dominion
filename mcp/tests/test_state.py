@@ -88,7 +88,7 @@ def test_next_phase_id_empty(tmp_path: Path):
 
 @pytest.mark.asyncio
 async def test_add_phase(dom_root: Path):
-    entry = await add_phase(dom_root, "02", "Add OAuth2", "complex")
+    entry = await add_phase(dom_root, "02", "Add OAuth2")
     assert entry["id"] == "02"
 
     phases = get_phases(dom_root)

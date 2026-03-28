@@ -9,7 +9,8 @@ from pathlib import Path
 
 from ..server import mcp
 from ..core.config import find_dominion_root, read_toml, read_toml_optional
-from ..core.complexity import get_dispatch, get_pipeline, valid_steps
+from ..core.complexity import get_dispatch, get_pipeline
+from ..core.pipeline import validate_pipeline, valid_steps, PRIMARY_ROLES
 from ..core.filesystem import (
     create_phase_dirs,
     create_task_dirs,
@@ -47,22 +48,16 @@ from ..core.state import (
 @mcp.tool()
 async def start_phase(
     intent: str,
-    complexity: str,
+    pipeline: list[str],
     objective: str | None = None,
-    pipeline: list[str] | None = None,
 ) -> dict:
     """Initialize a new pipeline phase.
 
     Args:
         intent: What the user wants to accomplish.
-        complexity: trivial | analysis | specified | moderate | complex | major.
+        pipeline: Pipeline stages — subset of canonical order (discuss → research → plan → execute → review).
         objective: Optional objective ID to link this phase to.
-        pipeline: Optional custom pipeline — subset of canonical order (discuss → research → plan → execute → review). If omitted, derived from complexity.
     """
-    valid = ("trivial", "analysis", "specified", "moderate", "complex", "major")
-    if complexity not in valid:
-        return {"error": f"Invalid complexity '{complexity}'. Must be one of: {', '.join(valid)}"}
-
     try:
         dom_root = find_dominion_root()
     except ValueError:
@@ -70,18 +65,15 @@ async def start_phase(
 
     config = read_toml_optional(dom_root / "config.toml") or {}
 
-    if pipeline is not None:
-        known = valid_steps(config)
-        invalid_steps = [s for s in pipeline if s not in known]
-        if invalid_steps:
-            return {"error": f"Unknown pipeline steps: {', '.join(invalid_steps)}"}
-        canonical = ["discuss", "research", "plan", "execute", "review"]
-        filtered = [s for s in canonical if s in pipeline]
-        if filtered != [s for s in pipeline if s in canonical]:
-            return {"error": "Pipeline must preserve canonical order: discuss → research → plan → execute → review"}
-        effective_pipeline = pipeline
-    else:
-        effective_pipeline = get_pipeline(complexity, config)
+    known = valid_steps(config)
+    invalid_steps_found = [s for s in pipeline if s not in known]
+    if invalid_steps_found:
+        return {"error": f"Unknown pipeline steps: {', '.join(invalid_steps_found)}"}
+    try:
+        effective_pipeline = validate_pipeline(pipeline, config)
+    except ValueError as exc:
+        return {"error": str(exc)}
+
     phase_id = next_phase_id(dom_root)
 
     # Create directory tree
@@ -93,7 +85,6 @@ async def start_phase(
     content = generate_phase_claude_md(
         phase=phase_id,
         intent=intent,
-        complexity=complexity,
         pipeline=effective_pipeline,
         config=config,
         phases=phases,
@@ -102,7 +93,7 @@ async def start_phase(
     write_phase_claude_md(dom_root, phase_id, content)
 
     # Update state.toml
-    await add_phase(dom_root, phase_id, intent, complexity)
+    await add_phase(dom_root, phase_id, intent)
     await update_position(
         dom_root,
         phase=phase_id,
@@ -117,11 +108,10 @@ async def start_phase(
         await link_phase_to_objective(dom_root, phase_id, objective)
 
     await emit_event(dom_root, phase=phase_id, event="phase_started",
-                     data={"complexity": complexity, "pipeline": effective_pipeline, "objective_id": objective})
+                     data={"pipeline": effective_pipeline, "objective_id": objective})
 
     return {
         "phase": phase_id,
-        "complexity": complexity,
         "pipeline": effective_pipeline,
         "phase_dir": str(phase_dir.relative_to(dom_root.parent)),
     }

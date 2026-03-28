@@ -62,7 +62,6 @@ def generate_phase_claude_md(
     config: dict,
     phases: list[dict],
     decisions: list[dict],
-    complexity: str | None = None,  # deprecated, ignored
 ) -> str:
     """Generate phase-level CLAUDE.md content.
 
