@@ -58,24 +58,21 @@ _CLI_TOOL_DIRECTIVES: dict[str, dict[str, str]] = {
 def generate_phase_claude_md(
     phase: str,
     intent: str,
-    complexity: str,
     pipeline: list[str],
     config: dict,
     phases: list[dict],
     decisions: list[dict],
+    complexity: str | None = None,  # deprecated, ignored
 ) -> str:
     """Generate phase-level CLAUDE.md content.
 
-    Contains intent, complexity, pipeline, project context, prior phases, decisions.
+    Contains intent, pipeline, project context, prior phases, decisions.
     """
     sections = [
         f"# Phase {phase}: {intent}",
         "",
         "## Intent",
         intent,
-        "",
-        "## Complexity",
-        complexity,
         "",
         "## Pipeline",
         " -> ".join(pipeline),
