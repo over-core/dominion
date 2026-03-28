@@ -109,7 +109,6 @@ async def start_phase(
         step=effective_pipeline[0],
         wave=0,
         status="active",
-        complexity_level=complexity,
         pipeline=effective_pipeline,
     )
 

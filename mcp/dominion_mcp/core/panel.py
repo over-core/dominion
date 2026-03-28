@@ -6,11 +6,6 @@ Panel context is now assembled by prepare.py into CLAUDE.md, not here.
 
 from __future__ import annotations
 
-PANEL_CONFIGURATIONS: dict[str, list[str]] = {
-    "architecture": ["architect", "security-auditor", "innovation-engineer"],
-    "architecture-full": ["architect", "security-auditor", "innovation-engineer", "analyst"],
-}
-
 FACILITATION_TEMPLATE = """\
 You are facilitating a multi-perspective panel debate on: {topic}
 
@@ -31,15 +26,6 @@ Produce a structured panel output:
 
 Do NOT seek false consensus. Real dissent is more valuable than polite agreement.\
 """
-
-
-def get_panel_participants(
-    complexity: str, active_agents: list[str]
-) -> list[str]:
-    """Return panel participant roles for discuss step, filtered to active agents."""
-    config_key = "architecture-full" if complexity == "major" else "architecture"
-    configured = PANEL_CONFIGURATIONS[config_key]
-    return [role for role in configured if role in active_agents]
 
 
 def get_facilitation_prompt(topic: str, participants: list[str]) -> str:

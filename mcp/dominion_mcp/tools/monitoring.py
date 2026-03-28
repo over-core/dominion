@@ -231,7 +231,6 @@ async def _check_pipeline_ready(dom_root: Path) -> dict:
         "phase": pos["phase"],
         "step": pos["step"],
         "wave": pos["wave"],
-        "complexity": pos.get("complexity_level"),
     }
     await emit_event(dom_root, phase=pos["phase"], event="pipeline_ready",
                      step=pos["step"], data={"next_step": pos["step"]})

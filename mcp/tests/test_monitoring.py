@@ -169,7 +169,6 @@ async def test_check_pipeline_ready_enabled(dom_root: Path):
     assert result["phase"] == "01"
     assert result["step"] == "research"
     assert result["wave"] == 0
-    assert result["complexity"] == "moderate"
 
 
 @pytest.mark.asyncio
