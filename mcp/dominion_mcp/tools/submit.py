@@ -12,7 +12,6 @@ import tomli_w
 
 from ..server import mcp
 from ..core.config import find_dominion_root, read_toml_optional, write_toml
-from ..core.complexity import refine_complexity
 from ..core.filesystem import (
     append_summary,
     append_task_summary,
@@ -189,7 +188,6 @@ async def submit_work(
         "status": "accepted",
         "output_path": str(output_path.relative_to(dom_root.parent)),
         "summary_path": str(summary_path.relative_to(dom_root.parent)),
-        "complexity_upgrade": None,
     }
     if effort_warnings:
         result["effort_warnings"] = effort_warnings
@@ -198,31 +196,9 @@ async def submit_work(
     agent_key = f"{role}-{task_id}" if task_id else f"{role}-{step}"
     await remove_active_agent(dom_root, agent_key)
 
-    # Research side effect: trigger refine_complexity after ALL agents submit (H8)
-    if step == "research" and not task_id:
-        state = read_toml_optional(dom_root / "state.toml") or {}
-        complexity = state.get("position", {}).get("complexity_level", "moderate")
-
-        from ..core.complexity import get_dispatch, DISPATCH_TABLE
-        key = ("research", complexity)
-        if key in DISPATCH_TABLE:
-            _, expected_agents = DISPATCH_TABLE[key]
-            expected_roles = [a[0] for a in expected_agents]
-            submitted_roles = count_summary_roles(dom_root, phase, "research")
-            all_submitted = all(r in submitted_roles for r in expected_roles)
-        else:
-            all_submitted = True
-
-        if all_submitted:
-            refinement = refine_complexity(dom_root, phase)
-            if refinement.get("upgraded"):
-                result["complexity_upgrade"] = refinement
-                await update_position(dom_root, complexity_level=refinement["refined"])
-
     await emit_event(dom_root, phase=phase, event="work_submitted",
                      step=step, role=role, task_id=task_id,
-                     data={"output_path": str(output_path.relative_to(dom_root.parent)),
-                           "complexity_upgrade": result.get("complexity_upgrade")})
+                     data={"output_path": str(output_path.relative_to(dom_root.parent))})
 
     return result
 
