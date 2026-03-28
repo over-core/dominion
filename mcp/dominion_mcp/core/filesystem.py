@@ -11,7 +11,7 @@ from pathlib import Path
 
 from .config import write_toml
 
-# Per-file locks for concurrent summary appends (P-Thread safety).
+# Per-file locks for concurrent summary appends (parallel agent safety).
 _append_locks: dict[str, asyncio.Lock] = {}
 
 
@@ -142,7 +142,7 @@ def write_task_output_toml(
 
 
 # ---------------------------------------------------------------------------
-# Summary files — append with locking for P-Thread concurrent writes
+# Summary files — append with locking for parallel agent concurrent writes
 # ---------------------------------------------------------------------------
 
 
@@ -168,7 +168,7 @@ async def append_summary(
     """Append a role's summary to the step's summary.md with async locking.
 
     Format: ## {role}\n{text}\n\n
-    Uses per-file asyncio.Lock for P-Thread concurrent appends.
+    Uses per-file asyncio.Lock for parallel agent concurrent appends.
     """
     path = dom_root / "phases" / phase / step / "output" / "summary.md"
     return await _append_to_file(path, f"## {role}\n{text}\n\n")

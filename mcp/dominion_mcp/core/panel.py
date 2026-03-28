@@ -1,4 +1,4 @@
-"""Panel mode — F-Thread multi-perspective debate for discuss step.
+"""Panel mode — Multi-perspective panel debate for discuss step.
 
 v0.3.0: Simplified from methodology-based panel to configuration-only.
 Panel context is now assembled by prepare.py into CLAUDE.md, not here.
@@ -29,7 +29,7 @@ Do NOT seek false consensus. Real dissent is more valuable than polite agreement
 
 
 def get_facilitation_prompt(topic: str, participants: list[str]) -> str:
-    """Generate facilitation prompt for F-Thread panel."""
+    """Generate facilitation prompt for panel debate."""
     return FACILITATION_TEMPLATE.format(
         topic=topic,
         participants=", ".join(participants),

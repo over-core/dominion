@@ -170,7 +170,7 @@ async def submit_work(
         write_status(status_path, "complete")
         await mark_task_complete(dom_root, task_id, phase, step)
     else:
-        # Step output — merge into existing TOML (P-Thread concurrent writes)
+        # Step output — merge into existing TOML (parallel agent concurrent writes)
         output_file = dom_root / "phases" / phase / step / "output" / filename
         if output_file.exists():
             existing = read_toml_optional(output_file) or {}

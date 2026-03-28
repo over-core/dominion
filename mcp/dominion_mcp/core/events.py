@@ -11,7 +11,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Per-file locks for concurrent event appends (P-Thread safety).
+# Per-file locks for concurrent event appends (parallel agent safety).
 _event_locks: dict[str, asyncio.Lock] = {}
 
 
@@ -28,7 +28,7 @@ async def emit_event(
     """Append one JSON event line to phases/{phase}/events.jsonl.
 
     Creates parent dirs if needed.  Uses per-file asyncio.Lock so
-    concurrent P-Thread agents writing to the same phase are safe.
+    concurrent parallel agents writing to the same phase are safe.
 
     Returns the event dict that was written.
     """
