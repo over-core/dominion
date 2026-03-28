@@ -31,11 +31,11 @@ Read the Direction section from your brief. Your analysis methodology adapts:
 - Knowledge should say "current: {pattern}. Target: {pattern}. Migration: {approach}"
 
 ### Scope Selection
-Read the Complexity from your brief:
+Read the Pipeline from your brief:
 
-**Analysis** (analysis complexity): apply ALL dimensions below — this is a comprehensive codebase assessment. Every section fires.
+**Analysis pipeline** (pipeline has no execute step): apply ALL dimensions below — this is a comprehensive codebase assessment. Every section fires.
 
-**Feature-scoped** (moderate/complex/major): focus your analysis on:
+**Feature pipeline** (pipeline includes execute): focus your analysis on:
 - The feature's impact area only (files that will change or be affected)
 - Framework patterns relevant to the feature
 - Dependencies the feature will use
