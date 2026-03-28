@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .complexity import valid_steps
+from .pipeline import valid_steps
 from .config import (
     read_toml_optional,
     write_toml,
@@ -33,7 +33,7 @@ CIRCUIT_BREAKER_STATES = ("closed", "open", "half_open")
 def get_position(dom_root: Path) -> dict:
     """Read current pipeline position from state.toml.
 
-    Returns dict with: phase, step, wave, status, complexity_level, last_session.
+    Returns dict with: phase, step, wave, status, pipeline, last_session.
     Returns idle state if state.toml doesn't exist.
     """
     state = read_toml_optional(dom_root / "state.toml") or {}
@@ -44,7 +44,6 @@ def get_position(dom_root: Path) -> dict:
         "step": pos.get("step", "idle"),
         "wave": pos.get("wave", 0),
         "status": pos.get("status", "ready"),
-        "complexity_level": pos.get("complexity_level"),
         "pipeline": pos.get("pipeline"),
         "last_session": pos.get("last_session"),
     }
@@ -96,7 +95,6 @@ async def update_position(
     step: str | None = None,
     wave: int | None = None,
     status: str | None = None,
-    complexity_level: str | None = None,
     pipeline: list[str] | None = None,
 ) -> dict:
     """Update pipeline position fields in state.toml.
@@ -127,8 +125,6 @@ async def update_position(
             pos["wave"] = wave
         if status is not None:
             pos["status"] = status
-        if complexity_level is not None:
-            pos["complexity_level"] = complexity_level
         if pipeline is not None:
             pos["pipeline"] = pipeline
         pos["last_session"] = now
@@ -144,7 +140,7 @@ async def update_position(
 
 
 async def add_phase(
-    dom_root: Path, phase_id: str, intent: str, complexity: str
+    dom_root: Path, phase_id: str, intent: str, complexity: str | None = None
 ) -> dict:
     """Add a new phase to [[phases]] array and update position."""
     state_path = dom_root / "state.toml"
@@ -165,7 +161,6 @@ async def add_phase(
             "id": phase_id,
             "intent": intent,
             "status": "active",
-            "complexity": complexity,
             "started": now,
         }
         state["phases"].append(entry)
