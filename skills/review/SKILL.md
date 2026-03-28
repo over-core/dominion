@@ -10,14 +10,14 @@ Run the review step standalone. Auto-creates a phase if none is active.
 ## Steps
 
 1. Call `mcp__dominion__get_progress()`
-2. If no active phase: auto-create (assess_complexity + start_phase)
-3. Determine review protocol from complexity:
+2. If no active phase: auto-create (suggest_pipeline_tool + start_phase(intent, pipeline=[...]))
+3. Determine review protocol:
 
-   **Moderate (B-Thread):**
+   **Single reviewer (default):**
    - Call `prepare_step(phase, "review")` → single Reviewer
    - Read CLAUDE.md, spawn Reviewer
 
-   **Complex/Major (two-phase P-Thread):**
+   **Multi-specialist review (when orchestrator adds security-auditor/analyst):**
    - Phase 1: call `prepare_step(phase, "review", role="security-auditor")` + `prepare_step(phase, "review", role="analyst")`
    - Read each CLAUDE.md, spawn specialists in parallel
    - Phase 2: call `prepare_step(phase, "review")` (regenerates with specialist summaries)
