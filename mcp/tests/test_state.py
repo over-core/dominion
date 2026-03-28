@@ -34,7 +34,6 @@ def test_get_position_with_state(dom_root: Path):
     assert pos["phase"] == "01"
     assert pos["step"] == "research"
     assert pos["status"] == "active"
-    assert pos["complexity_level"] == "moderate"
 
 
 def test_get_position_no_state(tmp_path: Path):
@@ -89,9 +88,8 @@ def test_next_phase_id_empty(tmp_path: Path):
 
 @pytest.mark.asyncio
 async def test_add_phase(dom_root: Path):
-    entry = await add_phase(dom_root, "02", "Add OAuth2", "complex")
+    entry = await add_phase(dom_root, "02", "Add OAuth2")
     assert entry["id"] == "02"
-    assert entry["complexity"] == "complex"
 
     phases = get_phases(dom_root)
     assert len(phases) == 2

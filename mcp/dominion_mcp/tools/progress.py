@@ -1,4 +1,4 @@
-"""Progress tools — get_progress, quality_gate, assess_complexity, advance_step, save_decision.
+"""Progress tools — get_progress, quality_gate, suggest_pipeline_tool, advance_step, save_decision.
 
 Pipeline state management tools called by the orchestrator.
 """
@@ -14,10 +14,7 @@ from ..core.config import find_dominion_root, read_toml_optional
 from ..core.metrics import aggregate_effort, compute_delta, compute_quality_score
 from ..core.prepare import read_knowledge_index
 from ..core.events import emit_event, read_events
-from ..core.complexity import (
-    assess_complexity as _assess,
-    get_pipeline,
-)
+from ..core.pipeline import suggest_pipeline as _suggest
 from ..core.filesystem import (
     read_status,
     scan_step_statuses,
@@ -50,22 +47,19 @@ async def get_progress(phase: str | None = None) -> dict:
     try:
         dom_root = find_dominion_root()
     except ValueError:
-        return {"phase": "00", "step": "idle", "complexity": None, "completed_steps": [], "pipeline": [], "recent_events": []}
+        return {"phase": "00", "step": "idle", "completed_steps": [], "pipeline": [], "recent_events": []}
 
     state = read_toml_optional(dom_root / "state.toml")
     if not state:
-        return {"phase": "00", "step": "idle", "complexity": None, "completed_steps": [], "pipeline": [], "recent_events": []}
+        return {"phase": "00", "step": "idle", "completed_steps": [], "pipeline": [], "recent_events": []}
 
     pos = get_position(dom_root)
     target_phase = phase or pos.get("phase", "00")
 
     if target_phase == "00":
-        return {"phase": "00", "step": "idle", "complexity": None, "completed_steps": [], "pipeline": [], "recent_events": []}
+        return {"phase": "00", "step": "idle", "completed_steps": [], "pipeline": [], "recent_events": []}
 
-    complexity = pos.get("complexity_level", "moderate")
-    config = read_toml_optional(dom_root / "config.toml") or {}
-    # Read stored pipeline (v0.5.0 — preserves custom pipelines from start_phase)
-    pipeline = pos.get("pipeline") or get_pipeline(complexity, config)
+    pipeline = pos.get("pipeline", [])
     cb = get_circuit_breaker(dom_root)
 
     # Scan step statuses
@@ -81,7 +75,6 @@ async def get_progress(phase: str | None = None) -> dict:
         "phase": target_phase,
         "step": pos.get("step", "idle"),
         "wave": pos.get("wave", 0),
-        "complexity": complexity,
         "status": pos.get("status", "ready"),
         "completed_steps": completed_steps,
         "pending_tasks": pending_tasks,
@@ -260,17 +253,16 @@ async def quality_gate(phase: str) -> dict:
 
 
 @mcp.tool()
-async def assess_complexity_tool(intent: str, has_design_doc: bool = False) -> dict:
-    """Keyword-based complexity classification.
+async def suggest_pipeline_tool(intent: str, has_design_doc: bool = False) -> dict:
+    """Suggest pipeline stages based on intent keywords.
 
-    When has_design_doc is True, returns "specified" for tasks with comprehensive
-    design documents — skipping discuss and research steps.
+    Advisory — orchestrator can override.
 
     Args:
         intent: User's intent description.
-        has_design_doc: Whether a design document/spec is available for this task.
+        has_design_doc: Whether a design document/spec is available.
     """
-    return _assess(intent, has_design_doc=has_design_doc)
+    return _suggest(intent, has_design_doc=has_design_doc)
 
 
 @mcp.tool()
@@ -317,10 +309,7 @@ async def advance_step(phase: str, step: str) -> dict:
     # Advance to next step
     state = read_toml_optional(dom_root / "state.toml") or {}
     pos = state.get("position", {})
-    complexity = pos.get("complexity_level", "moderate")
-    config = read_toml_optional(dom_root / "config.toml") or {}
-    # Read stored pipeline (v0.5.0 — preserves custom pipelines from start_phase)
-    pipeline = pos.get("pipeline") or get_pipeline(complexity, config)
+    pipeline = pos.get("pipeline", [])
 
     try:
         current_idx = pipeline.index(step)
@@ -417,7 +406,7 @@ async def generate_phase_report(phase: str, tokens: list[dict] | None = None) ->
     report = {
         "phase": phase,
         "intent": intent,
-        "complexity": pos.get("complexity_level", "moderate"),
+        "pipeline": pos.get("pipeline", []),
         "tasks_total": len(task_list) or len(task_statuses),
         "tasks_completed": completed_tasks,
         "tasks_failed": failed_tasks,

@@ -77,7 +77,7 @@ Use `/dominion:orchestrate` to drive the full pipeline end-to-end. The orchestra
 |----------|-------|
 | **Setup** | `start_phase`, `prepare_step`, `prepare_task` |
 | **Submit** | `submit_work`, `signal_blocker` |
-| **Progress** | `get_progress`, `quality_gate`, `assess_complexity`, `advance_step`, `save_decision` |
+| **Progress** | `get_progress`, `quality_gate`, `suggest_pipeline_tool`, `advance_step`, `save_decision` |
 | **Knowledge** | `save_knowledge` |
 
 ### Context Delivery

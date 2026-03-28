@@ -14,9 +14,9 @@ If the user's intent references a design document, spec, or detailed plan:
    - Implementation order defined (+1)
 3. Estimate blast radius: count files and directories affected
 4. If specificity >= 3 AND blast radius < 20 files AND changes confined to 1-2 modules:
-   - Recommend complexity override: "specified" (plan→execute→review)
-   - Include in submission: complexity_override = "specified", estimated_loc = {N}
-5. If the spec has gaps (missing error handling, unclear edge cases), list them and recommend keeping current complexity
+   - Recommend skipping the research step: pipeline_adjustment = "skip research — spec is comprehensive"
+   - Include in submission: pipeline_adjustment, estimated_loc = {N}
+5. If the spec has gaps (missing error handling, unclear edge cases), list them and recommend keeping the full pipeline
 
 ### Focus Areas (when panel debate IS warranted)
 - Capture user's exact intent, identify ambiguities, confirm scope
@@ -47,7 +47,14 @@ If the user's intent references a design document, spec, or detailed plan:
 ### Output
 Produce structured perspective:
 - recommendation: your position on the topic
-- complexity_override: recommended level (if spec warrants downgrade)
+- pipeline_adjustment: recommend adding or removing stages (e.g. "skip research — spec is comprehensive")
+- specialist_additions: [{step, role, reason}] — recommend agents for remaining steps
+- scope_assessment: "proceed" | "reduce" | "expand" with rationale
 - estimated_loc: line count estimate (if spec allows)
 - risks: concerns from your domain
 - trade_offs: what's gained vs lost
+
+### Adversarial Technique
+- Steelman the strongest alternative to your recommendation before defending your position
+- If you agree with other perspectives, find the tension — what assumption are you all sharing that could be wrong?
+- Produce thesis (your position), antithesis (strongest counter), synthesis (what survives criticism)

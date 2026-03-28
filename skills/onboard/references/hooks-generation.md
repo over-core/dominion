@@ -49,7 +49,7 @@ Write `.claude/hooks/session-start.sh`:
 PHASE=$(grep '^phase = ' .dominion/state.toml 2>/dev/null | head -1 | cut -d'"' -f2 || echo "00")
 STEP=$(grep '^step = ' .dominion/state.toml 2>/dev/null | head -1 | cut -d'"' -f2 || echo "idle")
 STATUS=$(grep '^status = ' .dominion/state.toml 2>/dev/null | head -1 | cut -d'"' -f2 || echo "ready")
-COMPLEXITY=$(grep '^complexity_level = ' .dominion/state.toml 2>/dev/null | head -1 | cut -d'"' -f2 || echo "")
+PIPELINE=$(grep '^pipeline = ' .dominion/state.toml 2>/dev/null | head -1 | sed 's/^pipeline = //' || echo "[]")
 CB_STATE=$(grep '^state = ' .dominion/state.toml 2>/dev/null | head -1 | cut -d'"' -f2 || echo "closed")
 
 AUTO="false"
@@ -59,7 +59,7 @@ fi
 
 if [ "$STEP" != "idle" ]; then
   echo "--- Dominion Pipeline State ---"
-  echo "Phase: ${PHASE} | Step: ${STEP} | Status: ${STATUS} | Complexity: ${COMPLEXITY}"
+  echo "Phase: ${PHASE} | Step: ${STEP} | Status: ${STATUS} | Pipeline: ${PIPELINE}"
 
   if [ "$AUTO" = "true" ] && [ "$CB_STATE" = "closed" ] && [ "$STATUS" = "active" ]; then
     echo ""

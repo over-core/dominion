@@ -121,7 +121,7 @@ async def test_start_phase_emits_event(dom_root: Path):
     original = setup_mod.find_dominion_root
     setup_mod.find_dominion_root = lambda: dom_root
     try:
-        result = await start_phase(intent="Test feature", complexity="moderate")
+        result = await start_phase(intent="Test feature", pipeline=["research", "plan", "execute", "review"])
     finally:
         setup_mod.find_dominion_root = original
 
@@ -129,7 +129,7 @@ async def test_start_phase_emits_event(dom_root: Path):
     events = read_events(dom_root, phase=phase)
     phase_events = [e for e in events if e["event"] == "phase_started"]
     assert len(phase_events) == 1
-    assert phase_events[0]["data"]["complexity"] == "moderate"
+    assert phase_events[0]["data"]["pipeline"] == ["research", "plan", "execute", "review"]
 
 
 @pytest.mark.asyncio
@@ -207,7 +207,7 @@ async def test_start_phase_with_objective(dom_root: Path):
     original = setup_mod.find_dominion_root
     setup_mod.find_dominion_root = lambda: dom_root
     try:
-        result = await setup_mod.start_phase(intent="Implement JWT", complexity="moderate", objective=obj["id"])
+        result = await setup_mod.start_phase(intent="Implement JWT", pipeline=["research", "plan", "execute", "review"], objective=obj["id"])
     finally:
         setup_mod.find_dominion_root = original
 
@@ -233,7 +233,7 @@ async def test_start_phase_custom_pipeline(dom_root: Path):
     setup_mod.find_dominion_root = lambda: dom_root
     try:
         result = await setup_mod.start_phase(
-            intent="Quick scan", complexity="moderate",
+            intent="Quick scan",
             pipeline=["research", "review"],
         )
     finally:
@@ -264,7 +264,7 @@ async def test_get_progress_reads_stored_pipeline(dom_root: Path):
     prog_mod.find_dominion_root = lambda: dom_root
     try:
         await setup_mod.start_phase(
-            intent="Quick audit", complexity="moderate",
+            intent="Quick audit",
             pipeline=["research", "review"],
         )
         progress = await prog_mod.get_progress()
@@ -285,7 +285,7 @@ async def test_start_phase_rejects_invalid_pipeline_step(dom_root: Path):
     setup_mod.find_dominion_root = lambda: dom_root
     try:
         result = await setup_mod.start_phase(
-            intent="Test", complexity="moderate",
+            intent="Test",
             pipeline=["research", "bogus"],
         )
     finally:
@@ -304,7 +304,7 @@ async def test_start_phase_rejects_misordered_pipeline(dom_root: Path):
     setup_mod.find_dominion_root = lambda: dom_root
     try:
         result = await setup_mod.start_phase(
-            intent="Test", complexity="moderate",
+            intent="Test",
             pipeline=["plan", "research"],
         )
     finally:
@@ -312,23 +312,6 @@ async def test_start_phase_rejects_misordered_pipeline(dom_root: Path):
 
     assert "error" in result
     assert "canonical order" in result["error"]
-
-
-@pytest.mark.asyncio
-async def test_start_phase_default_pipeline_when_none(dom_root: Path):
-    """start_phase uses complexity-derived pipeline when pipeline=None."""
-    import dominion_mcp.tools.setup as setup_mod
-
-    original = setup_mod.find_dominion_root
-    setup_mod.find_dominion_root = lambda: dom_root
-    try:
-        result = await setup_mod.start_phase(
-            intent="Feature", complexity="moderate",
-        )
-    finally:
-        setup_mod.find_dominion_root = original
-
-    assert result["pipeline"] == ["research", "plan", "execute", "review"]
 
 
 @pytest.mark.asyncio

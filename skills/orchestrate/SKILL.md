@@ -1,6 +1,6 @@
 ---
 name: orchestrate
-description: Drive the full pipeline — assess complexity, dispatch agents by thread type, manage retries
+description: Drive the development pipeline — select stages, dispatch agents, manage retries and completion
 ---
 
 # /dominion:orchestrate
@@ -11,12 +11,12 @@ Usage: `/dominion:orchestrate "Add rate limiting to the API endpoints"`
 Auto mode: `/dominion:orchestrate --auto "Add rate limiting"`
 Resume mode: `/dominion:orchestrate --resume`
 
-## Section 0: Resume Mode (v0.5.0)
+## Section 0: Resume Mode
 
 If `--resume` flag is present OR session context contains "PIPELINE READY":
 1. Call `mcp__dominion__get_progress()`
 2. If no active phase (step == "idle"): "No active pipeline. Use `/dominion:orchestrate` to start a new one."
-3. Otherwise: read phase, step, complexity, pipeline from progress response
+3. Otherwise: read phase, step, pipeline from progress response
 4. Find current step index in pipeline → resume from that step through end
 5. Skip to Section 3 (Step Loop) — no phase initialization needed
 
@@ -38,84 +38,119 @@ If `--resume` flag is present OR session context contains "PIPELINE READY":
 
 1. Parse `--auto` flag from invocation
 2. Determine if intent references a design doc (check for doc/spec/design file mentions)
-3. Call `mcp__dominion__assess_complexity_tool(intent, has_design_doc=True/False)` → get suggested complexity
-4. Present assessment to user: "{complexity}: {reasoning}. Override? [Y/change/n]"
-   - In `--auto` mode: use suggestion, MODERATE floor (never below moderate)
-5. **Dynamic Pipeline Selection (v0.5.0):**
-   Available stages: discuss, research, plan, execute, review.
-   Based on the intent, select which stages this task needs. Skip stages but NEVER reorder.
-   Examples: quick scan → `["research"]`, security audit → `["research", "review"]`,
-   implement from spec → `["plan", "execute", "review"]`, standard feature → full default.
-   Pass the selected pipeline to start_phase: `mcp__dominion__start_phase(intent, complexity, pipeline=[...])`
-   If no custom selection needed, omit pipeline param for complexity-derived default.
+3. Call `mcp__dominion__suggest_pipeline_tool(intent, has_design_doc=True/False)` → returns suggested pipeline stages + reasoning + keywords matched
+4. Evaluate the suggestion — adjust based on intent nuance the keyword matcher may miss:
+   - Does the intent describe work that genuinely needs research, or is context already known?
+   - Is a discuss step valuable here, or is the scope already clear?
+   - Would skipping plan make sense (e.g., single-file change with obvious approach)?
+5. Present to user in plain language:
+   "I'll run **research → plan → execute → review**. Skipping discuss since the scope is clear. OK?"
+   - In `--auto` mode: accept the suggestion (but never go below `["execute"]`)
+6. Call `mcp__dominion__start_phase(intent, pipeline=[...])` → creates phase + step directories
 
-   **Skipped stage effects** (downstream agents handle missing context gracefully):
-   | Skipped | Effect |
-   |---------|--------|
-   | discuss | No complexity override. You pick complexity directly. |
-   | research | No findings.toml. Plan works from intent + knowledge only. |
-   | plan | No tasks.toml. Execute uses inline task_info parameter. |
-   | execute | No implementation. Review-only pipeline (analysis mode). |
-   | review | No verdict. Ship uses manual mode PR body. |
+**Skipped stage effects** (downstream agents handle missing context gracefully):
+| Skipped | Effect |
+|---------|--------|
+| discuss | No panel discussion. You choose the pipeline directly. |
+| research | No findings.toml. Plan works from intent + knowledge only. |
+| plan | No tasks.toml. Execute uses inline task_info parameter. |
+| execute | No implementation. Analysis-only pipeline. |
+| review | No verdict. Ship uses manual mode PR body. |
 
-6. Call `mcp__dominion__start_phase(intent, complexity, pipeline=...)` → creates phase + step dirs
-
-### Objective Linking (v0.5.0)
+### Objective Linking
 
 After start_phase:
 1. Call `mcp__dominion__get_objective()` → list active objectives
 2. If active objectives exist AND intent keywords overlap with an objective name/summary:
-   - Ask user: "Link this phase to objective '{name}'?" (C-Thread)
+   - Ask user: "Link this phase to objective '{name}'?"
    - If yes: call `mcp__dominion__link_phase_to_objective(phase, objective_id)`
-3. If no match: ask user "Create a new objective for this work?" (C-Thread)
-   - If yes: call `mcp__dominion__create_objective(name, description)`
-   - Then link the new phase
-4. In `--auto` mode: auto-link if intent overlaps, auto-create if new work
+3. If active objectives exist but no match: ask "Create a new objective for this work?"
+   - If yes: call `mcp__dominion__create_objective(name, description)` then link the new phase
+4. If NO objectives exist: skip silently — do not prompt the user about objectives
+5. In `--auto` mode: auto-link if intent overlaps, auto-create only if objectives already exist
 
 ## Section 3: Step Loop
 
-For each step in pipeline profile (skipping completed):
+For each step in pipeline (skipping completed):
 
-a. Call `mcp__dominion__prepare_step(phase, step)` → returns path + thread_type + agents + metric_commands
-a1. **Pre-analysis metrics (v0.5.0):** If metric_commands is non-empty (research step):
+a. Call `mcp__dominion__prepare_step(phase, step, agents=[...])` → returns claude_md_path + agents list + metric_commands
+
+   **Choosing agents for each step:**
+   Start with the default agent for each stage:
+   - research → researcher
+   - plan → architect
+   - execute → developer
+   - review → reviewer
+   - discuss → architect (+ others for panel)
+
+   Then consider the intent — add specialists when warranted:
+   - Security-related intent → add `security-auditor` to research and review
+   - Broad architectural scope → add `analyst` to review
+   - High uncertainty or exploration → add `innovation-engineer` to research
+   - Large blast radius (many files/services affected) → add `security-auditor` + `analyst` to review
+
+   Pass all chosen roles via the `agents` parameter. First entry is the primary agent.
+
+a1. **Pre-analysis metrics:** If metric_commands is non-empty (research step):
    - For each command: run via Bash, capture stdout (timeout 30s each, ignore failures)
    - Collect results into a JSON dict: `{label: output}` (using each command's "label" as key)
    - Write the dict to `.dominion/phases/{phase}/research/metrics.json`
-   - Call `mcp__dominion__prepare_step(phase, step)` AGAIN — it reads metrics.json and injects into CLAUDE.md
+   - Call `mcp__dominion__prepare_step(phase, step, agents=[...])` AGAIN — it reads metrics.json and injects into CLAUDE.md
    This ensures metrics survive retries: metrics.json persists, and prepare_step reads it on regeneration.
-b. Read CLAUDE.md from returned path via Read tool
-c. Branch on thread type:
 
-   **B-Thread** (single agent):
+b. Read CLAUDE.md from returned path via Read tool
+
+c. Dispatch agents based on count:
+
+   **Single agent** (one agent in list):
    - Spawn single `Agent(prompt=claude_md_content, subagent_type=agents[0].role)`
    - IMPORTANT: agents[0].role resolves to `.claude/agents/{role}.md` — a Dominion agent.
      Do NOT use plugin agents from your system prompt (e.g., python-development:python-pro).
      Dominion agents are purpose-built for this pipeline with correct model assignment and hard stops.
 
-   **P-Thread** (parallel agents):
+   **Multiple agents — parallel dispatch** (two or more agents in list):
    - For each agent: call `prepare_step(phase, step, role=agent.role)`, Read its CLAUDE.md
    - Spawn ALL agents in parallel with their respective content, using `subagent_type=agent.role`
    - Same rule: use Dominion agents, NOT plugin agents
 
-   **F-Thread** (panel — discuss step):
+   **Panel synthesis** (discuss step, or multi-specialist review):
    - For each panel agent: call `prepare_step(phase, step, role=agent.role)`, Read CLAUDE.md
    - Spawn in parallel → collect outputs
-   - Orchestrator synthesizes inline: read all summaries, produce recommendation + dissents + trade_offs
-   - Submit synthesis: `submit_work(phase, "discuss", "orchestrator", synthesis, summary)`
+   - Orchestrator synthesizes inline using the Panel Discussion Framework (below)
+   - Submit synthesis: `submit_work(phase, step, "orchestrator", synthesis, summary)`
 
-   **Z-Thread** (trivial — execute only):
-   - Call `prepare_task(phase, "01", task_info={"title": intent, "description": intent, "files": [], "wave": 1, "dependencies": [], "agent_role": "developer"})`
-   - Read CLAUDE.md, spawn developer
+### Panel Discussion Framework
 
-d. **Complexity override after discuss:**
-   - After discuss completes, check output for complexity_override recommendation
-   - If discuss recommends downgrade (e.g., "specified"):
-     - Call `save_decision(phase, "complexity_override", recommended_level, "Discuss panel assessed spec as comprehensive")`
-     - Skip steps not in the downgraded pipeline profile (e.g., skip research for "specified")
-     - Continue with adjusted pipeline
+When synthesizing multi-agent outputs (discuss step, multi-specialist review):
+1. Read all agent submissions
+2. For each position: steelman the strongest counter-argument
+3. Identify shared assumptions across all agents — challenge them
+4. Find productive tensions between positions
+5. Produce:
+   - **Recommendation**: what survives criticism
+   - **Dissents**: minority positions with rationale
+   - **Trade-offs**: what's gained vs what's lost
+6. Submit synthesis as step output
+
+### Post-Research Dispatch Adjustment
+
+After research completes, read the research summary:
+- If findings include high-severity security items → add `security-auditor` to review
+- If findings span 3+ categories with high severity → add `analyst` to review
+- If findings are low-severity and narrow → keep default single reviewer
+
+d. **Pipeline adjustment after discuss:**
+   - After discuss completes, read the discuss output
+   - Check for `pipeline_adjustment` — a recommendation to add or remove stages from the remaining pipeline
+   - Check for `specialist_additions` — recommendations to add specialist agents to specific steps
+   - Adjust dispatch for remaining steps accordingly
+   - Call `save_decision(phase, "pipeline_adjustment", adjustment, "Discuss panel recommendation")`
 
 e. **Execute step — wave loop:**
-   - Read `plan/output/tasks.toml` → group tasks by wave
+   - If pipeline is `["execute"]` only (no plan step was run), create task_info inline:
+     `{"title": intent, "description": intent, "files": [], "wave": 1, "dependencies": [], "agent_role": "developer"}`
+     Call `prepare_task(phase, "01", task_info=...)`, Read CLAUDE.md, spawn developer.
+   - Otherwise read `plan/output/tasks.toml` → group tasks by wave
    - **Wave 0 (stubs, if present):**
      - Spawn architect agent WITHOUT `isolation='worktree'` (direct commit to branch)
      - After stub task completes, verify stubs committed
@@ -149,10 +184,10 @@ e. **Execute step — wave loop:**
        0a. Clean each worktree: `git -C {worktree_path} clean -fd`
        0b. Pre-merge file check: `git diff --name-only {branch} {current_branch}` — verify changed files are a subset of the agent's assignment. If unexpected files appear, halt and report.
        1. Squash-merge each branch: `git merge --squash {branch} && git commit -m "feat({scope}): {task_title}"`
-       2. On conflict → C-Thread halt: "Merge conflict in {files}. Resolve manually, re-run."
+       2. On conflict → halt: "Merge conflict in {files}. Resolve manually, re-run."
        3. On success → `git worktree remove .claude/worktrees/{worktree_name}` THEN `git branch -d {branch}`
        4. After ALL wave N branches merged → pop stash if exists (`git stash pop`, ignore errors)
-   - **Wave-landing review (v0.5.0)** (after wave N merge, before wave N+1):
+   - **Wave-landing review** (after wave N merge, before wave N+1):
      - IF wave N had > 2 tasks:
        - Create task_info: `{"title": "Wave {N} integration review", "description": "Verify cross-task consistency", "files": [{all files from wave N tasks}], "wave": N, "dependencies": [{wave N task IDs}], "agent_role": "developer"}`
        - Call `prepare_task(phase, "wave-review-{N}", task_info)` → uses wave-review.md heuristic automatically
@@ -174,14 +209,14 @@ e. **Execute step — wave loop:**
 
 f. After all agents for non-execute steps return:
    - Call `mcp__dominion__advance_step(phase, step)`
-   - **Session memory (v0.5.0)**: If EchoVault is available (`mcp__echovault__*` tools exist):
+   - **Session memory**: If EchoVault is available (`mcp__echovault__*` tools exist):
      - Read agent summaries from `.dominion/phases/{phase}/{step}/output/summary.md`
      - For each agent that submitted: call `mcp__echovault__memory_save(key="dominion/{phase}/{step}/{role}", content="{summary}")`
    - **Before preparing agents for the NEXT step**: query EchoVault:
      - Call `mcp__echovault__memory_search(query="dominion {next_step} {intent[:100]}", limit=3)`
      - If results: append `## Prior Session Memory\n{results}` to the CLAUDE.md content before passing to agent
 
-g0. **Analysis completion (analysis complexity only):**
+g0. **Analysis completion (research + review pipeline with no execute):**
    After research and review complete (no plan/execute in this pipeline):
    1. Read all research findings from `.dominion/phases/{phase}/research/output/`
    2. Read all review findings from `.dominion/phases/{phase}/review/output/`
@@ -203,23 +238,27 @@ g0. **Analysis completion (analysis complexity only):**
    6. Commit knowledge: `git add .dominion/knowledge/ && git commit -m "feat(knowledge): seed from codebase analysis"`
    7. Skip to Section 5 (Completion)
 
-g. **Review step — two-phase protocol (complex/major):**
+g. **Review step — specialist-enriched protocol:**
    0. **Pre-review cleanup**: remove ALL stale worktrees before spawning any review agents:
       `for wt in $(git worktree list --porcelain | grep -oP '(?<=worktree ).+\.claude/worktrees/.+'); do git worktree remove --force "$wt"; done`
       Verify: `ls .claude/worktrees/ 2>/dev/null` should be empty or not exist.
       This prevents reviewers from reading stale code in old worktree directories.
-   1. Call `prepare_step(phase, "review", role="security-auditor")` + `prepare_step(phase, "review", role="analyst")`
-   2. Spawn specialists in parallel
-   3. After specialists submit: if blocking findings exist, apply fixes:
-      - Fix the code issues identified by specialists
-      - Commit fixes: `git add {files} && git commit -m "fix(review): address {N} specialist findings"`
-   4. Call `prepare_step(phase, "review")` (regenerates with specialist summaries + fix context)
-   5. Spawn Reviewer with enriched brief
-   6. After Reviewer submits: call `advance_step(phase, "review")`
+   1. If specialist agents were selected (from intent analysis or post-research adjustment):
+      - Call `prepare_step(phase, "review", role="security-auditor")` and/or `prepare_step(phase, "review", role="analyst")` as appropriate
+      - Spawn specialists in parallel
+      - After specialists submit: if blocking findings exist, apply fixes:
+        - Fix the code issues identified by specialists
+        - Commit fixes: `git add {files} && git commit -m "fix(review): address {N} specialist findings"`
+      - Call `prepare_step(phase, "review")` (regenerates with specialist summaries + fix context)
+      - Spawn Reviewer with enriched brief
+   2. If no specialists needed (narrow scope, low risk):
+      - Call `prepare_step(phase, "review")` directly
+      - Spawn single Reviewer
+   3. After Reviewer submits: call `advance_step(phase, "review")`
    - Then: call `mcp__dominion__quality_gate(phase)` → verdict → proceed/retry/halt
-   - If not `--auto`: present verdict to user (C-Thread checkpoint)
+   - If not `--auto`: present verdict to user
 
-## Section 4: L-Thread Retry (--auto only)
+## Section 4: Retry on Quality Gate Failure (--auto only)
 
 When quality_gate returns action="retry":
 1. Read blocking_findings from quality_gate response
@@ -229,12 +268,12 @@ When quality_gate returns action="retry":
 5. Squash-merge fix worktrees
 6. Commit: `git commit -m "fix(review): address quality gate findings"`
 7. Call `prepare_step(phase, "review")` → resets "complete" → "active", regenerates with fix summaries
-8. Spawn review agent(s) (follow two-phase protocol if complex/major)
+8. Spawn review agent(s) — follow specialist-enriched protocol if specialists were used in the original review
 9. After review: call `advance_step(phase, "review")`
 10. Circuit breaker checks (quality_gate updates state.toml):
     - Same-finding hash comparison
     - Retry count against max_retries
-11. On circuit breaker trigger → C-Thread halt even in --auto mode
+11. On circuit breaker trigger → halt even in --auto mode
 
 ## Section 5: Completion
 

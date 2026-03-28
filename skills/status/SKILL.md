@@ -15,7 +15,7 @@ Display the current Dominion pipeline status.
 ```
 Pipeline Status:
   Phase:          {phase} — {intent from phase CLAUDE.md}
-  Complexity:     {complexity}
+  Pipeline:       {pipeline}
   Current step:   {step} ({status})
   Circuit breaker: {circuit_breaker state}
   Retry count:    {retry_count}
@@ -73,4 +73,4 @@ Recent Events:
 ```
 
 Format: `HH:MM:SS  event_type  context — data`
-Example: `15:30:45  phase_started  moderate — "Add auth system"`
+Example: `15:30:45  phase_started  [research, plan, execute, review] — "Add auth system"`

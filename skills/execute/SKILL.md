@@ -10,7 +10,7 @@ Run the execute step standalone. Auto-creates a phase if none is active.
 ## Steps
 
 1. Call `mcp__dominion__get_progress()`
-2. If no active phase: auto-create (assess_complexity + start_phase)
+2. If no active phase: auto-create (suggest_pipeline_tool + start_phase(intent, pipeline=[...]))
 3. Read `plan/output/tasks.toml` → group tasks by wave
 4. **Wave 0 (stubs, if present):**
    - Spawn architect agent WITHOUT `isolation='worktree'` (direct commit to branch)

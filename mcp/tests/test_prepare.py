@@ -21,21 +21,19 @@ def test_generate_phase_claude_md():
     content = generate_phase_claude_md(
         phase="01",
         intent="Add rate limiting",
-        complexity="moderate",
         pipeline=["research", "plan", "execute", "review"],
         config={"project": {"languages": ["python"], "frameworks": ["fastapi"], "direction": "API-first"}},
         phases=[],
         decisions=[],
     )
     assert "# Phase 01: Add rate limiting" in content
-    assert "moderate" in content
     assert "research -> plan -> execute -> review" in content
     assert "python" in content
 
 
 def test_generate_phase_claude_md_with_prior_phases():
     content = generate_phase_claude_md(
-        phase="02", intent="Add auth", complexity="complex",
+        phase="02", intent="Add auth",
         pipeline=["discuss", "research", "plan", "execute", "review"],
         config={"project": {"languages": ["python"]}},
         phases=[{"id": "01", "intent": "Rate limiting", "status": "complete"}],

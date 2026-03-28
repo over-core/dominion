@@ -9,7 +9,7 @@ from pathlib import Path
 
 from ..server import mcp
 from ..core.config import find_dominion_root, read_toml, read_toml_optional
-from ..core.complexity import get_dispatch, get_pipeline, valid_steps
+from ..core.pipeline import validate_pipeline, valid_steps, PRIMARY_ROLES
 from ..core.filesystem import (
     create_phase_dirs,
     create_task_dirs,
@@ -47,22 +47,16 @@ from ..core.state import (
 @mcp.tool()
 async def start_phase(
     intent: str,
-    complexity: str,
+    pipeline: list[str],
     objective: str | None = None,
-    pipeline: list[str] | None = None,
 ) -> dict:
     """Initialize a new pipeline phase.
 
     Args:
         intent: What the user wants to accomplish.
-        complexity: trivial | analysis | specified | moderate | complex | major.
+        pipeline: Pipeline stages — subset of canonical order (discuss → research → plan → execute → review).
         objective: Optional objective ID to link this phase to.
-        pipeline: Optional custom pipeline — subset of canonical order (discuss → research → plan → execute → review). If omitted, derived from complexity.
     """
-    valid = ("trivial", "analysis", "specified", "moderate", "complex", "major")
-    if complexity not in valid:
-        return {"error": f"Invalid complexity '{complexity}'. Must be one of: {', '.join(valid)}"}
-
     try:
         dom_root = find_dominion_root()
     except ValueError:
@@ -70,18 +64,15 @@ async def start_phase(
 
     config = read_toml_optional(dom_root / "config.toml") or {}
 
-    if pipeline is not None:
-        known = valid_steps(config)
-        invalid_steps = [s for s in pipeline if s not in known]
-        if invalid_steps:
-            return {"error": f"Unknown pipeline steps: {', '.join(invalid_steps)}"}
-        canonical = ["discuss", "research", "plan", "execute", "review"]
-        filtered = [s for s in canonical if s in pipeline]
-        if filtered != [s for s in pipeline if s in canonical]:
-            return {"error": "Pipeline must preserve canonical order: discuss → research → plan → execute → review"}
-        effective_pipeline = pipeline
-    else:
-        effective_pipeline = get_pipeline(complexity, config)
+    known = valid_steps(config)
+    invalid_steps_found = [s for s in pipeline if s not in known]
+    if invalid_steps_found:
+        return {"error": f"Unknown pipeline steps: {', '.join(invalid_steps_found)}"}
+    try:
+        effective_pipeline = validate_pipeline(pipeline, config)
+    except ValueError as exc:
+        return {"error": str(exc)}
+
     phase_id = next_phase_id(dom_root)
 
     # Create directory tree
@@ -93,7 +84,6 @@ async def start_phase(
     content = generate_phase_claude_md(
         phase=phase_id,
         intent=intent,
-        complexity=complexity,
         pipeline=effective_pipeline,
         config=config,
         phases=phases,
@@ -102,14 +92,13 @@ async def start_phase(
     write_phase_claude_md(dom_root, phase_id, content)
 
     # Update state.toml
-    await add_phase(dom_root, phase_id, intent, complexity)
+    await add_phase(dom_root, phase_id, intent)
     await update_position(
         dom_root,
         phase=phase_id,
         step=effective_pipeline[0],
         wave=0,
         status="active",
-        complexity_level=complexity,
         pipeline=effective_pipeline,
     )
 
@@ -118,18 +107,21 @@ async def start_phase(
         await link_phase_to_objective(dom_root, phase_id, objective)
 
     await emit_event(dom_root, phase=phase_id, event="phase_started",
-                     data={"complexity": complexity, "pipeline": effective_pipeline, "objective_id": objective})
+                     data={"pipeline": effective_pipeline, "objective_id": objective})
 
     return {
         "phase": phase_id,
-        "complexity": complexity,
         "pipeline": effective_pipeline,
         "phase_dir": str(phase_dir.relative_to(dom_root.parent)),
     }
 
 
 @mcp.tool()
-async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
+async def prepare_step(
+    phase: str, step: str,
+    role: str | None = None,
+    agents: list[str] | None = None,
+) -> dict:
     """Generate step-level CLAUDE.md from config + prior outputs + heuristics + knowledge.
 
     Idempotent — can be called multiple times. Re-call regenerates CLAUDE.md.
@@ -139,6 +131,7 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
         phase: Phase ID (e.g., "01").
         step: Step name (research | plan | review | discuss).
         role: Override role for the brief. When provided, generates a role-specific brief.
+        agents: Explicit list of agent roles for this step. First entry is primary.
     """
     try:
         dom_root = find_dominion_root()
@@ -155,23 +148,17 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
 
     config = read_toml_optional(dom_root / "config.toml") or {}
     active_agents = config.get("agents", {}).get("active", [])
-    complexity = (read_toml_optional(dom_root / "state.toml") or {}).get(
-        "position", {}
-    ).get("complexity_level", "moderate")
 
     # Determine target role
     if role:
         target_role = role
+    elif agents:
+        target_role = agents[0]
     else:
-        # Use primary role from dispatch table
-        try:
-            _, agents = get_dispatch(step, complexity, active_agents, config)
-            target_role = agents[0]["role"] if agents else step
-        except ValueError:
-            target_role = step
+        target_role = PRIMARY_ROLES.get(step, step)
 
-    if role and role not in active_agents:
-        return {"error": f"Role '{role}' not in config.toml [agents].active."}
+    if target_role not in active_agents:
+        return {"error": f"Role '{target_role}' not in config.toml [agents].active."}
 
     # Read inputs
     agent_toml = read_agent_toml(dom_root, target_role)
@@ -185,7 +172,10 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
         if kpath.exists():
             entry["_content"] = kpath.read_text()
     decisions = get_decisions(dom_root)
-    pipeline = get_pipeline(complexity, config)
+
+    state = read_toml_optional(dom_root / "state.toml") or {}
+    pipeline = state.get("position", {}).get("pipeline", [])
+    pipeline = validate_pipeline(pipeline, config) if pipeline else []
 
     # Read prior summaries (including current step for two-phase review)
     prior_summaries = read_prior_summaries(dom_root, phase, pipeline, step)
@@ -243,22 +233,24 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
     elif current_status == "complete":
         write_status(status_path, "active")  # Retry support (C4)
 
-    # Get dispatch info
-    try:
-        thread_type, agents = get_dispatch(step, complexity, active_agents, config)
-    except ValueError:
-        thread_type = "B-Thread"
-        agents = [{"role": target_role, "model": "opus"}]
+    # Build agents list for return
+    if agents:
+        agent_roles = agents
+    else:
+        agent_roles = [target_role]
 
-    # Override model from agent TOML if specified + add agent_path
-    for agent in agents:
-        agent_conf = read_agent_toml(dom_root, agent["role"])
-        if agent_conf.get("agent", {}).get("model"):
-            agent["model"] = agent_conf["agent"]["model"]
-        agent["agent_path"] = f".claude/agents/{agent['role']}.md"
+    agents_list = []
+    for r in agent_roles:
+        agent_conf = read_agent_toml(dom_root, r)
+        model = agent_conf.get("agent", {}).get("model", "opus")
+        agents_list.append({
+            "role": r,
+            "model": model,
+            "agent_path": f".claude/agents/{r}.md",
+        })
 
     await emit_event(dom_root, phase=phase, event="step_prepared",
-                     step=step, data={"thread_type": thread_type, "agent_count": len(agents)})
+                     step=step, data={"agent_count": len(agents_list)})
 
     # Metric commands for orchestrator to run before spawning agents (v0.5.0)
     metric_commands: list[dict] = []
@@ -271,8 +263,7 @@ async def prepare_step(phase: str, step: str, role: str | None = None) -> dict:
 
     return {
         "claude_md_path": str(path.relative_to(dom_root.parent)),
-        "thread_type": thread_type,
-        "agents": agents,
+        "agents": agents_list,
         "metric_commands": metric_commands,
     }
 
